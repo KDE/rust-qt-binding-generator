@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+nix-shell -p qtcreator cmake ninja gcc rustc cargo qt5.full extra-cmake-modules kdeFrameworks.kwidgetsaddons kdeFrameworks.kcoreaddons kdeFrameworks.ki18n appstream
