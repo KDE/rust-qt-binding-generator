@@ -43,7 +43,7 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
     
-set(RMail_SRCS src/main.cpp)
+set(RMail_SRCS src/main.cpp src/RMailObject.cpp)
 
 add_executable(RMail ${RMail_SRCS})
 

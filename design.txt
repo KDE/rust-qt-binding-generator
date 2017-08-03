@@ -1,0 +1,7 @@
+Communication between Rust and QML
+
+Access the Rust code as a QML type.
+
+
+Simple interface definition file generates a .h and .cpp files for QObject based classes. It also generates Rust files. It generates a trait that needs to be implemented and an empty definition for an implementation of that trait. The trait implementation needs to be filled in by the user.
+

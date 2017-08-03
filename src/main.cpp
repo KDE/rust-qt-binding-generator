@@ -1,4 +1,4 @@
-#include "rust.h"
+#include "RMailObject.h"
 #include <cstdlib>
 
 #include <QApplication>
@@ -44,16 +44,13 @@ int main (int argc, char *argv[])
     parser.process(app);
     aboutData.processCommandLine(&parser);
 
-    void* hello = hello_new();
-    QString qhello = QString::fromUtf8(hello_get(hello), hello_size(hello));
-    hello_set(hello, qhello.utf16(), qhello.size());
-    hello_free(hello);
- 
-    KGuiItem yesButton( i18n( "hello" ), QString(),
+    RMailObject rmail;
+    rmail.setUserName("RMail");
+    rmail.userName();
+
+    KGuiItem yesButton( rmail.userName(), rmail.userName(),
                         i18n( "This is a tooltip" ),
                         i18n( "This is a WhatsThis help text." ) );
-
-    add(0, 1);
 
     return 
         KMessageBox::questionYesNo 
