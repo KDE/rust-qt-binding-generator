@@ -4,10 +4,13 @@
 
 extern "C" {
     RMailObjectInterface* hello_new(void*, void (*)(RMailObject*));
+    void hello_free(RMailObjectInterface*);
     void hello_set(RMailObjectInterface*, const uint16_t *, size_t);
     size_t hello_size(RMailObjectInterface*);
     const char* hello_get(RMailObjectInterface*);
-    void hello_free(RMailObjectInterface*);
+
+    RItemModelInterface* ritemmodel_new(void*);
+    void ritemmodel_free(RItemModelInterface*);
 }
 
 RMailObject::RMailObject(QObject *parent):
@@ -41,4 +44,35 @@ void
 RMailObject::setTree(const QVariantMap& tree) {
     m_tree = tree;
     emit treeChanged();
+}
+
+RItemModel::RItemModel(QObject *parent):
+    QAbstractItemModel(parent),
+    d(ritemmodel_new(this))
+{
+}
+
+RItemModel::~RItemModel() {
+    ritemmodel_free(d);
+}
+
+int RItemModel::columnCount(const QModelIndex &parent) const
+{
+    return 0;
+}
+QVariant RItemModel::data(const QModelIndex &index, int role) const
+{
+    return 0;
+}
+QModelIndex RItemModel::index(int row, int column, const QModelIndex &parent) const
+{
+    return QModelIndex();
+}
+QModelIndex RItemModel::parent(const QModelIndex &index) const
+{
+    return QModelIndex();
+}
+int RItemModel::rowCount(const QModelIndex &parent) const
+{
+    return 0;
 }

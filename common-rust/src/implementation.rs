@@ -1,5 +1,4 @@
-use interface::HelloNotifier;
-use interface::HelloTrait;
+use interface::*;
 
 pub struct Hello {
     notifier: HelloNotifier,
@@ -24,5 +23,17 @@ impl HelloTrait for Hello {
 
 impl Drop for Hello {
     fn drop(&mut self) {
+    }
+}
+
+pub struct RItemModel {
+    notifier: RItemModelNotifier
+}
+
+impl RItemModelTrait for RItemModel {
+    fn create(notifier: RItemModelNotifier) -> Self {
+        RItemModel {
+            notifier: notifier
+        }
     }
 }

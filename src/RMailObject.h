@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QVariantMap>
+#include <QAbstractItemModel>
 
 class RMailObjectInterface;
 class RMailObject : public QObject
@@ -29,6 +30,21 @@ signals:
 
 private:
     QString m_userName;
+};
+
+class RItemModelInterface;
+class RItemModel : public QAbstractItemModel {
+    Q_OBJECT
+    RItemModelInterface* d;
+public:
+    explicit RItemModel(QObject *parent = nullptr);
+    ~RItemModel();
+
+    int columnCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const;
+    QModelIndex parent(const QModelIndex &index) const;
+    int rowCount(const QModelIndex &parent) const;
 };
 
 #endif // RMAIL_OBJECT_H

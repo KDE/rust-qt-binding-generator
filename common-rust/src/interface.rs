@@ -2,6 +2,7 @@ use std::slice;
 use libc::{uint8_t, uint16_t, size_t};
 
 use implementation::Hello;
+use implementation::RItemModel;
 
 pub struct HelloQObject {}
 
@@ -33,6 +34,12 @@ pub extern fn hello_new(qobject: *const HelloQObject, changed: fn(*const HelloQO
 }
 
 #[no_mangle]
+pub extern fn hello_free(ptr: *mut Hello) {
+    if ptr.is_null() { return }
+    unsafe { Box::from_raw(ptr); }
+}
+
+#[no_mangle]
 pub extern fn hello_set(ptr: *mut Hello, s: *const uint16_t, len: size_t) {
     let (hello, data) = unsafe {
         (&mut *ptr, slice::from_raw_parts(s, len as usize))
@@ -56,8 +63,30 @@ pub extern fn hello_get(ptr: *mut Hello) -> *const uint8_t {
     hello.get_hello().as_ptr()
 }
 
+pub struct RItemModelQObject {}
+
+pub struct RItemModelNotifier {
+    qobject: *const RItemModelQObject
+}
+
+impl RItemModelNotifier {
+}
+
+pub trait RItemModelTrait {
+    fn create(notifier: RItemModelNotifier) -> Self;
+}
+
 #[no_mangle]
-pub extern fn hello_free(ptr: *mut Hello) {
+pub extern fn ritemmodel_new(qobject: *const RItemModelQObject) -> *mut RItemModel {
+    let notifier = RItemModelNotifier {
+        qobject: qobject
+    };
+    let ritemmodel = RItemModel::create(notifier);
+    Box::into_raw(Box::new(ritemmodel))
+}
+
+#[no_mangle]
+pub extern fn ritemmodel_free(ptr: *mut RItemModel) {
     if ptr.is_null() { return }
     unsafe { Box::from_raw(ptr); }
 }
