@@ -2,8 +2,7 @@ use std::slice;
 use libc::{c_int, uint8_t, uint16_t, size_t, c_void};
 use types::*;
 
-use implementation::Hello;
-use implementation::RItemModel;
+use implementation::*;
 
 pub struct HelloQObject {}
 
@@ -63,8 +62,8 @@ pub struct RItemModelEmitter {
 impl RItemModelEmitter {
 }
 
-pub trait RItemModelTrait {
-    fn create(emit: RItemModelEmitter) -> Self;
+pub trait RItemModelTrait<T> {
+    fn create(emit: RItemModelEmitter, root: T) -> Self;
     fn column_count(&mut self, parent: QModelIndex) -> c_int;
     fn row_count(&mut self, parent: QModelIndex) -> c_int;
     fn index(&mut self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
@@ -77,7 +76,7 @@ pub extern fn ritemmodel_new(qobject: *const RItemModelQObject) -> *mut RItemMod
     let emit = RItemModelEmitter {
         qobject: qobject
     };
-    let ritemmodel = RItemModel::create(emit);
+    let ritemmodel = RItemModel::create(emit, DirEntry::create("/"));
     Box::into_raw(Box::new(ritemmodel))
 }
 

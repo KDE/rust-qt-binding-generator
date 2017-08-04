@@ -4,6 +4,7 @@ use libc::{c_int};
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::ffi::OsString;
+use std::default::Default;
 
 pub struct Hello {
     emit: HelloEmitter,
@@ -31,19 +32,68 @@ impl Drop for Hello {
     }
 }
 
-struct DirEntry {
+pub struct DirEntry {
     name: OsString,
+}
+
+impl DirEntry {
+    pub fn create(name: &str) -> DirEntry {
+        DirEntry {
+            name: OsString::from(name)
+        }
+    }
+}
+
+impl Item for DirEntry {
+    fn data<'a>(&self, role: c_int) -> Variant<'a> {
+        let str = self.name.to_string_lossy().to_string();
+        return Variant::from(str);
+    }
+    fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
+        let path: PathBuf = parents.into_iter().map(|e|&e.name).collect();
+println!("{}", path.to_string_lossy());
+        let mut v = Vec::new();
+        if let Ok(it) = read_dir(path) {
+            for i in it.filter_map(|v|v.ok()) {
+                let de = DirEntry {
+                    name: i.file_name(),
+                };
+                v.push(de);
+            }
+        }
+        v.sort_by_key(|ref i| i.name.clone());
+        return v;
+    }
+}
+
+impl Default for DirEntry {
+    fn default() -> DirEntry {
+        DirEntry {
+            name: OsString::new()
+        }
+    }
+}
+
+pub trait Item: Default {
+    fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
+    fn data<'a>(&self, role: c_int) -> Variant<'a>;
+}
+
+pub type RItemModel = RGeneralItemModel<DirEntry>;
+
+struct Entry<T: Item> {
     parent: usize,
     row: usize,
-    children: Option<Vec<usize>>
+    children: Option<Vec<usize>>,
+    data: T
 }
 
-pub struct RItemModel {
+pub struct RGeneralItemModel<T: Item> {
     emit: RItemModelEmitter,
-    entries: Vec<DirEntry>
+    entries: Vec<Entry<T>>
 }
 
-impl RItemModel {
+impl<T: Item> RGeneralItemModel<T> {
     fn get(&mut self, index: &QModelIndex) -> usize {
         let p = if index.is_valid() {
             let row = index.row() as usize;
@@ -52,44 +102,48 @@ impl RItemModel {
             1
         };
         if self.entries[p].children.is_none() {
-            self.read_dir(p);
+            self.retrieve(p);
         }
         p
     }
-    fn get_path(&self, id: usize) -> PathBuf {
+    fn retrieve(&mut self, id: usize) {
+        let mut new_entries = Vec::new();
+        let mut children = Vec::new();
+        {
+            let mut row = 0;
+            let parents = self.get_parents(id);
+            let entries = self.entries[id].data.retrieve(parents);
+            for d in entries {
+                let e = Entry {
+                    parent: id,
+                    row: row,
+                    children: None,
+                    data: d
+                };
+                row += 1;
+                children.push(self.entries.len() + row);
+                new_entries.push(e);
+            }
+        }
+        self.entries[id].children = Some(children);
+        self.entries.append(&mut new_entries);
+    }
+    fn get_parents(&self, id: usize) -> Vec<&T> {
         let mut pos = id;
         let mut e = Vec::new();
         while pos > 0 {
             e.push(pos);
             pos = self.entries[pos].parent;
         }
-        e.into_iter().rev().map(|i| &self.entries[i].name).collect()
-    }
-    fn read_dir(&mut self, id: usize) {
-        let mut v = Vec::new();
-        if let Ok(it) = read_dir(self.get_path(id)) {
-            let mut row = 0;
-            for i in it.filter_map(|v|v.ok()) {
-                let de = DirEntry {
-                    name: i.file_name(),
-                    parent: id,
-                    row: row,
-                    children: None
-                };
-                row += 1;
-                v.push(self.entries.len());
-                self.entries.push(de);
-            }
-        }
-        self.entries[id].children = Some(v);
+        e.into_iter().rev().map(|i| &self.entries[i].data).collect()
     }
 }
 
-impl RItemModelTrait for RItemModel {
-    fn create(emit: RItemModelEmitter) -> Self {
-        let none = DirEntry { name: OsString::new(), parent: 0, row: 0, children: None };
-        let root = DirEntry { name: OsString::from("/"), parent: 0, row: 0, children: None };
-        RItemModel {
+impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
+    fn create(emit: RItemModelEmitter, root: T) -> Self {
+        let none = Entry { parent: 0, row: 0, children: None, data: T::default() };
+        let root = Entry { parent: 0, row: 0, children: None, data: root };
+        RGeneralItemModel {
             emit: emit,
             entries: vec![none, root]
         }
@@ -113,7 +167,6 @@ impl RItemModelTrait for RItemModel {
     }
     fn data<'a>(&'a mut self, index: QModelIndex, role: c_int) -> Variant<'a> {
         let i = self.get(&index);
-        let str = self.entries[i].name.to_string_lossy().to_string();
-        return Variant::from(str);
+        return self.entries[i].data.data(role);
     }
 }
