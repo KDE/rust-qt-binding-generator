@@ -51,7 +51,7 @@ impl RItemModelTrait for RItemModel {
     fn parent(&self, index: QModelIndex) -> QModelIndex {
         QModelIndex::invalid()
     }
-    fn data(&self, index: QModelIndex, role: c_int) -> Variant {
-        Variant::String(String::from("hello"))
+    fn data<'a>(&'a self, index: QModelIndex, role: c_int) -> Variant<'a> {
+        Variant::from("hello")
     }
 }

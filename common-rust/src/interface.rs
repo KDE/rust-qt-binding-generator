@@ -50,9 +50,7 @@ pub extern fn hello_set(ptr: *mut Hello, s: *const uint16_t, len: size_t) {
 
 #[no_mangle]
 pub extern fn hello_get(ptr: *mut Hello) -> QString {
-    let hello = unsafe {
-        &mut *ptr
-    };
+    let hello = unsafe { &mut *ptr };
     QString::from(hello.get_hello())
 }
 
@@ -71,7 +69,7 @@ pub trait RItemModelTrait {
     fn row_count(&self, parent: QModelIndex) -> c_int;
     fn index(&self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
     fn parent(&self, index: QModelIndex) -> QModelIndex;
-    fn data(&self, index: QModelIndex, role: c_int) -> Variant;
+    fn data<'a>(&'a self, index: QModelIndex, role: c_int) -> Variant<'a>;
 }
 
 #[no_mangle]
@@ -91,41 +89,31 @@ pub extern fn ritemmodel_free(ptr: *mut RItemModel) {
 
 #[no_mangle]
 pub extern fn ritemmodel_column_count(ptr: *const RItemModel, parent: QModelIndex) -> i32 {
-    let ritemmodel = unsafe {
-        &*ptr
-    };
+    let ritemmodel = unsafe { &*ptr };
     ritemmodel.column_count(parent)
 }
 
 #[no_mangle]
 pub extern fn ritemmodel_row_count(ptr: *const RItemModel, parent: QModelIndex) -> i32 {
-    let ritemmodel = unsafe {
-        &*ptr
-    };
+    let ritemmodel = unsafe { &*ptr };
     ritemmodel.row_count(parent)
 }
 
 #[no_mangle]
 pub extern fn ritemmodel_index(ptr: *const RItemModel, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
-    let ritemmodel = unsafe {
-        &*ptr
-    };
+    let ritemmodel = unsafe { &*ptr };
     ritemmodel.index(row, column, parent)
 }
 
 #[no_mangle]
 pub extern fn ritemmodel_parent(ptr: *const RItemModel, index: QModelIndex) -> QModelIndex {
-    let ritemmodel = unsafe {
-        &*ptr
-    };
+    let ritemmodel = unsafe { &*ptr };
     ritemmodel.parent(index)
 }
 
 #[no_mangle]
 pub extern fn ritemmodel_data(ptr: *const RItemModel, index: QModelIndex, role: c_int, d: *mut c_void, set: fn (*mut c_void, &QVariant)) {
-    let ritemmodel = unsafe {
-        &*ptr
-    };
+    let ritemmodel = unsafe { &*ptr };
     let data = ritemmodel.data(index, role);
     set(d, &QVariant::from(&data));
 }

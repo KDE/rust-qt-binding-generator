@@ -17,10 +17,29 @@ impl<'a> From<&'a String> for QString {
     }
 }
 
-pub enum Variant {
+pub enum Variant<'a> {
     None,
     Bool(bool),
-    String(String)
+    String(String),
+    str(&'a str)
+}
+
+impl<'a> From<bool> for Variant<'a> {
+    fn from(value: bool) -> Variant<'a> {
+        Variant::Bool(value)
+    }
+}
+
+impl<'a> From<String> for Variant<'a> {
+    fn from(value: String) -> Variant<'a> {
+        Variant::String(value)
+    }
+}
+
+impl<'a> From<&'a str> for Variant<'a> {
+    fn from(value: &'a str) -> Variant {
+        Variant::str(value)
+    }
 }
 
 /* values from qvariant.h and qmetatype.h */
@@ -47,8 +66,8 @@ impl<'a> QVariant<'a> {
     }
 }
 
-impl<'a> From<&'a Variant> for QVariant<'a> {
-    fn from(variant: &'a Variant) -> QVariant {
+impl<'a> From<&'a Variant<'a>> for QVariant<'a> {
+    fn from(variant: &'a Variant<'a>) -> QVariant {
         match variant {
             &Variant::None => QVariant {
                 data: null(),
@@ -63,6 +82,12 @@ impl<'a> From<&'a Variant> for QVariant<'a> {
                 phantom: PhantomData
             },
             &Variant::String(ref v) => QVariant {
+                data: v.as_ptr(),
+                len: v.len() as c_int,
+                type_: VariantType::String as c_uint,
+                phantom: PhantomData
+            },
+            &Variant::str(ref v) => QVariant {
                 data: v.as_ptr(),
                 len: v.len() as c_int,
                 type_: VariantType::String as c_uint,
