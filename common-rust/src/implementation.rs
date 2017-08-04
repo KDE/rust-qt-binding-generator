@@ -60,7 +60,7 @@ impl Item for DirEntry {
                 v.push(de);
             }
         }
-        v.sort_by_key(|ref i| i.name.clone());
+        v.sort_by(|a, b| a.name.cmp(&b.name));
         return v;
     }
 }
