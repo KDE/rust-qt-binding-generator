@@ -51,7 +51,6 @@ impl Item for DirEntry {
     }
     fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
         let path: PathBuf = parents.into_iter().map(|e|&e.name).collect();
-println!("{}", path.to_string_lossy());
         let mut v = Vec::new();
         if let Ok(it) = read_dir(path) {
             for i in it.filter_map(|v|v.ok()) {
@@ -120,8 +119,8 @@ impl<T: Item> RGeneralItemModel<T> {
                     children: None,
                     data: d
                 };
-                row += 1;
                 children.push(self.entries.len() + row);
+                row += 1;
                 new_entries.push(e);
             }
         }
