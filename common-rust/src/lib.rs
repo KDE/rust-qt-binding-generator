@@ -1,5 +1,5 @@
 extern crate libc;
 
-#[macro_use]
+pub mod types;
 pub mod interface;
 pub mod implementation;

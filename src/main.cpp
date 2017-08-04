@@ -1,6 +1,7 @@
 #include "RMailObject.h"
 #include <cstdlib>
 
+#include <QTreeView>
 #include <QApplication>
 #include <QCommandLineParser>
 #include <KAboutData>
@@ -44,6 +45,12 @@ int main (int argc, char *argv[])
     parser.process(app);
     aboutData.processCommandLine(&parser);
 
+    RItemModel model;
+    QTreeView view;
+    view.setModel(&model);
+    view.show();
+    return app.exec();
+/*
     RMailObject rmail;
     rmail.setUserName("RMail");
     rmail.userName();
@@ -56,4 +63,5 @@ int main (int argc, char *argv[])
         KMessageBox::questionYesNo 
         (0, i18n( "Hello World" ), i18n( "Hello" ), yesButton ) 
         == KMessageBox::Yes? EXIT_SUCCESS: EXIT_FAILURE;
+*/
 }

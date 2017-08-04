@@ -15,6 +15,12 @@ include(KDECMakeSettings)
 include(KDECompilerSettings)
 include(FeatureSummary)
 
+#add_custom_target(rust
+#    OUTPUT "${CMAKE_SOURCE_DIR}/target/debug/librust.a"
+#    COMMAND cargo build
+#    COMMAND cargo build --release
+#    DEPENDS 
+
 set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/Rust)
 
 ExternalProject_Add(
