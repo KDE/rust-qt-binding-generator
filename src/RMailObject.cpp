@@ -144,12 +144,6 @@ void set_variant(void* v, qvariant_t* val) {
 
 QVariant RItemModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid()) {
-        return QVariant();
-    }
-    if (role != Qt::DisplayRole) {
-        return QVariant();
-    }
     const qmodelindex_t i = {
         .row = index.row(),
         .column =  index.column(),

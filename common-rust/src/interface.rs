@@ -1,5 +1,5 @@
 use std::slice;
-use libc::{c_int, uint8_t, uint16_t, size_t, c_void};
+use libc::{c_int, uint16_t, size_t, c_void};
 use types::*;
 
 use implementation::*;

@@ -46,6 +46,9 @@ impl DirEntry {
 
 impl Item for DirEntry {
     fn data<'a>(&self, role: c_int) -> Variant<'a> {
+        if role != 0 {
+            return Variant::None
+        }
         let str = self.name.to_string_lossy().to_string();
         return Variant::from(str);
     }
@@ -147,8 +150,8 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
             entries: vec![none, root]
         }
     }
-    fn column_count(&mut self, parent: QModelIndex) -> c_int {
-        1
+    fn column_count(&mut self, _: QModelIndex) -> c_int {
+        2
     }
     fn row_count(&mut self, parent: QModelIndex) -> c_int {
         let i = self.get(&parent);
