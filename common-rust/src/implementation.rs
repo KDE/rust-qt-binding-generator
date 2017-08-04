@@ -34,6 +34,7 @@ impl Drop for Hello {
 struct DirEntry {
     name: OsString,
     parent: usize,
+    row: usize,
     children: Option<Vec<usize>>
 }
 
@@ -62,21 +63,20 @@ impl RItemModel {
             e.push(pos);
             pos = self.entries[pos].parent;
         }
-        let mut path = PathBuf::new();
-        for i in e.into_iter().rev() {
-            path.push(&self.entries[i].name);
-        }
-        path
+        e.into_iter().rev().map(|i| &self.entries[i].name).collect()
     }
     fn read_dir(&mut self, id: usize) {
         let mut v = Vec::new();
         if let Ok(it) = read_dir(self.get_path(id)) {
+            let mut row = 0;
             for i in it.filter_map(|v|v.ok()) {
                 let de = DirEntry {
                     name: i.file_name(),
                     parent: id,
+                    row: row,
                     children: None
                 };
+                row += 1;
                 v.push(self.entries.len());
                 self.entries.push(de);
             }
@@ -87,8 +87,8 @@ impl RItemModel {
 
 impl RItemModelTrait for RItemModel {
     fn create(emit: RItemModelEmitter) -> Self {
-        let none = DirEntry { name: OsString::new(), parent: 0, children: None };
-        let root = DirEntry { name: OsString::from("/"), parent: 0, children: None };
+        let none = DirEntry { name: OsString::new(), parent: 0, row: 0, children: None };
+        let root = DirEntry { name: OsString::from("/"), parent: 0, row: 0, children: None };
         RItemModel {
             emit: emit,
             entries: vec![none, root]
@@ -108,14 +108,12 @@ impl RItemModelTrait for RItemModel {
         if !index.is_valid() || index.id() == 1 {
             return QModelIndex::invalid();
         }
-        let parentid = self.entries[index.id()].parent;
-        let ref e = self.entries[parentid];
-        let mut i = e.children.as_ref().unwrap().iter();
-        let row = i.position(|v|*v==index.id()).unwrap() as i32;
-        QModelIndex::create(row, 0, e.parent)
+        let ref e = self.entries[index.id()];
+        QModelIndex::create(e.row as i32, 0, e.parent)
     }
     fn data<'a>(&'a mut self, index: QModelIndex, role: c_int) -> Variant<'a> {
         let i = self.get(&index);
-        return Variant::from(self.entries[i].name.to_string_lossy().to_string());
+        let str = self.entries[i].name.to_string_lossy().to_string();
+        return Variant::from(str);
     }
 }
