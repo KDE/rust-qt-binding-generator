@@ -65,11 +65,11 @@ impl RItemModelEmitter {
 
 pub trait RItemModelTrait {
     fn create(emit: RItemModelEmitter) -> Self;
-    fn column_count(&self, parent: QModelIndex) -> c_int;
-    fn row_count(&self, parent: QModelIndex) -> c_int;
-    fn index(&self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
+    fn column_count(&mut self, parent: QModelIndex) -> c_int;
+    fn row_count(&mut self, parent: QModelIndex) -> c_int;
+    fn index(&mut self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
     fn parent(&self, index: QModelIndex) -> QModelIndex;
-    fn data<'a>(&'a self, index: QModelIndex, role: c_int) -> Variant<'a>;
+    fn data<'a>(&'a mut self, index: QModelIndex, role: c_int) -> Variant<'a>;
 }
 
 #[no_mangle]
@@ -88,20 +88,20 @@ pub extern fn ritemmodel_free(ptr: *mut RItemModel) {
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_column_count(ptr: *const RItemModel, parent: QModelIndex) -> i32 {
-    let ritemmodel = unsafe { &*ptr };
+pub extern fn ritemmodel_column_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
+    let ritemmodel = unsafe { &mut *ptr };
     ritemmodel.column_count(parent)
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_row_count(ptr: *const RItemModel, parent: QModelIndex) -> i32 {
-    let ritemmodel = unsafe { &*ptr };
+pub extern fn ritemmodel_row_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
+    let ritemmodel = unsafe { &mut *ptr };
     ritemmodel.row_count(parent)
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_index(ptr: *const RItemModel, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
-    let ritemmodel = unsafe { &*ptr };
+pub extern fn ritemmodel_index(ptr: *mut RItemModel, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
+    let ritemmodel = unsafe { &mut *ptr };
     ritemmodel.index(row, column, parent)
 }
 
@@ -112,8 +112,8 @@ pub extern fn ritemmodel_parent(ptr: *const RItemModel, index: QModelIndex) -> Q
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_data(ptr: *const RItemModel, index: QModelIndex, role: c_int, d: *mut c_void, set: fn (*mut c_void, &QVariant)) {
-    let ritemmodel = unsafe { &*ptr };
+pub extern fn ritemmodel_data(ptr: *mut RItemModel, index: QModelIndex, role: c_int, d: *mut c_void, set: fn (*mut c_void, &QVariant)) {
+    let ritemmodel = unsafe { &mut *ptr };
     let data = ritemmodel.data(index, role);
     set(d, &QVariant::from(&data));
 }

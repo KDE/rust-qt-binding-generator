@@ -21,7 +21,7 @@ pub enum Variant<'a> {
     None,
     Bool(bool),
     String(String),
-    str(&'a str)
+    Str(&'a str)
 }
 
 impl<'a> From<bool> for Variant<'a> {
@@ -38,7 +38,7 @@ impl<'a> From<String> for Variant<'a> {
 
 impl<'a> From<&'a str> for Variant<'a> {
     fn from(value: &'a str) -> Variant {
-        Variant::str(value)
+        Variant::Str(value)
     }
 }
 
@@ -87,7 +87,7 @@ impl<'a> From<&'a Variant<'a>> for QVariant<'a> {
                 type_: VariantType::String as c_uint,
                 phantom: PhantomData
             },
-            &Variant::str(ref v) => QVariant {
+            &Variant::Str(ref v) => QVariant {
                 data: v.as_ptr(),
                 len: v.len() as c_int,
                 type_: VariantType::String as c_uint,
@@ -112,6 +112,13 @@ impl QModelIndex {
             internal_id: 0
         }
     }
+    pub fn create(row: c_int, column: c_int, id: usize) -> QModelIndex {
+        QModelIndex {
+            row: row,
+            column: column,
+            internal_id: id
+        }
+    }
     pub fn flat(row: c_int, column: c_int) -> QModelIndex {
         QModelIndex {
             row: row,
@@ -121,5 +128,14 @@ impl QModelIndex {
     }
     pub fn is_valid(&self) -> bool {
         self.internal_id != 0 && self.row >= 0 && self.column >= 0
+    }
+    pub fn row(&self) -> c_int {
+        self.row
+    }
+    pub fn column(&self) -> c_int {
+        self.column
+    }
+    pub fn id(&self) -> usize {
+        self.internal_id
     }
 }
