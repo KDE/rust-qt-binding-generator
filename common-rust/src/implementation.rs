@@ -5,6 +5,7 @@ use std::fs::read_dir;
 use std::path::PathBuf;
 use std::ffi::OsString;
 use std::default::Default;
+use std::thread;
 
 pub struct Hello {
     emit: HelloEmitter,
@@ -105,6 +106,10 @@ impl<T: Item> RGeneralItemModel<T> {
         };
         if self.entries[p].children.is_none() {
             self.retrieve(p);
+            let emit = self.emit.clone();
+            thread::spawn(move || {
+                emit.new_data_ready();
+            });
         }
         p
     }
@@ -149,6 +154,9 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
             emit: emit,
             entries: vec![none, root]
         }
+    }
+    fn emit(&self) -> &RItemModelEmitter {
+        &self.emit
     }
     fn column_count(&mut self, _: QModelIndex) -> c_int {
         2

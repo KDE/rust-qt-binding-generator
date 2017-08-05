@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 namespace {
-    typedef struct {
+    struct qbytearray_t {
     private:
         const char* data;
         int len;
@@ -13,7 +13,7 @@ namespace {
         operator QByteArray() const {
             return QByteArray(data, len);
         }
-    } qbytearray_t;
+    };
     struct qstring_t {
     private:
         const char* data;
@@ -23,16 +23,18 @@ namespace {
             return QString::fromUtf8(data, len);
         }
     };
-    typedef struct {
+    struct qmodelindex_t {
         int row;
         int column;
         uint64_t id;
-    } qmodelindex_t;
-    typedef struct qvariant_t {
+        qmodelindex_t(const QModelIndex& m):
+           row(m.row()), column(m.column()), id(m.internalId()) {}
+    };
+    struct qvariant_t {
         unsigned int type;
         int value;
         const char* data;
-    } qvariant_t;
+    };
     QVariant variant(const qvariant_t& v) {
         switch (v.type) {
             case QVariant::Bool: return QVariant((bool)v.value);
@@ -67,7 +69,7 @@ extern "C" {
     void hello_set(RMailObjectInterface*, const uint16_t *, size_t);
     qstring_t hello_get(RMailObjectInterface*);
 
-    RItemModelInterface* ritemmodel_new(void*);
+    RItemModelInterface* ritemmodel_new(void*, void (*)(RItemModel*));
     void ritemmodel_free(RItemModelInterface*);
     int ritemmodel_column_count(RItemModelInterface*, qmodelindex_t parent);
     int ritemmodel_row_count(RItemModelInterface*, qmodelindex_t parent);
@@ -111,31 +113,30 @@ RMailObject::setTree(const QVariantMap& tree) {
 
 RItemModel::RItemModel(QObject *parent):
     QAbstractItemModel(parent),
-    d(ritemmodel_new(this))
+    d(ritemmodel_new(this,
+        [](RItemModel* o) { emit o->newDataReady(); }
+    ))
 {
+    connect(this, &RItemModel::newDataReady, this, &RItemModel::handleNewData,
+        Qt::QueuedConnection);
+    qDebug() << sizeof(QObject) << sizeof(RItemModel);
 }
 
 RItemModel::~RItemModel() {
     ritemmodel_free(d);
 }
 
+void RItemModel::handleNewData() {
+    qDebug() << "new data!";
+}
+
 int RItemModel::columnCount(const QModelIndex &parent) const
 {
-    const qmodelindex_t p = {
-        .row = parent.row(),
-        .column = parent.column(),
-        .id = parent.internalId()
-    };
-    return ritemmodel_column_count(d, p);
+    return ritemmodel_column_count(d, parent);
 }
 int RItemModel::rowCount(const QModelIndex &parent) const
 {
-    const qmodelindex_t p = {
-        .row = parent.row(),
-        .column = parent.column(),
-        .id = parent.internalId()
-    };
-    return ritemmodel_row_count(d, p);
+    return ritemmodel_row_count(d, parent);
 }
 
 void set_variant(void* v, qvariant_t* val) {
@@ -144,23 +145,13 @@ void set_variant(void* v, qvariant_t* val) {
 
 QVariant RItemModel::data(const QModelIndex &index, int role) const
 {
-    const qmodelindex_t i = {
-        .row = index.row(),
-        .column =  index.column(),
-        .id = index.internalId()
-    };
     QVariant v;
-    ritemmodel_data(d, i, role, &v, set_variant);
+    ritemmodel_data(d, index, role, &v, set_variant);
     return v;
 }
 QModelIndex RItemModel::index(int row, int column, const QModelIndex &parent) const
 {
-    const qmodelindex_t p = {
-        .row = parent.row(),
-        .column =  parent.column(),
-        .id = parent.internalId()
-    };
-    const qmodelindex_t i = ritemmodel_index(d, row, column, p);
+    const qmodelindex_t i = ritemmodel_index(d, row, column, parent);
     return i.id ?createIndex(i.row, i.column, i.id) :QModelIndex();
 }
 QModelIndex RItemModel::parent(const QModelIndex &index) const
@@ -168,11 +159,6 @@ QModelIndex RItemModel::parent(const QModelIndex &index) const
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t i = {
-        .row = index.row(),
-        .column =  index.column(),
-        .id = index.internalId()
-    };
-    const qmodelindex_t parent = ritemmodel_parent(d, i);
+    const qmodelindex_t parent = ritemmodel_parent(d, index);
     return parent.id ?createIndex(parent.row, parent.column, parent.id) :QModelIndex();
 }

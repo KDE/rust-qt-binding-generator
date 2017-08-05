@@ -45,6 +45,12 @@ public:
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &index) const;
     int rowCount(const QModelIndex &parent) const;
+
+private slots:
+    void handleNewData();
+
+signals:
+    void newDataReady();
 };
 
 #endif // RMAIL_OBJECT_H

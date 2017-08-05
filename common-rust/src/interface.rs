@@ -1,6 +1,8 @@
 use std::slice;
 use libc::{c_int, uint16_t, size_t, c_void};
 use types::*;
+use std::sync::{Arc, Mutex};
+use std::ptr::null;
 
 use implementation::*;
 
@@ -53,17 +55,32 @@ pub extern fn hello_get(ptr: *mut Hello) -> QString {
     QString::from(hello.get_hello())
 }
 
+
 pub struct RItemModelQObject {}
 
+#[derive (Clone)]
 pub struct RItemModelEmitter {
-    qobject: *const RItemModelQObject
+    qobject: Arc<Mutex<*const RItemModelQObject>>,
+    new_data_ready: fn (*const RItemModelQObject)
 }
 
+unsafe impl Send for RItemModelEmitter {}
+
 impl RItemModelEmitter {
+    pub fn new_data_ready(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr);
+        }
+    }
+    fn clear(&self) {
+        *self.qobject.lock().unwrap() = null();
+    }
 }
 
 pub trait RItemModelTrait<T> {
     fn create(emit: RItemModelEmitter, root: T) -> Self;
+    fn emit(&self) -> &RItemModelEmitter;
     fn column_count(&mut self, parent: QModelIndex) -> c_int;
     fn row_count(&mut self, parent: QModelIndex) -> c_int;
     fn index(&mut self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
@@ -72,9 +89,10 @@ pub trait RItemModelTrait<T> {
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_new(qobject: *const RItemModelQObject) -> *mut RItemModel {
+pub extern fn ritemmodel_new(qobject: *const RItemModelQObject, new_data_ready: fn(*const RItemModelQObject)) -> *mut RItemModel {
     let emit = RItemModelEmitter {
-        qobject: qobject
+        qobject: Arc::new(Mutex::new(qobject)),
+        new_data_ready: new_data_ready
     };
     let ritemmodel = RItemModel::create(emit, DirEntry::create("/"));
     Box::into_raw(Box::new(ritemmodel))
@@ -82,8 +100,8 @@ pub extern fn ritemmodel_new(qobject: *const RItemModelQObject) -> *mut RItemMod
 
 #[no_mangle]
 pub extern fn ritemmodel_free(ptr: *mut RItemModel) {
-    if ptr.is_null() { return }
-    unsafe { Box::from_raw(ptr); }
+    let ritemmodel = unsafe { Box::from_raw(ptr) };
+    ritemmodel.emit().clear();
 }
 
 #[no_mangle]
