@@ -25,6 +25,9 @@ struct Object {
 struct Configuration {
     QFileInfo hfile;
     QFileInfo cppfile;
+    QDir rustdir;
+    QString interfacemodule;
+    QString implementationmodule;
     QList<Object> objects;
 };
 
@@ -72,6 +75,10 @@ parseConfiguration(const QString& path) {
     for (const QJsonValue& val: o.value("objects").toArray()) {
         c.objects.append(parseObject(val.toObject()));
     }
+    const QJsonObject rust = o.value("rust").toObject();
+    c.rustdir = QDir(base.filePath(rust.value("dir").toString()));
+    c.interfacemodule = rust.value("interfacemodule").toString();
+    c.implementationmodule = rust.value("implementationmodule").toString();
     return c;
 }
 
@@ -347,6 +354,124 @@ extern "C" {
     }
 }
 
+QString rustType(const Property& p) {
+    if (p.type == "QVariant") {
+        return "Variant";
+    }
+    if (p.type.startsWith("Q")) {
+        return "&" + p.type.mid(1);
+    }
+    if (p.type == "int") {
+        return "c_int";
+    }
+    return p.type;
+}
+
+void writeRustInterfaceObject(QTextStream& r, const Object& o) {
+    const QString lcname(o.name.toLower());
+    r << QString(R"(
+pub struct %1QObject {}
+
+#[derive (Clone)]
+pub struct %1Emitter {
+    qobject: Arc<Mutex<*const %1QObject>>,
+)").arg(o.name);
+    for (const Property& p: o.properties) {
+        r << QString("    %2_changed: fn (*const %1QObject),\n")
+            .arg(o.name, p.name.toLower());
+    }
+    r << QString(R"(}
+
+unsafe impl Send for %1Emitter {}
+
+impl %1Emitter {
+    fn clear(&self) {
+        *self.qobject.lock().unwrap() = null();
+    }
+)").arg(o.name);
+    for (const Property& p: o.properties) {
+        r << QString(R"(    pub fn %1_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.%1_changed)(ptr);
+        }
+    }
+)").arg(p.name.toLower());
+    }
+
+    r << QString(R"(}
+
+pub trait %1Trait {
+    fn create(emit: %1Emitter) -> Self;
+    fn emit(&self) -> &%1Emitter;
+)").arg(o.name);
+    for (const Property& p: o.properties) {
+        const QString lc(p.name.toLower());
+        const bool q = p.type.startsWith("Q");
+        r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
+        if (p.write) {
+            r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
+        }
+    }
+
+    r << QString(R"(}
+
+#[no_mangle]
+pub extern fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
+    for (const Property& p: o.properties) {
+        r << QString(",\n        %2_changed: fn (*const %1QObject)")
+            .arg(o.name, p.name.toLower());
+    }
+    r << QString(R"() -> *mut %1 {
+    let emit = %1Emitter {
+        qobject: Arc::new(Mutex::new(qobject)))").arg(o.name);
+    for (const Property& p: o.properties) {
+        r << QString(",\n        %1_changed: %1_changed").arg(p.name.toLower());
+    }
+    r << QString(R"(
+    }; 
+    let d = %1::create(emit);
+    Box::into_raw(Box::new(d))
+}
+
+#[no_mangle]
+pub extern fn %2_free(ptr: *mut %1) {
+    let d = unsafe { Box::from_raw(ptr) };
+    d.emit().clear();
+}
+)").arg(o.name, lcname);
+}
+
+QString rustFile(const QDir rustdir, const QString& module) {
+    QDir src(rustdir.absoluteFilePath("src"));
+    QString path = src.absoluteFilePath(module + ".rs");
+    return path;
+}
+
+void writeRustInterface(const Configuration& conf) {
+    QFile file(rustFile(conf.rustdir, conf.interfacemodule));
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        err << QCoreApplication::translate("main",
+            "Cannot write %1.\n").arg(file.fileName());
+        err.flush();
+        exit(1);
+    }
+    QTextStream r(&file);
+    r << QString(R"(
+use std::slice;
+use libc::{c_int, uint16_t, size_t, c_void};
+use types::*;
+use std::sync::{Arc, Mutex};
+use std::ptr::null;
+
+use %1::*;
+)").arg(conf.implementationmodule);
+
+    for (auto object: conf.objects) {
+        writeRustInterfaceObject(r, object);
+    }
+}
+
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName(argv[0]);
@@ -373,6 +498,7 @@ int main(int argc, char *argv[]) {
 
     writeHeader(configuration);
     writeCpp(configuration);
+    writeRustInterface(configuration);
 
     return 0;
 }

@@ -1,5 +1,10 @@
 {
     "cppfile": "src/tmp.cpp",
+    "rust": {
+        "dir": "common-rust",
+        "interfacemodule": "testinterface",
+        "implementationmodule": "testimplementation"
+    },
     "objects": [{
         "name": "Test",
         "properties": [{
