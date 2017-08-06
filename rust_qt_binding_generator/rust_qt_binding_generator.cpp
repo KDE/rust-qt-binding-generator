@@ -73,15 +73,6 @@ parseConfiguration(const QString& path) {
         c.objects.append(parseObject(val.toObject()));
     }
     return c;
-       /* 
-        QTextStream in(&configurationFile);
-        in.setCodec("UTF-8");
-        configuration = in.readAll();
-        configurationFile.close();
-    } else {
-        return 1;
-    }
-*/
 }
 
 QString upperInitial(const QString& name) {
