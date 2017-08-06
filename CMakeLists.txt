@@ -33,7 +33,6 @@ ExternalProject_Add(
     INSTALL_COMMAND ""
     LOG_BUILD ON)
 
-
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS 
     Core    # QCommandLineParser, QStringLiteral
@@ -48,8 +47,11 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
 )
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
+
+add_subdirectory(rust_qt_binding_generator)
+
     
-set(RMail_SRCS src/main.cpp src/RMailObject.cpp)
+set(RMail_SRCS src/main.cpp src/RMailObject.cpp src/tmp.cpp)
 
 add_executable(RMail ${RMail_SRCS})
 

@@ -1,0 +1,22 @@
+{
+  "cppfile": "src/tmp.cpp",
+  "objects": [{
+    "name": "Test",
+    "properties": [{
+        "name": "userName",
+        "type": "QString",
+        "write": true
+    }, {
+        "name": "age",
+        "type": "int"
+    }, {
+        "name": "active",
+        "type": "bool",
+        "write": true
+    }, {
+        "name": "misc",
+        "type": "QVariant",
+        "write": true
+    }]
+  }]
+}

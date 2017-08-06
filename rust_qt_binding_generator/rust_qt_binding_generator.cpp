@@ -1,0 +1,387 @@
+#include <QCommandLineParser>
+#include <QFile>
+#include <QDir>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+using std::endl;
+
+QTextStream out(stdout);
+QTextStream err(stderr);
+
+struct Property {
+    QString name;
+    QString type;
+    bool write;
+};
+
+struct Object {
+    QString name;
+    QList<Property> properties;
+};
+
+struct Configuration {
+    QFileInfo hfile;
+    QFileInfo cppfile;
+    QList<Object> objects;
+};
+
+Property
+parseProperty(const QJsonObject& json) {
+    Property p;
+    p.name = json.value("name").toString();
+    p.type = json.value("type").toString();
+    p.write = json.value("write").toBool();
+    return p;
+}
+
+Object
+parseObject(const QJsonObject& json) {
+    Object o;
+    o.name = json.value("name").toString();
+    for (const QJsonValue& val: json.value("properties").toArray()) {
+        o.properties.append(parseProperty(val.toObject()));
+    }
+    return o;
+}
+
+Configuration
+parseConfiguration(const QString& path) {
+    QFile configurationFile(path);
+    const QDir base = QFileInfo(configurationFile).dir();
+    if (!configurationFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        err << QCoreApplication::translate("main",
+            "Cannot read %1.\n").arg(configurationFile.fileName());
+        err.flush();
+        exit(1);
+    }
+    const QByteArray data(configurationFile.readAll());
+    QJsonParseError error;
+    const QJsonDocument doc(QJsonDocument::fromJson(data, &error));
+    if (error.error != QJsonParseError::NoError) {
+        err << error.errorString();
+        err.flush();
+        exit(1);
+    }
+    const QJsonObject o = doc.object();
+    Configuration c;
+    c.cppfile = QFileInfo(base, o.value("cppfile").toString());
+    c.hfile = QFileInfo(c.cppfile.dir(), c.cppfile.completeBaseName() + ".h");
+    for (const QJsonValue& val: o.value("objects").toArray()) {
+        c.objects.append(parseObject(val.toObject()));
+    }
+    return c;
+       /* 
+        QTextStream in(&configurationFile);
+        in.setCodec("UTF-8");
+        configuration = in.readAll();
+        configurationFile.close();
+    } else {
+        return 1;
+    }
+*/
+}
+
+QString upperInitial(const QString& name) {
+    return name.left(1).toUpper() + name.mid(1);
+}
+
+QString writeProperty(const QString& name) {
+    return "WRITE set" + upperInitial(name) + " ";
+}
+
+QString type(const Property& p) {
+    if (p.type.startsWith("Q")) {
+        return "const " + p.type + "&";
+    }
+    return p.type;
+}
+
+QString cSetType(const Property& p) {
+    if (p.type.startsWith("Q")) {
+        return p.type.toLower() + "_t";
+    }
+    return p.type;
+}
+
+QString cGetType(const Property& p) {
+    return p.type + "*, " + p.type.toLower() + "_set";
+}
+
+void writeHeaderObject(QTextStream& h, const Object& o) {
+    h << QString(R"(
+class %1Interface;
+class %1 : public QObject
+{
+    Q_OBJEC%2
+    %1Interface * const d;
+)").arg(o.name, "T");
+    for (auto p: o.properties) {
+        h << QString("    Q_PROPERTY(%1 %2 READ %2 %3NOTIFY %2Changed FINAL)")
+                .arg(p.type, p.name,
+                     p.write ? writeProperty(p.name) :"") << endl;
+    }
+    h << QString(R"(public:
+    explicit %1(QObject *parent = nullptr);
+    ~%1();
+)").arg(o.name);
+    for (auto p: o.properties) {
+        h << "    " << p.type << " " << p.name << "() const;" << endl;
+        if (p.write) {
+            h << "    void set" << upperInitial(p.name) << "(" << type(p) << " v);" << endl;
+        }
+    }
+    h << "signals:" << endl;
+    for (auto p: o.properties) {
+        h << "    void " << p.name << "Changed();" << endl;
+    }
+    h << "private:" << endl;
+    for (auto p: o.properties) {
+        h << "    " << p.type << " m_" << p.name << ";" << endl;
+    }
+    h << "};" << endl;
+}
+
+void writeObjectCDecl(QTextStream& cpp, const Object& o) {
+    const QString lcname(o.name.toLower());
+    cpp << QString("    %1Interface* %2_new(%1*").arg(o.name, lcname);
+    for (const Property& p: o.properties) {
+        cpp << QString(", void (*)(%1*)").arg(o.name);
+    }
+    cpp << ");" << endl;
+    cpp << QString("    void %2_free(%1Interface*);").arg(o.name, lcname)
+        << endl;
+    for (const Property& p: o.properties) {
+        const QString base = QString("%1_%2").arg(lcname, p.name.toLower());
+        if (p.type.startsWith("Q")) {
+            cpp << QString("    void %2_get(%1Interface*, %3);")
+                .arg(o.name, base, cGetType(p)) << endl;
+        } else {
+            cpp << QString("    %3 %2_get(%1Interface*);")
+                .arg(o.name, base, p.type) << endl;
+        }
+        if (p.write) {
+            cpp << QString("    void %1_set(void*, %2);")
+                .arg(base, cSetType(p)) << endl;
+        }
+    }
+}
+
+void writeCppObject(QTextStream& cpp, const Object& o) {
+    const QString lcname(o.name.toLower());
+    cpp << QString("%1::%1(QObject *parent):\n    QObject(parent),")
+            .arg(o.name) << endl;
+    cpp << QString("    d(%1_new(this").arg(lcname);
+    for (const Property& p: o.properties) {
+        cpp << QString(",\n        [](%1* o) { emit o->%2Changed(); }")
+            .arg(o.name, p.name);
+    }
+    cpp << QString(R"()) {}
+
+%1::~%1() {
+    %2_free(d);
+}
+)").arg(o.name, lcname);
+
+    for (const Property& p: o.properties) {
+        const QString base = QString("%1_%2").arg(lcname, p.name.toLower());
+        cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type);
+        if (p.type.startsWith("Q")) {
+            cpp << "    " << p.type << " v;\n";
+            cpp << "    " << base << "_get(d, &v, set_" << p.type.toLower()
+                << ");\n";
+            cpp << "    return v;\n}\n";
+        } else {
+            cpp << QString("    return %1_get(d);\n}\n").arg(base);
+        }
+        if (p.write) {
+            cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << type(p) << " v) {" << endl;
+            if (p.type == "QVariant") {
+                cpp << QString("    variant(v, d, %1_set);").arg(base) << endl;
+            } else {
+                cpp << QString("    %1_set(d, v);").arg(base) << endl;
+            }
+            cpp << "}" << endl;
+        }
+    }
+}
+
+void writeHeader(const Configuration& conf) {
+    QFile hFile(conf.hfile.absoluteFilePath());
+    if (!hFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        err << QCoreApplication::translate("main",
+            "Cannot write %1.\n").arg(hFile.fileName());
+        err.flush();
+        exit(1);
+    }
+    QTextStream h(&hFile);
+    const QString guard(conf.hfile.fileName().replace('.', '_').toUpper());
+    h << QString(R"(
+#ifndef %1
+#define %1
+
+#include <QObject>
+#include <QString>
+#include <QVariantMap>
+#include <QAbstractItemModel>
+)").arg(guard);
+
+    for (auto object: conf.objects) {
+        writeHeaderObject(h, object);
+    }
+
+    h << QString("#endif // %1\n").arg(guard);
+}
+
+void writeCpp(const Configuration& conf) {
+    QFile cppFile(conf.cppfile.absoluteFilePath());
+    if (!cppFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        err << QCoreApplication::translate("main",
+            "Cannot write %1.\n").arg(cppFile.fileName());
+        err.flush();
+        exit(1);
+    }
+    QTextStream cpp(&cppFile);
+    cpp << QString(R"(
+#include "%1"
+namespace {
+    struct qbytearray_t {
+    private:
+        const char* data;
+        int len;
+    public:
+        operator QByteArray() const {
+            return QByteArray(data, len);
+        }
+    };
+    struct qstring_t {
+    private:
+        const void* data;
+        int len;
+    public:
+        qstring_t(const QString& v):
+            data(static_cast<const void*>(v.utf16())),
+            len(v.size()) {
+        }
+        operator QString() const {
+            return QString::fromUtf8(static_cast<const char*>(data), len);
+        }
+    };
+    struct qmodelindex_t {
+        int row;
+        int column;
+        uint64_t id;
+        qmodelindex_t(const QModelIndex& m):
+           row(m.row()), column(m.column()), id(m.internalId()) {}
+    };
+    struct qvariant_t {
+        unsigned int type;
+        int value;
+        const char* data;
+    };
+    QVariant variant(const qvariant_t& v) {
+        switch (v.type) {
+            case QVariant::Bool: return QVariant((bool)v.value);
+            case QVariant::String: return QString::fromUtf8(static_cast<const char*>(v.data), v.value);
+            default:;
+        }
+        return QVariant();
+    }
+    void variant(const QByteArray& v, void* d, void (*set)(void*, qvariant_t)) {
+        set(d, {
+            .type = QVariant::ByteArray,
+            .value = v.length(),
+            .data = v.data()
+        });
+    }
+    void variant(const QString& v, void* d, void (*set)(void*, qvariant_t)) {
+        set(d, {
+            .type = QVariant::String,
+            .value = v.size(),
+            .data = static_cast<const char*>(static_cast<const void*>(v.utf16()))
+        });
+    }
+    void variant(const QVariant& v, void* d, void (*set)(void*, qvariant_t)) {
+        switch (v.type()) {
+            case QVariant::Bool:
+                set(d, {
+                    .type = QVariant::Bool,
+                    .value = v.toBool(),
+                    .data = 0
+                });
+                break;
+            case QVariant::Int:
+                set(d, {
+                    .type = QVariant::Int,
+                    .value = v.toInt(),
+                    .data = 0
+                });
+                break;
+            case QVariant::ByteArray:
+                variant(v.toByteArray(), d, set);
+                break;
+            case QVariant::String:
+                variant(v.toString(), d, set);
+                break;
+            default:
+                set(d, {
+                    .type = QVariant::Invalid,
+                    .value = 0,
+                    .data = 0
+                });
+        }
+    }
+}
+typedef void (*qstring_set)(QString*, qstring_t*);
+void set_qstring(QString* v, qstring_t* val) {
+    *v = *val;
+}
+typedef void (*qvariant_set)(QVariant*, qvariant_t*);
+void set_qvariant(QVariant* v, qvariant_t* val) {
+    *v = variant(*val);
+}
+
+extern "C" {
+)").arg(conf.hfile.fileName());
+
+    for (auto object: conf.objects) {
+        writeObjectCDecl(cpp, object);
+    }
+    cpp << "};" << endl;
+
+    for (auto object: conf.objects) {
+        writeCppObject(cpp, object);
+    }
+}
+
+int main(int argc, char *argv[]) {
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName(argv[0]);
+    QCoreApplication::setApplicationVersion("0.1");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Generates bindings between Qt and Rust");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument("configuration",
+        QCoreApplication::translate("main", "Configuration file"));
+
+    parser.process(app);
+
+    const QStringList args = parser.positionalArguments();
+    if (args.isEmpty()) {
+        err << QCoreApplication::translate("main",
+            "Configuration file is missing.\n");
+        return 1;
+    }
+
+    const QString configurationFile(args.at(0));
+    const Configuration configuration = parseConfiguration(configurationFile);
+
+    writeHeader(configuration);
+    writeCpp(configuration);
+
+    return 0;
+}

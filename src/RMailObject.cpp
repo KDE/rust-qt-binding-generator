@@ -64,18 +64,18 @@ namespace {
 typedef void (*qvariant_set)(void*, qvariant_t*);
 
 extern "C" {
-    RMailObjectInterface* hello_new(void*, void (*)(RMailObject*));
+    RMailObjectInterface* hello_new(RMailObject*, void (*)(RMailObject*));
     void hello_free(RMailObjectInterface*);
     void hello_set(RMailObjectInterface*, const uint16_t *, size_t);
     qstring_t hello_get(RMailObjectInterface*);
 
-    RItemModelInterface* ritemmodel_new(void*, void (*)(RItemModel*));
+    RItemModelInterface* ritemmodel_new(RItemModel*, void (*)(RItemModel*));
     void ritemmodel_free(RItemModelInterface*);
     int ritemmodel_column_count(RItemModelInterface*, qmodelindex_t parent);
     int ritemmodel_row_count(RItemModelInterface*, qmodelindex_t parent);
     qmodelindex_t ritemmodel_index(RItemModelInterface*, int row, int column, qmodelindex_t parent);
     qmodelindex_t ritemmodel_parent(RItemModelInterface*, qmodelindex_t);
-    void ritemmodel_data(RItemModelInterface*, qmodelindex_t, int, void*, qvariant_set);
+    void ritemmodel_data(RItemModelInterface*, qmodelindex_t, int, QVariant*, qvariant_set);
 }
 
 RMailObject::RMailObject(QObject *parent):
