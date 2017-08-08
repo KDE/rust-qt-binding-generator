@@ -379,7 +379,7 @@ pub struct %1Emitter {
     qobject: Arc<Mutex<*const %1QObject>>,
 )").arg(o.name);
     for (const Property& p: o.properties) {
-        r << QString("    %2_changed: fn (*const %1QObject),\n")
+        r << QString("    %2_changed: fn(*const %1QObject),\n")
             .arg(o.name, p.name.toLower());
     }
     r << QString(R"(}
@@ -419,9 +419,9 @@ pub trait %1Trait {
     r << QString(R"(}
 
 #[no_mangle]
-pub extern fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
+pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
     for (const Property& p: o.properties) {
-        r << QString(",\n        %2_changed: fn (*const %1QObject)")
+        r << QString(",\n        %2_changed: fn(*const %1QObject)")
             .arg(o.name, p.name.toLower());
     }
     r << QString(R"() -> *mut %1 {
@@ -437,7 +437,7 @@ pub extern fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
 }
 
 #[no_mangle]
-pub unsafe extern fn %2_free(ptr: *mut %1) {
+pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
     Box::from_raw(ptr).emit().clear();
 }
 )").arg(o.name, lcname);
@@ -447,7 +447,7 @@ pub unsafe extern fn %2_free(ptr: *mut %1) {
         if (p.type.startsWith("Q")) {
         r << QString(R"(
 #[no_mangle]
-pub unsafe extern fn %2_get(ptr: *const %1, p: *mut c_void, set: fn (*mut c_void, %4)) {
+pub unsafe extern "C" fn %2_get(ptr: *const %1, p: *mut c_void, set: fn (*mut c_void, %4)) {
     let data = (&*ptr).get_%3();
     set(p, %4::from(&data));
 }
@@ -456,7 +456,7 @@ pub unsafe extern fn %2_get(ptr: *const %1, p: *mut c_void, set: fn (*mut c_void
                 const QString type = p.type == "QString" ? "QStringIn" : p.type;
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern fn %2_set(ptr: *mut %1, v: %4) {
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
     (&mut *ptr).set_%3(v.convert());
 }
 )").arg(o.name, base, p.name.toLower(), type);
@@ -464,14 +464,14 @@ pub unsafe extern fn %2_set(ptr: *mut %1, v: %4) {
         } else {
         r << QString(R"(
 #[no_mangle]
-pub unsafe extern fn %2_get(ptr: *const %1) -> %4 {
+pub unsafe extern "C" fn %2_get(ptr: *const %1) -> %4 {
     (&*ptr).get_%3()
 }
 )").arg(o.name, base, p.name.toLower(), rustType(p));
             if (p.write) {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern fn %2_set(ptr: *mut %1, v: %4) {
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
     (&mut *ptr).set_%3(v);
 }
 )").arg(o.name, base, p.name.toLower(), rustType(p));

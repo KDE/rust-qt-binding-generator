@@ -1,4 +1,4 @@
-use libc::{c_int};
+use libc::c_int;
 use types::*;
 use testinterface::*;
 
@@ -7,7 +7,7 @@ pub struct Test {
     username: String,
     age: c_int,
     active: bool,
-    misc: Variant
+    misc: Variant,
 }
 
 impl TestTrait for Test {
@@ -17,13 +17,15 @@ impl TestTrait for Test {
             username: String::new(),
             age: 0,
             active: true,
-            misc: Variant::None
+            misc: Variant::None,
         }
     }
     fn emit(&self) -> &TestEmitter {
         &self.emit
     }
-    fn get_username(&self) -> String { self.username.clone() }
+    fn get_username(&self) -> String {
+        self.username.clone()
+    }
     fn set_username(&mut self, value: String) {
         self.username = value;
         self.emit.username_changed();
@@ -38,7 +40,9 @@ impl TestTrait for Test {
         self.active = value;
         self.emit.active_changed();
     }
-    fn get_misc(&self) -> Variant { Variant::None }
+    fn get_misc(&self) -> Variant {
+        Variant::None
+    }
     fn set_misc(&mut self, value: Variant) {
         self.misc = value;
         self.emit.misc_changed();
