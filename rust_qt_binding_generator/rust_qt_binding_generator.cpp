@@ -250,6 +250,10 @@ namespace {
         const char* data;
         int len;
     public:
+        qbytearray_t(const QByteArray& v):
+            data(v.data()),
+            len(v.size()) {
+        }
         operator QByteArray() const {
             return QByteArray(data, len);
         }
@@ -336,6 +340,10 @@ typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
     *v = *val;
 }
+typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
+void set_qbytearray(QByteArray* v, qbytearray_t* val) {
+    *v = *val;
+}
 typedef void (*qvariant_set)(QVariant*, qvariant_t*);
 void set_qvariant(QVariant* v, qvariant_t* val) {
     *v = variant(*val);
@@ -355,11 +363,9 @@ extern "C" {
 }
 
 QString rustType(const Property& p) {
-/*
-    if (p.type == "QVariant") {
-        return "Variant";
+    if (p.type == "QByteArray") {
+        return "Vec<u8>";
     }
-*/
     if (p.type.startsWith("Q")) {
         return p.type.mid(1);
     }

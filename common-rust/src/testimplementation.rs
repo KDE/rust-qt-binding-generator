@@ -8,6 +8,7 @@ pub struct Test {
     age: c_int,
     active: bool,
     misc: Variant,
+    icon: Vec<u8>,
 }
 
 impl TestTrait for Test {
@@ -18,6 +19,7 @@ impl TestTrait for Test {
             age: 0,
             active: true,
             misc: Variant::None,
+            icon: Vec::new(),
         }
     }
     fn emit(&self) -> &TestEmitter {
@@ -46,5 +48,12 @@ impl TestTrait for Test {
     fn set_misc(&mut self, value: Variant) {
         self.misc = value;
         self.emit.misc_changed();
+    }
+    fn get_icon(&self) -> Vec<u8> {
+        self.icon.clone()
+    }
+    fn set_icon(&mut self, value: Vec<u8>) {
+        self.icon = value;
+        self.emit.icon_changed();
     }
 }

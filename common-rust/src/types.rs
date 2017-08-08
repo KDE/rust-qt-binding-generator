@@ -31,6 +31,28 @@ impl<'a> From<&'a String> for QString {
     }
 }
 
+#[repr(C)]
+pub struct QByteArray {
+    data: *const uint8_t,
+    len: c_int,
+}
+
+impl QByteArray {
+    pub fn convert(&self) -> Vec<u8> {
+        let data = unsafe { slice::from_raw_parts(self.data, self.len as usize) };
+        Vec::from(data)
+    }
+}
+
+impl<'a> From<&'a Vec<u8>> for QByteArray {
+    fn from(value: &'a Vec<u8>) -> QByteArray {
+        QByteArray {
+            len: value.len() as c_int,
+            data: value.as_ptr(),
+        }
+    }
+}
+
 pub enum Variant {
     None,
     Bool(bool),
