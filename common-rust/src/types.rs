@@ -1,4 +1,5 @@
-use libc::{c_int, c_uint, uint8_t};
+use std::slice;
+use libc::{c_int, c_uint, uint8_t, uint16_t};
 use std::ptr::null;
 use std::marker::PhantomData;
 
@@ -6,6 +7,21 @@ use std::marker::PhantomData;
 pub struct QString {
     data: *const uint8_t,
     len: c_int
+}
+
+#[repr(C)]
+pub struct QStringIn {
+    data: *const uint16_t,
+    len: c_int
+}
+
+impl QStringIn {
+    pub fn convert(&self) -> String {
+        let data = unsafe {
+            slice::from_raw_parts(self.data, self.len as usize)
+        };
+        String::from_utf16_lossy(data)
+    }
 }
 
 impl<'a> From<&'a String> for QString {
@@ -17,28 +33,22 @@ impl<'a> From<&'a String> for QString {
     }
 }
 
-pub enum Variant<'a> {
+pub enum Variant {
     None,
     Bool(bool),
     String(String),
-    Str(&'a str)
+    ByteArray(Vec<u8>)
 }
 
-impl<'a> From<bool> for Variant<'a> {
-    fn from(value: bool) -> Variant<'a> {
+impl From<bool> for Variant {
+    fn from(value: bool) -> Variant {
         Variant::Bool(value)
     }
 }
 
-impl<'a> From<String> for Variant<'a> {
-    fn from(value: String) -> Variant<'a> {
+impl From<String> for Variant {
+    fn from(value: String) -> Variant {
         Variant::String(value)
-    }
-}
-
-impl<'a> From<&'a str> for Variant<'a> {
-    fn from(value: &'a str) -> Variant {
-        Variant::Str(value)
     }
 }
 
@@ -64,33 +74,37 @@ impl<'a> QVariant<'a> {
     pub fn type_(&self) -> u32 {
         self.type_ as u32
     }
+    pub fn convert(&self) -> Variant {
+        // TODO
+        Variant::None
+    }
 }
 
-impl<'a> From<&'a Variant<'a>> for QVariant<'a> {
-    fn from(variant: &'a Variant<'a>) -> QVariant {
-        match variant {
-            &Variant::None => QVariant {
+impl<'a> From<&'a Variant> for QVariant<'a> {
+    fn from(variant: &'a Variant) -> QVariant {
+        match *variant {
+            Variant::None => QVariant {
                 data: null(),
                 len: 0,
                 type_: VariantType::Invalid as c_uint,
                 phantom: PhantomData
             },
-            &Variant::Bool(v) => QVariant {
+            Variant::Bool(v) => QVariant {
                 data: null(),
                 len: v as c_int,
                 type_: VariantType::Bool as c_uint,
                 phantom: PhantomData
             },
-            &Variant::String(ref v) => QVariant {
+            Variant::String(ref v) => QVariant {
                 data: v.as_ptr(),
                 len: v.len() as c_int,
                 type_: VariantType::String as c_uint,
                 phantom: PhantomData
             },
-            &Variant::Str(ref v) => QVariant {
+            Variant::ByteArray(ref v) => QVariant {
                 data: v.as_ptr(),
                 len: v.len() as c_int,
-                type_: VariantType::String as c_uint,
+                type_: VariantType::ByteArray as c_uint,
                 phantom: PhantomData
             }
         }

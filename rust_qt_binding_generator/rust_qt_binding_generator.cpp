@@ -355,11 +355,13 @@ extern "C" {
 }
 
 QString rustType(const Property& p) {
+/*
     if (p.type == "QVariant") {
         return "Variant";
     }
+*/
     if (p.type.startsWith("Q")) {
-        return "&" + p.type.mid(1);
+        return p.type.mid(1);
     }
     if (p.type == "int") {
         return "c_int";
@@ -407,7 +409,7 @@ pub trait %1Trait {
 )").arg(o.name);
     for (const Property& p: o.properties) {
         const QString lc(p.name.toLower());
-        const bool q = p.type.startsWith("Q");
+//        const bool q = p.type.startsWith("Q");
         r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
         if (p.write) {
             r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
@@ -435,11 +437,47 @@ pub extern fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
 }
 
 #[no_mangle]
-pub extern fn %2_free(ptr: *mut %1) {
-    let d = unsafe { Box::from_raw(ptr) };
-    d.emit().clear();
+pub unsafe extern fn %2_free(ptr: *mut %1) {
+    Box::from_raw(ptr).emit().clear();
 }
 )").arg(o.name, lcname);
+    for (const Property& p: o.properties) {
+        const QString base = QString("%1_%2").arg(lcname, p.name.toLower());
+        QString ret = ") -> " + rustType(p);
+        if (p.type.startsWith("Q")) {
+        r << QString(R"(
+#[no_mangle]
+pub unsafe extern fn %2_get(ptr: *const %1, p: *mut c_void, set: fn (*mut c_void, %4)) {
+    let data = (&*ptr).get_%3();
+    set(p, %4::from(&data));
+}
+)").arg(o.name, base, p.name.toLower(), p.type);
+            if (p.write) {
+                const QString type = p.type == "QString" ? "QStringIn" : p.type;
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern fn %2_set(ptr: *mut %1, v: %4) {
+    (&mut *ptr).set_%3(v.convert());
+}
+)").arg(o.name, base, p.name.toLower(), type);
+            }
+        } else {
+        r << QString(R"(
+#[no_mangle]
+pub unsafe extern fn %2_get(ptr: *const %1) -> %4 {
+    (&*ptr).get_%3()
+}
+)").arg(o.name, base, p.name.toLower(), rustType(p));
+            if (p.write) {
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern fn %2_set(ptr: *mut %1, v: %4) {
+    (&mut *ptr).set_%3(v);
+}
+)").arg(o.name, base, p.name.toLower(), rustType(p));
+            }
+        }
+    }
 }
 
 QString rustFile(const QDir rustdir, const QString& module) {
@@ -458,8 +496,9 @@ void writeRustInterface(const Configuration& conf) {
     }
     QTextStream r(&file);
     r << QString(R"(
-use std::slice;
-use libc::{c_int, uint16_t, size_t, c_void};
+#![allow(unknown_lints)]
+#![allow(mutex_atomic, needless_pass_by_value)]
+use libc::{c_int, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;

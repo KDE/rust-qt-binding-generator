@@ -1,3 +1,5 @@
+#![allow(unknown_lints)]
+#![allow(mutex_atomic)]
 use std::slice;
 use libc::{c_int, uint16_t, size_t, c_void};
 use types::*;
@@ -36,23 +38,20 @@ pub extern fn hello_new(qobject: *const HelloQObject, changed: fn(*const HelloQO
 }
 
 #[no_mangle]
-pub extern fn hello_free(ptr: *mut Hello) {
+pub unsafe extern fn hello_free(ptr: *mut Hello) {
     if ptr.is_null() { return }
-    unsafe { Box::from_raw(ptr); }
+    Box::from_raw(ptr);
 }
 
 #[no_mangle]
-pub extern fn hello_set(ptr: *mut Hello, s: *const uint16_t, len: size_t) {
-    let (hello, data) = unsafe {
-        (&mut *ptr, slice::from_raw_parts(s, len as usize))
-    };
-    hello.set_hello(String::from_utf16_lossy(data));
+pub unsafe extern fn hello_set(ptr: *mut Hello, s: *const uint16_t, len: size_t) {
+    let data = slice::from_raw_parts(s, len as usize);
+    (&mut *ptr).set_hello(String::from_utf16_lossy(data));
 }
 
 #[no_mangle]
-pub extern fn hello_get(ptr: *mut Hello) -> QString {
-    let hello = unsafe { &mut *ptr };
-    QString::from(hello.get_hello())
+pub unsafe extern fn hello_get(ptr: *const Hello) -> QString {
+    QString::from((&*ptr).get_hello())
 }
 
 
@@ -85,7 +84,7 @@ pub trait RItemModelTrait<T> {
     fn row_count(&mut self, parent: QModelIndex) -> c_int;
     fn index(&mut self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
     fn parent(&self, index: QModelIndex) -> QModelIndex;
-    fn data<'a>(&'a mut self, index: QModelIndex, role: c_int) -> Variant<'a>;
+    fn data(&mut self, index: QModelIndex, role: c_int) -> Variant;
 }
 
 #[no_mangle]
@@ -99,38 +98,32 @@ pub extern fn ritemmodel_new(qobject: *const RItemModelQObject, new_data_ready: 
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_free(ptr: *mut RItemModel) {
-    let ritemmodel = unsafe { Box::from_raw(ptr) };
-    ritemmodel.emit().clear();
+pub unsafe extern fn ritemmodel_free(ptr: *mut RItemModel) {
+    Box::from_raw(ptr).emit().clear();
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_column_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
-    let ritemmodel = unsafe { &mut *ptr };
-    ritemmodel.column_count(parent)
+pub unsafe extern fn ritemmodel_column_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
+    (&mut *ptr).column_count(parent)
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_row_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
-    let ritemmodel = unsafe { &mut *ptr };
-    ritemmodel.row_count(parent)
+pub unsafe extern fn ritemmodel_row_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
+    (&mut*ptr).row_count(parent)
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_index(ptr: *mut RItemModel, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
-    let ritemmodel = unsafe { &mut *ptr };
-    ritemmodel.index(row, column, parent)
+pub unsafe extern fn ritemmodel_index(ptr: *mut RItemModel, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
+    (&mut *ptr).index(row, column, parent)
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_parent(ptr: *const RItemModel, index: QModelIndex) -> QModelIndex {
-    let ritemmodel = unsafe { &*ptr };
-    ritemmodel.parent(index)
+pub unsafe extern fn ritemmodel_parent(ptr: *const RItemModel, index: QModelIndex) -> QModelIndex {
+    (&*ptr).parent(index)
 }
 
 #[no_mangle]
-pub extern fn ritemmodel_data(ptr: *mut RItemModel, index: QModelIndex, role: c_int, d: *mut c_void, set: fn (*mut c_void, &QVariant)) {
-    let ritemmodel = unsafe { &mut *ptr };
-    let data = ritemmodel.data(index, role);
+pub unsafe extern fn ritemmodel_data(ptr: *mut RItemModel, index: QModelIndex, role: c_int, d: *mut c_void, set: fn (*mut c_void, &QVariant)) {
+    let data = (&mut *ptr).data(index, role);
     set(d, &QVariant::from(&data));
 }

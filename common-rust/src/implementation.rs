@@ -46,12 +46,12 @@ impl DirEntry {
 }
 
 impl Item for DirEntry {
-    fn data<'a>(&self, role: c_int) -> Variant<'a> {
+    fn data(&self, role: c_int) -> Variant {
         if role != 0 {
             return Variant::None
         }
         let str = self.name.to_string_lossy().to_string();
-        return Variant::from(str);
+        Variant::from(str)
     }
     fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
         let path: PathBuf = parents.into_iter().map(|e|&e.name).collect();
@@ -65,7 +65,7 @@ impl Item for DirEntry {
             }
         }
         v.sort_by(|a, b| a.name.cmp(&b.name));
-        return v;
+        v
     }
 }
 
@@ -79,7 +79,7 @@ impl Default for DirEntry {
 
 pub trait Item: Default {
     fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
-    fn data<'a>(&self, role: c_int) -> Variant<'a>;
+    fn data(&self, role: c_int) -> Variant;
 }
 
 pub type RItemModel = RGeneralItemModel<DirEntry>;
@@ -117,10 +117,9 @@ impl<T: Item> RGeneralItemModel<T> {
         let mut new_entries = Vec::new();
         let mut children = Vec::new();
         {
-            let mut row = 0;
             let parents = self.get_parents(id);
             let entries = self.entries[id].data.retrieve(parents);
-            for d in entries {
+            for (row, d) in entries.into_iter().enumerate() {
                 let e = Entry {
                     parent: id,
                     row: row,
@@ -128,7 +127,6 @@ impl<T: Item> RGeneralItemModel<T> {
                     data: d
                 };
                 children.push(self.entries.len() + row);
-                row += 1;
                 new_entries.push(e);
             }
         }
@@ -172,11 +170,11 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
         if !index.is_valid() || index.id() == 1 {
             return QModelIndex::invalid();
         }
-        let ref e = self.entries[index.id()];
+        let e = &self.entries[index.id()];
         QModelIndex::create(e.row as i32, 0, e.parent)
     }
-    fn data<'a>(&'a mut self, index: QModelIndex, role: c_int) -> Variant<'a> {
+    fn data(&mut self, index: QModelIndex, role: c_int) -> Variant {
         let i = self.get(&index);
-        return self.entries[i].data.data(role);
+        self.entries[i].data.data(role)
     }
 }
