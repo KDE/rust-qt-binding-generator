@@ -6,20 +6,18 @@ use std::marker::PhantomData;
 #[repr(C)]
 pub struct QString {
     data: *const uint8_t,
-    len: c_int
+    len: c_int,
 }
 
 #[repr(C)]
 pub struct QStringIn {
     data: *const uint16_t,
-    len: c_int
+    len: c_int,
 }
 
 impl QStringIn {
     pub fn convert(&self) -> String {
-        let data = unsafe {
-            slice::from_raw_parts(self.data, self.len as usize)
-        };
+        let data = unsafe { slice::from_raw_parts(self.data, self.len as usize) };
         String::from_utf16_lossy(data)
     }
 }
@@ -28,7 +26,7 @@ impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
             len: string.len() as c_int,
-            data: string.as_ptr()
+            data: string.as_ptr(),
         }
     }
 }
@@ -37,7 +35,7 @@ pub enum Variant {
     None,
     Bool(bool),
     String(String),
-    ByteArray(Vec<u8>)
+    ByteArray(Vec<u8>),
 }
 
 impl From<bool> for Variant {
@@ -67,7 +65,7 @@ pub struct QVariant<'a> {
     type_: c_uint,
     len: c_int,
     data: *const uint8_t,
-    phantom: PhantomData<&'a u8>
+    phantom: PhantomData<&'a u8>,
 }
 
 impl<'a> QVariant<'a> {
@@ -83,29 +81,37 @@ impl<'a> QVariant<'a> {
 impl<'a> From<&'a Variant> for QVariant<'a> {
     fn from(variant: &'a Variant) -> QVariant {
         match *variant {
-            Variant::None => QVariant {
-                data: null(),
-                len: 0,
-                type_: VariantType::Invalid as c_uint,
-                phantom: PhantomData
-            },
-            Variant::Bool(v) => QVariant {
-                data: null(),
-                len: v as c_int,
-                type_: VariantType::Bool as c_uint,
-                phantom: PhantomData
-            },
-            Variant::String(ref v) => QVariant {
-                data: v.as_ptr(),
-                len: v.len() as c_int,
-                type_: VariantType::String as c_uint,
-                phantom: PhantomData
-            },
-            Variant::ByteArray(ref v) => QVariant {
-                data: v.as_ptr(),
-                len: v.len() as c_int,
-                type_: VariantType::ByteArray as c_uint,
-                phantom: PhantomData
+            Variant::None => {
+                QVariant {
+                    data: null(),
+                    len: 0,
+                    type_: VariantType::Invalid as c_uint,
+                    phantom: PhantomData,
+                }
+            }
+            Variant::Bool(v) => {
+                QVariant {
+                    data: null(),
+                    len: v as c_int,
+                    type_: VariantType::Bool as c_uint,
+                    phantom: PhantomData,
+                }
+            }
+            Variant::String(ref v) => {
+                QVariant {
+                    data: v.as_ptr(),
+                    len: v.len() as c_int,
+                    type_: VariantType::String as c_uint,
+                    phantom: PhantomData,
+                }
+            }
+            Variant::ByteArray(ref v) => {
+                QVariant {
+                    data: v.as_ptr(),
+                    len: v.len() as c_int,
+                    type_: VariantType::ByteArray as c_uint,
+                    phantom: PhantomData,
+                }
             }
         }
     }
@@ -115,7 +121,7 @@ impl<'a> From<&'a Variant> for QVariant<'a> {
 pub struct QModelIndex {
     row: c_int,
     column: c_int,
-    internal_id: usize
+    internal_id: usize,
 }
 
 impl QModelIndex {
@@ -123,21 +129,21 @@ impl QModelIndex {
         QModelIndex {
             row: -1,
             column: -1,
-            internal_id: 0
+            internal_id: 0,
         }
     }
     pub fn create(row: c_int, column: c_int, id: usize) -> QModelIndex {
         QModelIndex {
             row: row,
             column: column,
-            internal_id: id
+            internal_id: id,
         }
     }
     pub fn flat(row: c_int, column: c_int) -> QModelIndex {
         QModelIndex {
             row: row,
             column: column,
-            internal_id: 1
+            internal_id: 1,
         }
     }
     pub fn is_valid(&self) -> bool {

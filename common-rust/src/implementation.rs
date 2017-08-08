@@ -1,6 +1,6 @@
 use interface::*;
 use types::*;
-use libc::{c_int};
+use libc::c_int;
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::ffi::OsString;
@@ -16,7 +16,7 @@ impl HelloTrait for Hello {
     fn create(emit: HelloEmitter) -> Self {
         Hello {
             emit: emit,
-            hello: String::new()
+            hello: String::new(),
         }
     }
     fn get_hello(&self) -> &String {
@@ -29,8 +29,7 @@ impl HelloTrait for Hello {
 }
 
 impl Drop for Hello {
-    fn drop(&mut self) {
-    }
+    fn drop(&mut self) {}
 }
 
 pub struct DirEntry {
@@ -39,28 +38,24 @@ pub struct DirEntry {
 
 impl DirEntry {
     pub fn create(name: &str) -> DirEntry {
-        DirEntry {
-            name: OsString::from(name)
-        }
+        DirEntry { name: OsString::from(name) }
     }
 }
 
 impl Item for DirEntry {
     fn data(&self, role: c_int) -> Variant {
         if role != 0 {
-            return Variant::None
+            return Variant::None;
         }
         let str = self.name.to_string_lossy().to_string();
         Variant::from(str)
     }
     fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
-        let path: PathBuf = parents.into_iter().map(|e|&e.name).collect();
+        let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         let mut v = Vec::new();
         if let Ok(it) = read_dir(path) {
-            for i in it.filter_map(|v|v.ok()) {
-                let de = DirEntry {
-                    name: i.file_name(),
-                };
+            for i in it.filter_map(|v| v.ok()) {
+                let de = DirEntry { name: i.file_name() };
                 v.push(de);
             }
         }
@@ -71,9 +66,7 @@ impl Item for DirEntry {
 
 impl Default for DirEntry {
     fn default() -> DirEntry {
-        DirEntry {
-            name: OsString::new()
-        }
+        DirEntry { name: OsString::new() }
     }
 }
 
@@ -88,12 +81,12 @@ struct Entry<T: Item> {
     parent: usize,
     row: usize,
     children: Option<Vec<usize>>,
-    data: T
+    data: T,
 }
 
 pub struct RGeneralItemModel<T: Item> {
     emit: RItemModelEmitter,
-    entries: Vec<Entry<T>>
+    entries: Vec<Entry<T>>,
 }
 
 impl<T: Item> RGeneralItemModel<T> {
@@ -107,9 +100,7 @@ impl<T: Item> RGeneralItemModel<T> {
         if self.entries[p].children.is_none() {
             self.retrieve(p);
             let emit = self.emit.clone();
-            thread::spawn(move || {
-                emit.new_data_ready();
-            });
+            thread::spawn(move || { emit.new_data_ready(); });
         }
         p
     }
@@ -124,7 +115,7 @@ impl<T: Item> RGeneralItemModel<T> {
                     parent: id,
                     row: row,
                     children: None,
-                    data: d
+                    data: d,
                 };
                 children.push(self.entries.len() + row);
                 new_entries.push(e);
@@ -146,11 +137,21 @@ impl<T: Item> RGeneralItemModel<T> {
 
 impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
     fn create(emit: RItemModelEmitter, root: T) -> Self {
-        let none = Entry { parent: 0, row: 0, children: None, data: T::default() };
-        let root = Entry { parent: 0, row: 0, children: None, data: root };
+        let none = Entry {
+            parent: 0,
+            row: 0,
+            children: None,
+            data: T::default(),
+        };
+        let root = Entry {
+            parent: 0,
+            row: 0,
+            children: None,
+            data: root,
+        };
         RGeneralItemModel {
             emit: emit,
-            entries: vec![none, root]
+            entries: vec![none, root],
         }
     }
     fn emit(&self) -> &RItemModelEmitter {
