@@ -216,14 +216,11 @@ void writeHeader(const Configuration& conf) {
     }
     QTextStream h(&hFile);
     const QString guard(conf.hfile.fileName().replace('.', '_').toUpper());
-    h << QString(R"(
-#ifndef %1
+    h << QString(R"(#ifndef %1
 #define %1
 
 #include <QObject>
-#include <QString>
-#include <QVariantMap>
-#include <QAbstractItemModel>
+#include <QVariant>
 )").arg(guard);
 
     for (auto object: conf.objects) {
@@ -242,8 +239,9 @@ void writeCpp(const Configuration& conf) {
         exit(1);
     }
     QTextStream cpp(&cppFile);
-    cpp << QString(R"(
-#include "%1"
+    cpp << QString(R"(#include "%1"
+#include <QModelIndex>
+
 namespace {
     struct qbytearray_t {
     private:
