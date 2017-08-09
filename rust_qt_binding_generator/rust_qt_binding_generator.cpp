@@ -373,6 +373,22 @@ QString rustType(const Property& p) {
     return p.type;
 }
 
+QString rustTypeInit(const Property& p) {
+    if (p.type == "QByteArray") {
+        return "Vec::new()";
+    }
+    if (p.type == "QString") {
+        return "String::new()";
+    }
+    if (p.type == "QVariant") {
+        return "Variant::None";
+    }
+    if (p.type == "bool") {
+        return "true";
+    }
+    return "0";
+}
+
 void writeRustInterfaceObject(QTextStream& r, const Object& o) {
     const QString lcname(o.name.toLower());
     r << QString(R"(
@@ -413,7 +429,6 @@ pub trait %1Trait {
 )").arg(o.name);
     for (const Property& p: o.properties) {
         const QString lc(p.name.toLower());
-//        const bool q = p.type.startsWith("Q");
         r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
         if (p.write) {
             r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
@@ -515,6 +530,72 @@ use %1::*;
     }
 }
 
+void writeRustImplementationObject(QTextStream& r, const Object& o) {
+    const QString lcname(o.name.toLower());
+    r << QString("pub struct %1 {\n    emit: %1Emitter,\n").arg((o.name));
+    for (const Property& p: o.properties) {
+        const QString lc(p.name.toLower());
+        r << QString("    %1: %2,\n").arg(lc, rustType(p));
+    }
+    r << "}\n\n";
+    r << QString(R"(impl %1Trait for %1 {
+    fn create(emit: %1Emitter) -> %1 {
+        %1 {
+            emit: emit,
+)").arg(o.name);
+    for (const Property& p: o.properties) {
+        const QString lc(p.name.toLower());
+        r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
+    }
+    r << QString(R"(        }
+    }
+    fn emit(&self) -> &%1Emitter {
+        &self.emit
+    }
+)").arg(o.name);
+    for (const Property& p: o.properties) {
+        const QString lc(p.name.toLower());
+        r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustType(p));
+        if (p.type.startsWith("Q")) {
+            r << QString("        self.%1.clone()\n").arg(lc);
+        } else {
+            r << QString("        self.%1\n").arg(lc);
+        }
+        r << "    }\n";
+        if (p.write) {
+            r << QString(R"(    fn set_%1(&mut self, value: %2) {
+        self.%1 = value;
+        self.emit.%1_changed();
+    }
+)").arg(lc, rustType(p));
+        }
+    }
+    r << "}\n";
+}
+
+void writeRustImplementation(const Configuration& conf) {
+    QFile file(rustFile(conf.rustdir, conf.implementationmodule));
+    if (file.exists()) {
+        return;
+    }
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        err << QCoreApplication::translate("main",
+            "Cannot write %1.\n").arg(file.fileName());
+        err.flush();
+        exit(1);
+    }
+    QTextStream r(&file);
+    r << QString(R"(use libc::c_int;
+use types::*;
+use %1::*;
+
+)").arg(conf.interfacemodule);
+
+    for (auto object: conf.objects) {
+        writeRustImplementationObject(r, object);
+    }
+}
+
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName(argv[0]);
@@ -542,6 +623,7 @@ int main(int argc, char *argv[]) {
     writeHeader(configuration);
     writeCpp(configuration);
     writeRustInterface(configuration);
+    writeRustImplementation(configuration);
 
     return 0;
 }

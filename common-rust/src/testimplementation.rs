@@ -43,7 +43,7 @@ impl TestTrait for Test {
         self.emit.active_changed();
     }
     fn get_misc(&self) -> Variant {
-        Variant::None
+        self.misc.clone()
     }
     fn set_misc(&mut self, value: Variant) {
         self.misc = value;

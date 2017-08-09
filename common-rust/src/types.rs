@@ -53,6 +53,7 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
     }
 }
 
+#[derive(Clone)]
 pub enum Variant {
     None,
     Bool(bool),
