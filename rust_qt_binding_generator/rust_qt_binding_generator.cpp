@@ -156,6 +156,7 @@ void writeHeaderItemModel(QTextStream& h, const Object& o) {
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &index) const;
     int rowCount(const QModelIndex &parent) const;
+    QHash<int, QByteArray> roleNames() const;
 signals:
     void newDataReady();
 )");
@@ -180,12 +181,12 @@ void writeCppListModel(QTextStream& cpp, const Object& o) {
 }
 int %1::columnCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : 1;
+    return (parent.isValid()) ? 0 : 1;
 }
 
 int %1::rowCount(const QModelIndex &parent) const
 {
-    return %2_row_count(d, parent);
+    return (parent.isValid()) ? 0 : %2_row_count(d, parent);
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
@@ -214,6 +215,13 @@ QVariant %1::data(const QModelIndex &index, int role) const
          cpp << "        break;\n";
     }
     cpp << "    }\n    return v;\n}\n";
+    cpp << "QHash<int, QByteArray> " << o.name << "::roleNames() const {\n";
+    cpp << "    QHash<int, QByteArray> names;\n";
+    for (auto role: o.roles) {
+        cpp << "    names.insert(" << role.value << ", \"" << role.name << "\");\n";
+    }
+    cpp << "    return names;\n";
+    cpp << "}";
 }
 
 void writeHeaderObject(QTextStream& h, const Object& o) {
@@ -801,7 +809,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         }
     }
     if (o.type == ObjectTypeList) {
-        r << "    fn row_count(&self) -> c_int {\n        0\n    }\n";
+        r << "    fn row_count(&self) -> c_int {\n        10\n    }\n";
         for (auto role: o.roles) {
             r << QString("    fn %1(&self, row: c_int) -> Variant {\n")
                     .arg(snakeCase(role.name));

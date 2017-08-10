@@ -9,7 +9,9 @@
 #include <QCommandLineParser>
 #include <QTreeView>
 #include <QQmlApplicationEngine>
+#include <QtQml/qqml.h>
 #include <QQmlContext>
+#include <QDebug>
 
 int main (int argc, char *argv[])
 {
@@ -48,21 +50,18 @@ int main (int argc, char *argv[])
     parser.process(app);
     aboutData.processCommandLine(&parser);
 
+    qmlRegisterType<Directory>("rust", 1, 0, "Directory");
+    qmlRegisterType<Person>("rust", 1, 0, "Person");
+
     QQmlApplicationEngine engine;
 
     RItemModel model;
     QTreeView view;
-    view.setAnimated(true);
     view.setUniformRowHeights(true);
     view.setModel(&model);
     view.show();
-/*
-*/
-
-    Directory directory;
 
     engine.rootContext()->setContextProperty("fsModel", &model);
-    engine.rootContext()->setContextProperty("directory", &directory);
     engine.load(QUrl(QStringLiteral("test.qml")));
 
     return app.exec();

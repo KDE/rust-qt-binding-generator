@@ -2,8 +2,8 @@ use libc::c_int;
 use types::*;
 use testinterface::*;
 
-pub struct Test {
-    emit: TestEmitter,
+pub struct Person {
+    emit: PersonEmitter,
     user_name: String,
     age: c_int,
     active: bool,
@@ -11,9 +11,9 @@ pub struct Test {
     icon: Vec<u8>,
 }
 
-impl TestTrait for Test {
-    fn create(emit: TestEmitter) -> Test {
-        Test {
+impl PersonTrait for Person {
+    fn create(emit: PersonEmitter) -> Person {
+        Person {
             emit: emit,
             user_name: String::new(),
             age: 0,
@@ -22,7 +22,7 @@ impl TestTrait for Test {
             icon: Vec::new(),
         }
     }
-    fn emit(&self) -> &TestEmitter {
+    fn emit(&self) -> &PersonEmitter {
         &self.emit
     }
     fn get_user_name(&self) -> String {
@@ -77,8 +77,12 @@ impl DirectoryTrait for Directory {
     fn get_path(&self) -> String {
         self.path.clone()
     }
+    fn set_path(&mut self, value: String) {
+        self.path = value;
+        self.emit.path_changed();
+    }
     fn row_count(&self) -> c_int {
-        0
+        10
     }
     fn file_icon(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)

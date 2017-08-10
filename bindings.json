@@ -6,7 +6,7 @@
         "implementationModule": "testimplementation"
     },
     "objects": [{
-        "name": "Test",
+        "name": "Person",
         "type": "Object",
         "properties": [{
             "name": "userName",
@@ -33,7 +33,8 @@
         "type": "List",
         "properties": [{
             "name": "path",
-            "type": "QString"
+            "type": "QString",
+            "write": true
         }],
         "roles": [{
             "name": "FileIcon",
