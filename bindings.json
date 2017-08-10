@@ -1,12 +1,13 @@
 {
-    "cppfile": "src/tmp.cpp",
+    "cppFile": "src/tmp.cpp",
     "rust": {
         "dir": "common-rust",
-        "interfacemodule": "testinterface",
-        "implementationmodule": "testimplementation"
+        "interfaceModule": "testinterface",
+        "implementationModule": "testimplementation"
     },
     "objects": [{
         "name": "Test",
+        "type": "Object",
         "properties": [{
             "name": "userName",
             "type": "QString",
@@ -26,6 +27,26 @@
             "name": "icon",
             "type": "QByteArray",
             "write": true
+        }]
+    }, {
+        "name": "Directory",
+        "type": "List",
+        "properties": [{
+            "name": "path",
+            "type": "QString"
+        }],
+        "roles": [{
+            "name": "FileIcon",
+            "value": "Qt::DecorationRole"
+        }, {
+            "name": "FilePath",
+            "value": "Qt::UserRole + 1"
+        }, {
+            "name": "FileName",
+            "value": "Qt::UserRole + 2"
+        }, {
+            "name": "FilePermissions",
+            "value": "Qt::UserRole + 3"
         }]
     }]
 }

@@ -5,6 +5,15 @@ version = "0.1.0"
 [dependencies]
 libc = "*"
 
+[dependencies.serde]
+version = "1.0"
+
+[dependencies.serde_json]
+version = "1.0"
+
+[dependencies.serde_derive]
+version = "1.0"
+
 [lib]
 name = "rust"
 crate-type = ["staticlib"]

@@ -36,6 +36,7 @@ ExternalProject_Add(
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS 
     Core    # QCommandLineParser, QStringLiteral
+    Quick
     Widgets # QApplication 
 )
 
@@ -58,6 +59,7 @@ add_executable(RMail ${RMail_SRCS})
 add_dependencies(RMail rust)
 
 target_link_libraries(RMail
+    Qt5::Quick
     Qt5::Widgets
     KF5::CoreAddons
     KF5::I18n

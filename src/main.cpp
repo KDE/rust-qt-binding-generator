@@ -1,12 +1,15 @@
 #include "RMailObject.h"
+#include "tmp.h"
 #include <cstdlib>
 
-#include <QTreeView>
-#include <QApplication>
-#include <QCommandLineParser>
 #include <KAboutData>
 #include <KLocalizedString>
 #include <KMessageBox>
+#include <QApplication>
+#include <QCommandLineParser>
+#include <QTreeView>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 int main (int argc, char *argv[])
 {
@@ -45,10 +48,23 @@ int main (int argc, char *argv[])
     parser.process(app);
     aboutData.processCommandLine(&parser);
 
+    QQmlApplicationEngine engine;
+
     RItemModel model;
     QTreeView view;
+    view.setAnimated(true);
+    view.setUniformRowHeights(true);
     view.setModel(&model);
     view.show();
+/*
+*/
+
+    Directory directory;
+
+    engine.rootContext()->setContextProperty("fsModel", &model);
+    engine.rootContext()->setContextProperty("directory", &directory);
+    engine.load(QUrl(QStringLiteral("test.qml")));
+
     return app.exec();
 /*
     RMailObject rmail;

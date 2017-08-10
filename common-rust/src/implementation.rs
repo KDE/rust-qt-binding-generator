@@ -176,6 +176,10 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
     }
     fn data(&mut self, index: QModelIndex, role: c_int) -> Variant {
         let i = self.get(&index);
-        self.entries[i].data.data(role)
+        if index.column() == 0 {
+            self.entries[i].data.data(role)
+        } else {
+            Variant::Bool(true)
+        }
     }
 }

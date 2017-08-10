@@ -1,7 +1,7 @@
 extern crate libc;
 
-pub mod types;
+mod types;
 pub mod testinterface;
-pub mod testimplementation;
+mod testimplementation;
 pub mod interface;
-pub mod implementation;
+mod implementation;
