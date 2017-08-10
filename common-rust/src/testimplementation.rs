@@ -4,7 +4,7 @@ use testinterface::*;
 
 pub struct Test {
     emit: TestEmitter,
-    username: String,
+    user_name: String,
     age: c_int,
     active: bool,
     misc: Variant,
@@ -15,7 +15,7 @@ impl TestTrait for Test {
     fn create(emit: TestEmitter) -> Test {
         Test {
             emit: emit,
-            username: String::new(),
+            user_name: String::new(),
             age: 0,
             active: true,
             misc: Variant::None,
@@ -25,12 +25,12 @@ impl TestTrait for Test {
     fn emit(&self) -> &TestEmitter {
         &self.emit
     }
-    fn get_username(&self) -> String {
-        self.username.clone()
+    fn get_user_name(&self) -> String {
+        self.user_name.clone()
     }
-    fn set_username(&mut self, value: String) {
-        self.username = value;
-        self.emit.username_changed();
+    fn set_user_name(&mut self, value: String) {
+        self.user_name = value;
+        self.emit.user_name_changed();
     }
     fn get_age(&self) -> c_int {
         self.age
@@ -80,16 +80,16 @@ impl DirectoryTrait for Directory {
     fn row_count(&self) -> c_int {
         0
     }
-    fn fileicon(&self, row: c_int) -> Variant {
+    fn file_icon(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
     }
-    fn filepath(&self, row: c_int) -> Variant {
+    fn file_path(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
     }
-    fn filename(&self, row: c_int) -> Variant {
+    fn file_name(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
     }
-    fn filepermissions(&self, row: c_int) -> Variant {
+    fn file_permissions(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
     }
 }
