@@ -566,7 +566,7 @@ pub struct %1List {
     %2_begin_insert_rows: fn(*const %1QObject, c_int, c_int),
     %2_end_insert_rows: fn(*const %1QObject),
     %2_begin_remove_rows: fn(*const %1QObject, c_int, c_int),
-    %2_end_remove_rows: fn(*const %1QObject)
+    %2_end_remove_rows: fn(*const %1QObject),
 }
 
 impl %1List {
@@ -599,7 +599,7 @@ pub trait %1Trait {
         }
     }
     if (o.type == ObjectTypeList) {
-        r << "fn row_count(&self) -> c_int;\n";
+        r << "    fn row_count(&self) -> c_int;\n";
         for (auto role: o.roles) {
             r << QString("    fn %1(&self, row: c_int) -> Variant;\n")
                     .arg(role.name.toLower());
@@ -616,16 +616,22 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
     }
     if (o.type == ObjectTypeList) {
         r << QString(R"(,
-        %2_begin_insert_rows: fn(*const %1QObject, c_int, c_int),
+        %2_begin_insert_rows: fn(*const %1QObject,
+            c_int,
+            c_int),
         %2_end_insert_rows: fn(*const %1QObject),
-        %2_begin_remove_rows: fn(*const %1QObject, c_int, c_int),
+        %2_begin_remove_rows: fn(*const %1QObject,
+            c_int,
+            c_int),
         %2_end_remove_rows: fn(*const %1QObject))").arg(o.name, lcname);
     }
-    r << QString(R"() -> *mut %1 {
+    r << QString(R"()
+        -> *mut %1 {
     let emit = %1Emitter {
-        qobject: Arc::new(Mutex::new(qobject)))").arg(o.name);
+        qobject: Arc::new(Mutex::new(qobject)),
+)").arg(o.name);
     for (const Property& p: o.properties) {
-        r << QString(",\n        %1_changed: %1_changed").arg(p.name.toLower());
+        r << QString("        %1_changed: %1_changed,\n").arg(p.name.toLower());
     }
     QString model = "";
     if (o.type == ObjectTypeList) {
@@ -636,11 +642,10 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
         %2_begin_insert_rows: %2_begin_insert_rows,
         %2_end_insert_rows: %2_end_insert_rows,
         %2_begin_remove_rows: %2_begin_remove_rows,
-        %2_end_remove_rows: %2_end_remove_rows
+        %2_end_remove_rows: %2_end_remove_rows,
 )").arg(o.name, lcname);
     }
-    r << QString(R"(
-    }; 
+    r << QString(R"(    };
     let d = %1::create(emit%3);
     Box::into_raw(Box::new(d))
 }
@@ -656,7 +661,9 @@ pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
         if (p.type.startsWith("Q")) {
         r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_get(ptr: *const %1, p: *mut c_void, set: fn (*mut c_void, %4)) {
+pub unsafe extern "C" fn %2_get(ptr: *const %1,
+        p: *mut c_void,
+        set: fn(*mut c_void, %4)) {
     let data = (&*ptr).get_%3();
     set(p, %4::from(&data));
 }
@@ -697,7 +704,8 @@ pub unsafe extern "C" fn %2_row_count(ptr: *const %1) -> c_int {
         for (auto role: o.roles) {
             r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int,
+pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
+                                         row: c_int,
                                          d: *mut c_void,
                                          set: fn(*mut c_void, &QVariant)) {
     let data = (& *ptr).%3(row);
@@ -758,7 +766,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
             emit: emit,
 )").arg(o.name, modelStruct);
     if (o.type == ObjectTypeList) {
-        r << QString("        model: model,\n");
+        r << QString("            model: model,\n");
     }
     for (const Property& p: o.properties) {
         const QString lc(p.name.toLower());
@@ -788,12 +796,12 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         }
     }
     if (o.type == ObjectTypeList) {
-        r << "    fn row_count(&self) -> c_int { 0 }\n";
+        r << "    fn row_count(&self) -> c_int {\n        0\n    }\n";
         for (auto role: o.roles) {
             r << QString("    fn %1(&self, row: c_int) -> Variant {\n")
                     .arg(role.name.toLower());
             r << "        Variant::Bool(row > 0)\n";
-            r << "    }";
+            r << "    }\n";
         }
     }
     r << "}\n";

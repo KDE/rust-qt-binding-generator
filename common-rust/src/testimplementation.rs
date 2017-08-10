@@ -67,7 +67,7 @@ impl DirectoryTrait for Directory {
     fn create(emit: DirectoryEmitter, model: DirectoryList) -> Directory {
         Directory {
             emit: emit,
-        model: model,
+            model: model,
             path: String::new(),
         }
     }
@@ -77,13 +77,19 @@ impl DirectoryTrait for Directory {
     fn get_path(&self) -> String {
         self.path.clone()
     }
-    fn row_count(&self) -> c_int { 0 }
+    fn row_count(&self) -> c_int {
+        0
+    }
     fn fileicon(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
-    }    fn filepath(&self, row: c_int) -> Variant {
+    }
+    fn filepath(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
-    }    fn filename(&self, row: c_int) -> Variant {
+    }
+    fn filename(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
-    }    fn filepermissions(&self, row: c_int) -> Variant {
+    }
+    fn filepermissions(&self, row: c_int) -> Variant {
         Variant::Bool(row > 0)
-    }}
+    }
+}
