@@ -1,0 +1,17 @@
+{
+    "cppFile": "test_object_types_rust.cpp",
+    "rust": {
+        "dir": "rust_object_types",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation"
+    },
+    "objects": [{
+        "name": "Person",
+        "type": "Object",
+        "properties": [{
+            "name": "userName",
+            "type": "QString",
+            "write": true
+        }]
+    }]
+}

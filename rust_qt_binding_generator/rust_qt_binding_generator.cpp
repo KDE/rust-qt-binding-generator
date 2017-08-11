@@ -364,11 +364,9 @@ public:
     }
     ~DifferentFileWriter() {
         const QByteArray old = read();
-        // write if file does not exists
-        if ((!old.isNull() && overwrite) || old == buffer) {
-            return;
+        if (old != buffer && (old.isNull() || overwrite)) {
+            write();
         }
-        write();
     }
     QByteArray read() const {
         QByteArray content;
