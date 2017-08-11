@@ -2,8 +2,7 @@ enable_testing()
 
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust_object/src/interface.rs"
-  COMMAND "${CMAKE_COMMAND}" -E remove "${CMAKE_CURRENT_SOURCE_DIR}/rust_object/src/implementation.rs"
-  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/test_object.json"
+  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator --overwrite-implementation "${CMAKE_CURRENT_SOURCE_DIR}/test_object.json"
   DEPENDS rust_qt_binding_generator test_object.json
 )
 
