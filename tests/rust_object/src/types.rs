@@ -85,8 +85,8 @@ enum VariantType {
 
 #[repr(C)]
 pub struct QVariant<'a> {
-    type_: c_uint,
-    len: c_int,
+    type_: VariantType,
+    value: c_int,
     data: *const uint8_t,
     phantom: PhantomData<&'a u8>,
 }
@@ -96,8 +96,25 @@ impl<'a> QVariant<'a> {
         self.type_ as u32
     }
     pub fn convert(&self) -> Variant {
-        // TODO
-        Variant::None
+        match self.type_ {
+            VariantType::Bool => {
+                Variant::Bool(self.value != 0)
+            },
+            VariantType::String => {
+                let data = unsafe {
+                    let d = self.data as *const uint16_t;
+                    slice::from_raw_parts(d, self.value as usize)
+                };
+                Variant::String(String::from_utf16_lossy(data))
+            }
+            VariantType::ByteArray => {
+                let data = unsafe {
+                    slice::from_raw_parts(self.data, self.value as usize)
+                };
+                Variant::ByteArray(Vec::from(data))
+            }
+            _ => Variant::None
+        }
     }
 }
 
@@ -107,32 +124,32 @@ impl<'a> From<&'a Variant> for QVariant<'a> {
             Variant::None => {
                 QVariant {
                     data: null(),
-                    len: 0,
-                    type_: VariantType::Invalid as c_uint,
+                    value: 0,
+                    type_: VariantType::Invalid,
                     phantom: PhantomData,
                 }
             }
             Variant::Bool(v) => {
                 QVariant {
                     data: null(),
-                    len: v as c_int,
-                    type_: VariantType::Bool as c_uint,
+                    value: v as c_int,
+                    type_: VariantType::Bool,
                     phantom: PhantomData,
                 }
             }
             Variant::String(ref v) => {
                 QVariant {
                     data: v.as_ptr(),
-                    len: v.len() as c_int,
-                    type_: VariantType::String as c_uint,
+                    value: v.len() as c_int,
+                    type_: VariantType::String,
                     phantom: PhantomData,
                 }
             }
             Variant::ByteArray(ref v) => {
                 QVariant {
                     data: v.as_ptr(),
-                    len: v.len() as c_int,
-                    type_: VariantType::ByteArray as c_uint,
+                    value: v.len() as c_int,
+                    type_: VariantType::ByteArray,
                     phantom: PhantomData,
                 }
             }

@@ -457,8 +457,9 @@ namespace {
     };
     QVariant variant(const qvariant_t& v) {
         switch (v.type) {
-            case QVariant::Bool: return QVariant((bool)v.value);
             case QVariant::String: return QString::fromUtf8(static_cast<const char*>(v.data), v.value);
+            case QVariant::Bool: return QVariant((bool)v.value);
+            case QVariant::ByteArray: return QVariant(QByteArray(v.data, v.value));
             default:;
         }
         return QVariant();
