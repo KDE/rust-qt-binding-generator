@@ -62,7 +62,7 @@ int main (int argc, char *argv[])
     view.show();
 
     engine.rootContext()->setContextProperty("fsModel", &model);
-    engine.load(QUrl(QStringLiteral("test.qml")));
+    engine.load(QUrl(QStringLiteral("../test.qml")));
 
     return app.exec();
 /*

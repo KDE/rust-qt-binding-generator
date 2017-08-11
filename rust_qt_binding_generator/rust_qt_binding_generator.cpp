@@ -100,6 +100,7 @@ parseConfiguration(const QString& path) {
     const QJsonObject o = doc.object();
     Configuration c;
     c.cppFile = QFileInfo(base, o.value("cppFile").toString());
+    QDir(c.cppFile.dir()).mkpath(".");
     c.hFile = QFileInfo(c.cppFile.dir(), c.cppFile.completeBaseName() + ".h");
     for (const QJsonValue& val: o.value("objects").toArray()) {
         c.objects.append(parseObject(val.toObject()));
