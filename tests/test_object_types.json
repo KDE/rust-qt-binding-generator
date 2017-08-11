@@ -10,7 +10,7 @@
         "type": "Object",
         "properties": [{
             "name": "userName",
-            "type": "QString",
+            "type": "QVariant",
             "write": true
         }]
     }]

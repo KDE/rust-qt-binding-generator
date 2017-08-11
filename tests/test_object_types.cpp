@@ -1,6 +1,7 @@
-#include "test_object_rust.h"
+#include "test_object_types_rust.h"
 #include <QTest>
 #include <QSignalSpy>
+#include <QDebug>
 
 class TestRustObject : public QObject
 {
@@ -26,15 +27,17 @@ void TestRustObject::testStringSetter()
 {
     // GIVEN
     Person person;
+    const QVariant userName(QString("Konqi"));
     QSignalSpy spy(&person, &Person::userNameChanged);
 
     // WHEN
-    person.setUserName("Konqi");
+    person.setUserName(userName);
 
     // THEN
     QVERIFY(spy.isValid());
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(person.userName(), QString("Konqi"));
+    QCOMPARE(person.userName().type(), userName.type());
+    QCOMPARE(person.userName(), userName);
 }
 
 QTEST_MAIN(TestRustObject)

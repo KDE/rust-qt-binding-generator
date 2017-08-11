@@ -16,8 +16,6 @@ function(rust_test NAME DIRECTORY)
         MAIN_DEPENDENCY "${NAME}.json"
         DEPENDS "${GENERATOR}"
     )
-#    add_custom_target("${DIRECTORY}"
-#        DEPENDS "${DIR}/src/inferface.rs")
 
     add_custom_command(
         OUTPUT "${DIR}/${RUST_TARGET_DIR}/librust.a"
@@ -39,7 +37,8 @@ function(rust_test NAME DIRECTORY)
         "${DIR}/${RUST_TARGET_DIR}/librust.a"
     )
     set_property(TARGET ${NAME}
-        APPEND PROPERTY AUTOGEN_TARGET_DEPENDS "${SRC}/${NAME}_rust.h")
+        APPEND PROPERTY AUTOGEN_TARGET_DEPENDS "${SRC}/${NAME}_rust.h"
+        APPEND PROPERTY AUTOGEN_TARGET_DEPENDS "${SRC}/${NAME}_rust.cpp")
 
     add_test("build_${NAME}"
             "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target "${NAME}")

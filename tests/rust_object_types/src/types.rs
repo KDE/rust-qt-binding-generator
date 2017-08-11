@@ -96,8 +96,16 @@ impl<'a> QVariant<'a> {
         self.type_ as u32
     }
     pub fn convert(&self) -> Variant {
-        // TODO
-        Variant::None
+        match self.type_ {
+            10 => {
+                let data = unsafe {
+                    let d = self.data as *const uint16_t;
+                    slice::from_raw_parts(d, self.len as usize)
+                };
+                Variant::String(String::from_utf16_lossy(data))
+            }
+            _ => Variant::None
+        }
     }
 }
 

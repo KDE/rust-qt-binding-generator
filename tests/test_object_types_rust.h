@@ -11,15 +11,15 @@ class Person : public QObject
 {
     Q_OBJECT
     PersonInterface * const d;
-    Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
+    Q_PROPERTY(QVariant userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
 public:
     explicit Person(QObject *parent = nullptr);
     ~Person();
-    QString userName() const;
-    void setUserName(const QString& v);
+    QVariant userName() const;
+    void setUserName(const QVariant& v);
 signals:
     void userNameChanged();
 private:
-    QString m_userName;
+    QVariant m_userName;
 };
 #endif // TEST_OBJECT_TYPES_RUST_H

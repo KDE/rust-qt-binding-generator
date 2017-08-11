@@ -96,8 +96,12 @@ impl<'a> QVariant<'a> {
         self.type_ as u32
     }
     pub fn convert(&self) -> Variant {
-        // TODO
-        Variant::None
+        match (self.type_) {
+            10 => {
+                Variant::String(String::new())
+            }
+            _ => Variant::None
+        }
     }
 }
 

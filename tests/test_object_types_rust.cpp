@@ -110,8 +110,8 @@ void set_qvariant(QVariant* v, qvariant_t* val) {
 extern "C" {
     PersonInterface* person_new(Person*, void (*)(Person*));
     void person_free(PersonInterface*);
-    void person_user_name_get(PersonInterface*, QString*, qstring_set);
-    void person_user_name_set(void*, qstring_t);
+    void person_user_name_get(PersonInterface*, QVariant*, qvariant_set);
+    void person_user_name_set(void*, qvariant_t);
 };
 Person::Person(QObject *parent):
     QObject(parent),
@@ -121,12 +121,12 @@ Person::Person(QObject *parent):
 Person::~Person() {
     person_free(d);
 }
-QString Person::userName() const
+QVariant Person::userName() const
 {
-    QString v;
-    person_user_name_get(d, &v, set_qstring);
+    QVariant v;
+    person_user_name_get(d, &v, set_qvariant);
     return v;
 }
-void Person::setUserName(const QString& v) {
-    person_user_name_set(d, v);
+void Person::setUserName(const QVariant& v) {
+    variant(v, d, person_user_name_set);
 }
