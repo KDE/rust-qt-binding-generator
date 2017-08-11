@@ -1,5 +1,6 @@
 #include "test_object_rust.h"
 #include <QTest>
+#include <QSignalSpy>
 
 class TestRustObject : public QObject
 {
@@ -23,8 +24,16 @@ void TestRustObject::testStringGetter()
 
 void TestRustObject::testStringSetter()
 {
+    // GIVEN
     Person person;
+    QSignalSpy spy(&person, &Person::userNameChanged);
+
+    // WHEN
     person.setUserName("Konqi");
+
+    // THEN
+    QVERIFY(spy.isValid());
+    QCOMPARE(spy.count(), 1);
     QCOMPARE(person.userName(), QString("Konqi"));
 }
 
