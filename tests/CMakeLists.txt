@@ -2,6 +2,8 @@ enable_testing()
 
 SET(GENERATOR "${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator")
 
+add_custom_target("clean-rust")
+
 function(rust_test NAME DIRECTORY)
     set(SRC "${CMAKE_CURRENT_SOURCE_DIR}")
     set(DIR "${SRC}/${DIRECTORY}")
@@ -45,6 +47,15 @@ function(rust_test NAME DIRECTORY)
             "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target "${NAME}")
     add_test("${NAME}" "${NAME}")
     set_tests_properties("${NAME}" PROPERTIES DEPENDS "build_${NAME}")
+
+    add_custom_command(
+        OUTPUT "clean_${NAME}"
+        COMMAND cargo clean
+        WORKING_DIRECTORY "${DIR}"
+    )
+    add_custom_target("clean-${NAME}" DEPENDS "clean_${NAME}")
+    add_dependencies("clean-rust" "clean-${NAME}")
+
 
 endfunction(rust_test)
 
