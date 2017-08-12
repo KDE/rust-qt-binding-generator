@@ -33,6 +33,12 @@ void TestRustObjectTypes::testSetter_data()
     QTest::newRow("invalid") << QVariant();
     QTest::newRow("true") << QVariant(true);
     QTest::newRow("false") << QVariant(false);
+    QTest::newRow("0") << QVariant((int)0);
+    QTest::newRow("1") << QVariant((int)1);
+    int min_int = std::numeric_limits<int>::min();
+    QTest::newRow("min_int") << QVariant(min_int);
+    int max_int = std::numeric_limits<int>::max();
+    QTest::newRow("max_int") << QVariant(max_int);
     QTest::newRow("QString()") << QVariant(QString());
     QTest::newRow("QString(Konqi)") << QVariant("Konqi");
     QTest::newRow("QString($€𐐷𤭢)") << QVariant("$€𐐷𤭢");

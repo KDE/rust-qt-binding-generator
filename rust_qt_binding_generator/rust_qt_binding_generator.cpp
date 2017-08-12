@@ -16,9 +16,76 @@ enum ObjectType {
     ObjectTypeList
 };
 
+enum class BindingType {
+    Bool,
+    Int,
+    QString,
+    QByteArray,
+    QVariant
+};
+
+struct BindingTypeProperties {
+    QString name;
+    QString cppSetType;
+    QString cSetType;
+    QString rustType;
+    QString rustTypeInit;
+    bool isComplex() const {
+        return name.startsWith("Q");
+    }
+};
+
+BindingTypeProperties simpleType(const char* name, const char* init) {
+    return {
+        .name = name,
+        .cppSetType = name,
+        .cSetType = name,
+        .rustType = name,
+        .rustTypeInit = init
+    };
+}
+
+const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
+    static QMap<BindingType, BindingTypeProperties> p;
+    if (p.empty()) {
+        QMap<BindingType, BindingTypeProperties> f;
+        f.insert(BindingType::Bool, simpleType("bool", "true"));
+        f.insert(BindingType::Int, {
+                     .name = "int",
+                     .cppSetType = "int",
+                     .cSetType = "int",
+                     .rustType = "c_int",
+                     .rustTypeInit = "0"
+                 });
+        f.insert(BindingType::QString, {
+                     .name = "QString",
+                     .cppSetType = "const QString&",
+                     .cSetType = "qstring_t",
+                     .rustType = "String",
+                     .rustTypeInit = "String::new()"
+                 });
+        f.insert(BindingType::QByteArray, {
+                     .name = "QByteArray",
+                     .cppSetType = "const QByteArray&",
+                     .cSetType = "qbytearray_t",
+                     .rustType = "Vec<u8>",
+                     .rustTypeInit = "Vec::new()"
+                 });
+        f.insert(BindingType::QVariant, {
+                     .name = "QVariant",
+                     .cppSetType = "const QVariant&",
+                     .cSetType = "qvariant_t",
+                     .rustType = "Variant",
+                     .rustTypeInit = "Variant::None"
+                 });
+        p = f;
+    }
+    return p;
+}
+
 struct Property {
     QString name;
-    QString type;
+    BindingTypeProperties type;
     bool write;
 };
 
@@ -44,11 +111,25 @@ struct Configuration {
     bool overwriteImplementation;
 };
 
+BindingTypeProperties parseBindingType(const QString& value) {
+    QMapIterator<BindingType, BindingTypeProperties> i(bindingTypeProperties());
+    while (i.hasNext()) {
+        i.next();
+        if (value == i.value().name) {
+            return i.value();
+        }
+    }
+    err << QCoreApplication::translate("main",
+        "'%1' is not a supported type.\n").arg(value);
+    err.flush();
+    exit(1);
+}
+
 Property
 parseProperty(const QJsonObject& json) {
     Property p;
     p.name = json.value("name").toString();
-    p.type = json.value("type").toString();
+    p.type = parseBindingType(json.value("type").toString());
     p.write = json.value("write").toBool();
     return p;
 }
@@ -126,22 +207,8 @@ QString writeProperty(const QString& name) {
     return "WRITE set" + upperInitial(name) + " ";
 }
 
-QString type(const Property& p) {
-    if (p.type.startsWith("Q")) {
-        return "const " + p.type + "&";
-    }
-    return p.type;
-}
-
-QString cSetType(const Property& p) {
-    if (p.type.startsWith("Q")) {
-        return p.type.toLower() + "_t";
-    }
-    return p.type;
-}
-
 QString cGetType(const Property& p) {
-    return p.type + "*, " + p.type.toLower() + "_set";
+    return p.type.name + "*, " + p.type.name.toLower() + "_set";
 }
 
 QString baseType(const Object& o) {
@@ -151,7 +218,7 @@ QString baseType(const Object& o) {
     return "QObject";
 }
 
-void writeHeaderItemModel(QTextStream& h, const Object& o) {
+void writeHeaderItemModel(QTextStream& h, const Object&) {
     h << QString(R"(
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
@@ -236,7 +303,7 @@ class %1 : public %3
 )").arg(o.name, "T", baseType(o));
     for (auto p: o.properties) {
         h << QString("    Q_PROPERTY(%1 %2 READ %2 %3NOTIFY %2Changed FINAL)")
-                .arg(p.type, p.name,
+                .arg(p.type.name, p.name,
                      p.write ? writeProperty(p.name) :"") << endl;
     }
     h << QString(R"(public:
@@ -244,9 +311,9 @@ class %1 : public %3
     ~%1();
 )").arg(o.name);
     for (auto p: o.properties) {
-        h << "    " << p.type << " " << p.name << "() const;" << endl;
+        h << "    " << p.type.name << " " << p.name << "() const;" << endl;
         if (p.write) {
-            h << "    void set" << upperInitial(p.name) << "(" << type(p) << " v);" << endl;
+            h << "    void set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v);" << endl;
         }
     }
     if (baseType(o) == "QAbstractItemModel") {
@@ -258,7 +325,7 @@ class %1 : public %3
     }
     h << "private:" << endl;
     for (auto p: o.properties) {
-        h << "    " << p.type << " m_" << p.name << ";" << endl;
+        h << "    " << p.type.name << " m_" << p.name << ";" << endl;
     }
     h << "};" << endl;
 }
@@ -281,16 +348,16 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
         << endl;
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
-        if (p.type.startsWith("Q")) {
+        if (p.type.isComplex()) {
             cpp << QString("    void %2_get(%1Interface*, %3);")
                 .arg(o.name, base, cGetType(p)) << endl;
         } else {
             cpp << QString("    %3 %2_get(%1Interface*);")
-                .arg(o.name, base, p.type) << endl;
+                .arg(o.name, base, p.type.name) << endl;
         }
         if (p.write) {
             cpp << QString("    void %1_set(void*, %2);")
-                .arg(base, cSetType(p)) << endl;
+                .arg(base, p.type.cSetType) << endl;
         }
     }
 }
@@ -329,18 +396,18 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
 
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
-        cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type);
-        if (p.type.startsWith("Q")) {
-            cpp << "    " << p.type << " v;\n";
-            cpp << "    " << base << "_get(d, &v, set_" << p.type.toLower()
+        cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type.name);
+        if (p.type.isComplex()) {
+            cpp << "    " << p.type.name << " v;\n";
+            cpp << "    " << base << "_get(d, &v, set_" << p.type.name.toLower()
                 << ");\n";
             cpp << "    return v;\n}\n";
         } else {
             cpp << QString("    return %1_get(d);\n}\n").arg(base);
         }
         if (p.write) {
-            cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << type(p) << " v) {" << endl;
-            if (p.type == "QVariant") {
+            cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v) {" << endl;
+            if (p.type.name == "QVariant") {
                 cpp << QString("    variant(v, d, %1_set);").arg(base) << endl;
             } else {
                 cpp << QString("    %1_set(d, v);").arg(base) << endl;
@@ -535,35 +602,6 @@ extern "C" {
     }
 }
 
-QString rustType(const Property& p) {
-    if (p.type == "QByteArray") {
-        return "Vec<u8>";
-    }
-    if (p.type.startsWith("Q")) {
-        return p.type.mid(1);
-    }
-    if (p.type == "int") {
-        return "c_int";
-    }
-    return p.type;
-}
-
-QString rustTypeInit(const Property& p) {
-    if (p.type == "QByteArray") {
-        return "Vec::new()";
-    }
-    if (p.type == "QString") {
-        return "String::new()";
-    }
-    if (p.type == "QVariant") {
-        return "Variant::None";
-    }
-    if (p.type == "bool") {
-        return "true";
-    }
-    return "0";
-}
-
 void writeRustInterfaceObject(QTextStream& r, const Object& o) {
     const QString lcname(snakeCase(o.name));
     r << QString(R"(/* generated by rust_qt_binding_generator */
@@ -633,9 +671,9 @@ pub trait %1Trait {
 )").arg(o.name, modelStruct);
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
+        r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, p.type.rustType);
         if (p.write) {
-            r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
+            r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, p.type.rustType);
         }
     }
     if (o.type == ObjectTypeList) {
@@ -697,8 +735,8 @@ pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
 )").arg(o.name, lcname, model);
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
-        QString ret = ") -> " + rustType(p);
-        if (p.type.startsWith("Q")) {
+        QString ret = ") -> " + p.type.rustType;
+        if (p.type.isComplex()) {
         r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1,
@@ -707,9 +745,9 @@ pub unsafe extern "C" fn %2_get(ptr: *const %1,
     let data = (&*ptr).get_%3();
     set(p, %4::from(&data));
 }
-)").arg(o.name, base, snakeCase(p.name), p.type);
+)").arg(o.name, base, snakeCase(p.name), p.type.name);
             if (p.write) {
-                const QString type = p.type == "QString" ? "QStringIn" : p.type;
+                const QString type = p.type.name == "QString" ? "QStringIn" : p.type.name;
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
@@ -723,14 +761,14 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 pub unsafe extern "C" fn %2_get(ptr: *const %1) -> %4 {
     (&*ptr).get_%3()
 }
-)").arg(o.name, base, snakeCase(p.name), rustType(p));
+)").arg(o.name, base, snakeCase(p.name), p.type.rustType);
             if (p.write) {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
     (&mut *ptr).set_%3(v);
 }
-)").arg(o.name, base, snakeCase(p.name), rustType(p));
+)").arg(o.name, base, snakeCase(p.name), p.type.rustType);
             }
         }
     }
@@ -791,7 +829,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    %1: %2,\n").arg(lc, rustType(p));
+        r << QString("    %1: %2,\n").arg(lc, p.type.rustType);
     }
     r << "}\n\n";
     r << QString(R"(impl %1Trait for %1 {
@@ -804,7 +842,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
+        r << QString("            %1: %2,\n").arg(lc, p.type.rustTypeInit);
     }
     r << QString(R"(        }
     }
@@ -814,8 +852,8 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
 )").arg(o.name);
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustType(p));
-        if (p.type.startsWith("Q")) {
+        r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, p.type.rustType);
+        if (p.type.isComplex()) {
             r << QString("        self.%1.clone()\n").arg(lc);
         } else {
             r << QString("        self.%1\n").arg(lc);
@@ -826,7 +864,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         self.%1 = value;
         self.emit.%1_changed();
     }
-)").arg(lc, rustType(p));
+)").arg(lc, p.type.rustType);
         }
     }
     if (o.type == ObjectTypeList) {
