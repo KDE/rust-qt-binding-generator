@@ -35,16 +35,20 @@
         }],
         "roles": [{
             "name": "FileIcon",
-            "value": "Qt::DecorationRole"
+            "value": "Qt::DecorationRole",
+            "type": "QByteArray"
         }, {
             "name": "FilePath",
-            "value": "Qt::UserRole + 1"
+            "value": "Qt::UserRole + 1",
+            "type": "QString"
         }, {
             "name": "FileName",
-            "value": "Qt::UserRole + 2"
+            "value": "Qt::UserRole + 2",
+            "type": "QString"
         }, {
             "name": "FilePermissions",
-            "value": "Qt::UserRole + 3"
+            "value": "Qt::UserRole + 3",
+            "type": "int"
         }]
     }]
 }

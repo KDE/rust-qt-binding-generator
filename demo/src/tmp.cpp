@@ -36,65 +36,6 @@ namespace {
         qmodelindex_t(const QModelIndex& m):
            row(m.row()), column(m.column()), id(m.internalId()) {}
     };
-    struct qvariant_t {
-        unsigned int type;
-        int value;
-        const char* data;
-    };
-    QVariant variant(const qvariant_t& v) {
-        switch (v.type) {
-            case QVariant::String: return QString::fromUtf8(static_cast<const char*>(v.data), v.value);
-            case QVariant::Bool: return QVariant((bool)v.value);
-            case QVariant::Int: return QVariant(v.value);
-            case QVariant::ByteArray: return QVariant(QByteArray(v.data, v.value));
-            default:;
-        }
-        return QVariant();
-    }
-    void variant(const QByteArray& v, void* d, void (*set)(void*, qvariant_t)) {
-        set(d, {
-            .type = QVariant::ByteArray,
-            .value = v.length(),
-            .data = v.data()
-        });
-    }
-    void variant(const QString& v, void* d, void (*set)(void*, qvariant_t)) {
-        set(d, {
-            .type = QVariant::String,
-            .value = v.size(),
-            .data = static_cast<const char*>(static_cast<const void*>(v.utf16()))
-        });
-    }
-    void variant(const QVariant& v, void* d, void (*set)(void*, qvariant_t)) {
-        switch (v.type()) {
-            case QVariant::Bool:
-                set(d, {
-                    .type = QVariant::Bool,
-                    .value = v.toBool(),
-                    .data = 0
-                });
-                break;
-            case QVariant::Int:
-                set(d, {
-                    .type = QVariant::Int,
-                    .value = v.toInt(),
-                    .data = 0
-                });
-                break;
-            case QVariant::ByteArray:
-                variant(v.toByteArray(), d, set);
-                break;
-            case QVariant::String:
-                variant(v.toString(), d, set);
-                break;
-            default:
-                set(d, {
-                    .type = QVariant::Invalid,
-                    .value = 0,
-                    .data = 0
-                });
-        }
-    }
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -103,10 +44,6 @@ void set_qstring(QString* v, qstring_t* val) {
 typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
-}
-typedef void (*qvariant_set)(QVariant*, qvariant_t*);
-void set_qvariant(QVariant* v, qvariant_t* val) {
-    *v = variant(*val);
 }
 
 extern "C" {
@@ -206,10 +143,10 @@ enum DirectoryRole {
 };
 
 extern "C" {
-    void directory_data_file_icon(DirectoryInterface*, int, QVariant*, qvariant_set);
-    void directory_data_file_path(DirectoryInterface*, int, QVariant*, qvariant_set);
-    void directory_data_file_name(DirectoryInterface*, int, QVariant*, qvariant_set);
-    void directory_data_file_permissions(DirectoryInterface*, int, QVariant*, qvariant_set);
+    void directory_data_file_icon(DirectoryInterface*, int, QByteArray*, qbytearray_set);
+    void directory_data_file_path(DirectoryInterface*, int, QString*, qstring_set);
+    void directory_data_file_name(DirectoryInterface*, int, QString*, qstring_set);
+    int directory_data_file_permissions(DirectoryInterface*, int);
 
     int directory_row_count(DirectoryInterface*);
     bool directory_can_fetch_more(DirectoryInterface*);
@@ -253,18 +190,23 @@ void Directory::fetchMore(const QModelIndex &parent)
 QVariant Directory::data(const QModelIndex &index, int role) const
 {
     QVariant v;
+    QString s;
+    QByteArray b;
     switch ((DirectoryRole)role) {
     case DirectoryRoleFileIcon:
-        directory_data_file_icon(d, index.row(), &v, set_qvariant);
+        directory_data_file_icon(d, index.row(), &b, set_qbytearray);
+        v.setValue<QByteArray>(b);
         break;
     case DirectoryRoleFilePath:
-        directory_data_file_path(d, index.row(), &v, set_qvariant);
+        directory_data_file_path(d, index.row(), &s, set_qstring);
+        v.setValue<QString>(s);
         break;
     case DirectoryRoleFileName:
-        directory_data_file_name(d, index.row(), &v, set_qvariant);
+        directory_data_file_name(d, index.row(), &s, set_qstring);
+        v.setValue<QString>(s);
         break;
     case DirectoryRoleFilePermissions:
-        directory_data_file_permissions(d, index.row(), &v, set_qvariant);
+        v.setValue<int>(directory_data_file_permissions(d, index.row()));
         break;
     }
     return v;

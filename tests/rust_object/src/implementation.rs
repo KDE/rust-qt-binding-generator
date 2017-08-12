@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 use libc::c_int;
+use libc::c_uint;
 use types::*;
 use interface::*;
 

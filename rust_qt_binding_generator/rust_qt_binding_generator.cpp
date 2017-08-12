@@ -21,8 +21,7 @@ enum class BindingType {
     Int,
     UInt,
     QString,
-    QByteArray,
-    QVariant
+    QByteArray
 };
 
 struct BindingTypeProperties {
@@ -93,6 +92,7 @@ struct Property {
 struct Role {
     QString name;
     QString value;
+    BindingTypeProperties type;
 };
 
 struct Object {
@@ -141,6 +141,7 @@ parseRole(const QJsonObject& json) {
     Role r;
     r.name = json.value("name").toString();
     r.value = json.value("value").toString();
+    r.type = parseBindingType(json.value("type").toString());
     return r;
 }
 
@@ -210,8 +211,8 @@ QString writeProperty(const QString& name) {
     return "WRITE set" + upperInitial(name) + " ";
 }
 
-QString cGetType(const Property& p) {
-    return p.type.name + "*, " + p.type.name.toLower() + "_set";
+QString cGetType(const BindingTypeProperties& type) {
+    return type.name + "*, " + type.name.toLower() + "_set";
 }
 
 QString baseType(const Object& o) {
@@ -247,8 +248,13 @@ void writeCppListModel(QTextStream& cpp, const Object& o) {
 
     cpp << "extern \"C\" {\n";
     for (auto role: o.roles) {
-        cpp << QString("    void %2_data_%3(%1Interface*, int, QVariant*, qvariant_set);\n")
-                .arg(o.name, lcname, snakeCase(role.name));
+        if (role.type.isComplex()) {
+            cpp << QString("    void %2_data_%3(%1Interface*, int, %4);\n")
+                .arg(o.name, lcname, snakeCase(role.name), cGetType(role.type));
+        } else {
+            cpp << QString("    %4 %2_data_%3(%1Interface*, int);\n")
+                .arg(o.name, lcname, snakeCase(role.name), role.type.name);
+        }
     }
     cpp << QString(R"(
     int %2_row_count(%1Interface*);
@@ -293,14 +299,26 @@ void %1::fetchMore(const QModelIndex &parent)
 QVariant %1::data(const QModelIndex &index, int role) const
 {
     QVariant v;
+    QString s;
+    QByteArray b;
     switch ((%1Role)role) {
 )").arg(o.name, lcname);
 
     for (auto role: o.roles) {
-         cpp << QString("    case %1Role%2:\n").arg(o.name, role.name);
-         cpp << QString("        %1_data_%2(d, index.row(), &v, set_qvariant);\n")
-                .arg(lcname, snakeCase(role.name));
-         cpp << "        break;\n";
+        cpp << QString("    case %1Role%2:\n").arg(o.name, role.name);
+        if (role.type.name == "QString") {
+            cpp << QString("        %1_data_%2(d, index.row(), &s, set_%3);\n")
+                .arg(lcname, snakeCase(role.name), role.type.name.toLower());
+            cpp << "        v.setValue<QString>(s);\n";
+        } else if (role.type.name == "QByteArray") {
+            cpp << QString("        %1_data_%2(d, index.row(), &b, set_%3);\n")
+                .arg(lcname, snakeCase(role.name), role.type.name.toLower());
+            cpp << "        v.setValue<QByteArray>(b);\n";
+        } else {
+            cpp << QString("        v.setValue<%3>(%1_data_%2(d, index.row()));\n")
+                .arg(lcname, snakeCase(role.name), role.type.name);
+        }
+        cpp << "        break;\n";
     }
     cpp << "    }\n    return v;\n}\n";
     cpp << "QHash<int, QByteArray> " << o.name << "::roleNames() const {\n";
@@ -369,7 +387,7 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
         if (p.type.isComplex()) {
             cpp << QString("    void %2_get(%1Interface*, %3);")
-                .arg(o.name, base, cGetType(p)) << endl;
+                .arg(o.name, base, cGetType(p.type)) << endl;
         } else {
             cpp << QString("    %3 %2_get(%1Interface*);")
                 .arg(o.name, base, p.type.name) << endl;
@@ -426,11 +444,7 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         }
         if (p.write) {
             cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v) {" << endl;
-            if (p.type.name == "QVariant") {
-                cpp << QString("    variant(v, d, %1_set);").arg(base) << endl;
-            } else {
-                cpp << QString("    %1_set(d, v);").arg(base) << endl;
-            }
+            cpp << QString("    %1_set(d, v);").arg(base) << endl;
             cpp << "}" << endl;
         }
     }
@@ -536,65 +550,6 @@ namespace {
         qmodelindex_t(const QModelIndex& m):
            row(m.row()), column(m.column()), id(m.internalId()) {}
     };
-    struct qvariant_t {
-        unsigned int type;
-        int value;
-        const char* data;
-    };
-    QVariant variant(const qvariant_t& v) {
-        switch (v.type) {
-            case QVariant::String: return QString::fromUtf8(static_cast<const char*>(v.data), v.value);
-            case QVariant::Bool: return QVariant((bool)v.value);
-            case QVariant::Int: return QVariant(v.value);
-            case QVariant::ByteArray: return QVariant(QByteArray(v.data, v.value));
-            default:;
-        }
-        return QVariant();
-    }
-    void variant(const QByteArray& v, void* d, void (*set)(void*, qvariant_t)) {
-        set(d, {
-            .type = QVariant::ByteArray,
-            .value = v.length(),
-            .data = v.data()
-        });
-    }
-    void variant(const QString& v, void* d, void (*set)(void*, qvariant_t)) {
-        set(d, {
-            .type = QVariant::String,
-            .value = v.size(),
-            .data = static_cast<const char*>(static_cast<const void*>(v.utf16()))
-        });
-    }
-    void variant(const QVariant& v, void* d, void (*set)(void*, qvariant_t)) {
-        switch (v.type()) {
-            case QVariant::Bool:
-                set(d, {
-                    .type = QVariant::Bool,
-                    .value = v.toBool(),
-                    .data = 0
-                });
-                break;
-            case QVariant::Int:
-                set(d, {
-                    .type = QVariant::Int,
-                    .value = v.toInt(),
-                    .data = 0
-                });
-                break;
-            case QVariant::ByteArray:
-                variant(v.toByteArray(), d, set);
-                break;
-            case QVariant::String:
-                variant(v.toString(), d, set);
-                break;
-            default:
-                set(d, {
-                    .type = QVariant::Invalid,
-                    .value = 0,
-                    .data = 0
-                });
-        }
-    }
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -603,10 +558,6 @@ void set_qstring(QString* v, qstring_t* val) {
 typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
-}
-typedef void (*qvariant_set)(QVariant*, qvariant_t*);
-void set_qvariant(QVariant* v, qvariant_t* val) {
-    *v = variant(*val);
 }
 
 extern "C" {
@@ -701,8 +652,8 @@ pub trait %1Trait {
         r << "    fn can_fetch_more(&self) -> bool { false }\n";
         r << "    fn fetch_more(&self) {}\n";
         for (auto role: o.roles) {
-            r << QString("    fn %1(&self, row: c_int) -> Variant;\n")
-                    .arg(snakeCase(role.name));
+            r << QString("    fn %1(&self, row: c_int) -> %2;\n")
+                    .arg(snakeCase(role.name), role.type.rustType);
         }
     }
 
@@ -759,7 +710,7 @@ pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
         QString ret = ") -> " + p.type.rustType;
         if (p.type.isComplex()) {
-        r << QString(R"(
+            r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1,
         p: *mut c_void,
@@ -778,7 +729,7 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 )").arg(o.name, base, snakeCase(p.name), type);
             }
         } else {
-        r << QString(R"(
+            r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1) -> %4 {
     (&*ptr).get_%3()
@@ -810,16 +761,25 @@ pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1) {
 }
 )").arg(o.name, lcname);
         for (auto role: o.roles) {
-            r << QString(R"(
+            if (role.type.isComplex()) {
+                r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
-                                         row: c_int,
-                                         d: *mut c_void,
-                                         set: fn(*mut c_void, &QVariant)) {
-    let data = (& *ptr).%3(row);
-    set(d, &QVariant::from(&data));
+                                    row: c_int,
+        d: *mut c_void,
+        set: fn(*mut c_void, %4)) {
+    let data = (&*ptr).%3(row);
+    set(d, %4::from(&data));
 }
-)").arg(o.name, lcname, snakeCase(role.name));
+)").arg(o.name, lcname, snakeCase(role.name), role.type.name);
+            } else {
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int) -> %4 {
+    (&*ptr).%3(row)
+}
+)").arg(o.name, lcname, snakeCase(role.name), role.type.rustType);
+            }
         }
     }
 }

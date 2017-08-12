@@ -181,10 +181,10 @@ pub trait DirectoryTrait {
     fn row_count(&self) -> c_int;
     fn can_fetch_more(&self) -> bool { false }
     fn fetch_more(&self) {}
-    fn file_icon(&self, row: c_int) -> Variant;
-    fn file_path(&self, row: c_int) -> Variant;
-    fn file_name(&self, row: c_int) -> Variant;
-    fn file_permissions(&self, row: c_int) -> Variant;
+    fn file_icon(&self, row: c_int) -> Vec<u8>;
+    fn file_path(&self, row: c_int) -> String;
+    fn file_name(&self, row: c_int) -> String;
+    fn file_permissions(&self, row: c_int) -> c_int;
 }
 
 #[no_mangle]
@@ -247,36 +247,32 @@ pub unsafe extern "C" fn directory_fetch_more(ptr: *mut Directory) {
 
 #[no_mangle]
 pub unsafe extern "C" fn directory_data_file_icon(ptr: *const Directory,
-                                         row: c_int,
-                                         d: *mut c_void,
-                                         set: fn(*mut c_void, &QVariant)) {
-    let data = (& *ptr).file_icon(row);
-    set(d, &QVariant::from(&data));
+                                    row: c_int,
+        d: *mut c_void,
+        set: fn(*mut c_void, QByteArray)) {
+    let data = (&*ptr).file_icon(row);
+    set(d, QByteArray::from(&data));
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn directory_data_file_path(ptr: *const Directory,
-                                         row: c_int,
-                                         d: *mut c_void,
-                                         set: fn(*mut c_void, &QVariant)) {
-    let data = (& *ptr).file_path(row);
-    set(d, &QVariant::from(&data));
+                                    row: c_int,
+        d: *mut c_void,
+        set: fn(*mut c_void, QString)) {
+    let data = (&*ptr).file_path(row);
+    set(d, QString::from(&data));
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn directory_data_file_name(ptr: *const Directory,
-                                         row: c_int,
-                                         d: *mut c_void,
-                                         set: fn(*mut c_void, &QVariant)) {
-    let data = (& *ptr).file_name(row);
-    set(d, &QVariant::from(&data));
+                                    row: c_int,
+        d: *mut c_void,
+        set: fn(*mut c_void, QString)) {
+    let data = (&*ptr).file_name(row);
+    set(d, QString::from(&data));
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn directory_data_file_permissions(ptr: *const Directory,
-                                         row: c_int,
-                                         d: *mut c_void,
-                                         set: fn(*mut c_void, &QVariant)) {
-    let data = (& *ptr).file_permissions(row);
-    set(d, &QVariant::from(&data));
+pub unsafe extern "C" fn directory_data_file_permissions(ptr: *const Directory, row: c_int) -> c_int {
+    (&*ptr).file_permissions(row)
 }
