@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use libc::c_int;
 use types::*;
 use testinterface::*;

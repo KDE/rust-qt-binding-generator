@@ -1,4 +1,4 @@
-#include "RMailObject.h"
+#include "DemoObject.h"
 #include <QSize>
 #include <QDebug>
 #include <cstdint>
@@ -64,10 +64,10 @@ namespace {
 typedef void (*qvariant_set)(void*, qvariant_t*);
 
 extern "C" {
-    RMailObjectInterface* hello_new(RMailObject*, void (*)(RMailObject*));
-    void hello_free(RMailObjectInterface*);
-    void hello_set(RMailObjectInterface*, const uint16_t *, size_t);
-    qstring_t hello_get(RMailObjectInterface*);
+    DemoObjectInterface* hello_new(DemoObject*, void (*)(DemoObject*));
+    void hello_free(DemoObjectInterface*);
+    void hello_set(DemoObjectInterface*, const uint16_t *, size_t);
+    qstring_t hello_get(DemoObjectInterface*);
 
     RItemModelInterface* ritemmodel_new(RItemModel*, void (*)(RItemModel*));
     void ritemmodel_free(RItemModelInterface*);
@@ -78,35 +78,35 @@ extern "C" {
     void ritemmodel_data(RItemModelInterface*, qmodelindex_t, int, QVariant*, qvariant_set);
 }
 
-RMailObject::RMailObject(QObject *parent):
+DemoObject::DemoObject(QObject *parent):
     QObject(parent),
     d(hello_new(this,
-        [](RMailObject* o) { emit o->userNameChanged(); }
+        [](DemoObject* o) { emit o->userNameChanged(); }
     ))
     {
 }
 
-RMailObject::~RMailObject() {
+DemoObject::~DemoObject() {
     hello_free(d);
 }
 
 QString
-RMailObject::userName() const {
+DemoObject::userName() const {
     return hello_get(d);
 }
 
 void
-RMailObject::setUserName(const QString& name) {
+DemoObject::setUserName(const QString& name) {
     hello_set(d, name.utf16(), name.size());
 }
 
 const QVariantMap&
-RMailObject::tree() const {
+DemoObject::tree() const {
     return m_tree;
 }
 
 void
-RMailObject::setTree(const QVariantMap& tree) {
+DemoObject::setTree(const QVariantMap& tree) {
     m_tree = tree;
     emit treeChanged();
 }

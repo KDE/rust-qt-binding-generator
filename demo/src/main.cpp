@@ -1,4 +1,4 @@
-#include "RMailObject.h"
+#include "DemoObject.h"
 #include "tmp.h"
 #include <cstdlib>
 
@@ -16,17 +16,17 @@
 int main (int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    KLocalizedString::setApplicationDomain("RMail");
+    KLocalizedString::setApplicationDomain("Demo");
     
     KAboutData aboutData(
                          // The program name used internally. (componentName)
-                         QStringLiteral("RMail"),
+                         QStringLiteral("Demo"),
                          // A displayable program name string. (displayName)
-                         i18n("RMail"),
+                         i18n("Demo"),
                          // The program version string. (version)
                          QStringLiteral("0.1"),
                          // Short description of what the app does. (shortDescription)
-                         i18n("Displays a mails from a maildir"),
+                         i18n("Demo application for Rust bindings"),
                          // The license this code is released under
                          KAboutLicense::GPL,
                          // Copyright Statement (copyrightStatement = QString())
@@ -62,21 +62,7 @@ int main (int argc, char *argv[])
     view.show();
 
     engine.rootContext()->setContextProperty("fsModel", &model);
-    engine.load(QUrl(QStringLiteral("../test.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:///demo.qml")));
 
     return app.exec();
-/*
-    RMailObject rmail;
-    rmail.setUserName("RMail");
-    rmail.userName();
-
-    KGuiItem yesButton( rmail.userName(), rmail.userName(),
-                        i18n( "This is a tooltip" ),
-                        i18n( "This is a WhatsThis help text." ) );
-
-    return 
-        KMessageBox::questionYesNo 
-        (0, i18n( "Hello World" ), i18n( "Hello" ), yesButton ) 
-        == KMessageBox::Yes? EXIT_SUCCESS: EXIT_FAILURE;
-*/
 }

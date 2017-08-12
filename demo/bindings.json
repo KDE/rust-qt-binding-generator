@@ -1,7 +1,7 @@
 {
     "cppFile": "src/tmp.cpp",
     "rust": {
-        "dir": "common-rust",
+        "dir": "rust",
         "interfaceModule": "testinterface",
         "implementationModule": "testimplementation",
         "typesModule": "types"
