@@ -81,12 +81,12 @@ impl DirectoryTrait for Directory {
         Vec::new()
     }
     fn file_path(&self, row: c_int) -> String {
-        String::from("file_path")
+        String::new()
     }
     fn file_name(&self, row: c_int) -> String {
-        String::from("file_name")
+        String::new()
     }
     fn file_permissions(&self, row: c_int) -> c_int {
-        row
+        0
     }
 }

@@ -43,12 +43,11 @@ impl DirEntry {
 }
 
 impl Item for DirEntry {
-    fn data(&self, role: c_int) -> Variant {
-        if role != 0 {
-            return Variant::None;
-        }
-        let str = self.name.to_string_lossy().to_string();
-        Variant::from(str)
+    fn file_name(&self) -> String {
+        self.name.to_string_lossy().to_string()
+    }
+    fn file_permissions(&self) -> c_int {
+        42
     }
     fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
@@ -72,7 +71,8 @@ impl Default for DirEntry {
 
 pub trait Item: Default {
     fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
-    fn data(&self, role: c_int) -> Variant;
+    fn file_name(&self) -> String;
+    fn file_permissions(&self) -> c_int;
 }
 
 pub type RItemModel = RGeneralItemModel<DirEntry>;
@@ -90,10 +90,9 @@ pub struct RGeneralItemModel<T: Item> {
 }
 
 impl<T: Item> RGeneralItemModel<T> {
-    fn get(&mut self, index: &QModelIndex) -> usize {
-        let p = if index.is_valid() {
-            let row = index.row() as usize;
-            self.entries[index.id() as usize].children.as_ref().unwrap()[row]
+    fn get(&mut self, row: c_int, parent: usize) -> usize {
+        let p = if parent > 0 {
+            self.entries[parent].children.as_ref().unwrap()[row as usize]
         } else {
             1
         };
@@ -161,11 +160,11 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
         2
     }
     fn row_count(&mut self, parent: QModelIndex) -> c_int {
-        let i = self.get(&parent);
+        let i = self.get(parent.row(), parent.id());
         self.entries[i].children.as_ref().unwrap().len() as i32
     }
     fn index(&mut self, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
-        QModelIndex::create(row, column, self.get(&parent))
+        QModelIndex::create(row, column, self.get(parent.row(), parent.id()))
     }
     fn parent(&self, index: QModelIndex) -> QModelIndex {
         if !index.is_valid() || index.id() == 1 {
@@ -174,12 +173,12 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
         let e = &self.entries[index.id()];
         QModelIndex::create(e.row as i32, 0, e.parent)
     }
-    fn data(&mut self, index: QModelIndex, role: c_int) -> Variant {
-        let i = self.get(&index);
-        if index.column() == 0 {
-            self.entries[i].data.data(role)
-        } else {
-            Variant::Bool(true)
-        }
+    fn file_name(&mut self, row: c_int, parent: usize) -> String {
+        let i = self.get(row, parent);
+        self.entries[i].data.file_name()
+    }
+    fn file_permissions(&mut self, row: c_int, parent: usize) -> c_int {
+        let i = self.get(row,parent);
+        self.entries[i].data.file_permissions()
     }
 }

@@ -3,7 +3,6 @@
 #define TMP_H
 
 #include <QObject>
-#include <QVariant>
 #include <QAbstractItemModel>
 
 class PersonInterface;

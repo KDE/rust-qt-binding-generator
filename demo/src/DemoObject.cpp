@@ -30,38 +30,12 @@ namespace {
         qmodelindex_t(const QModelIndex& m):
            row(m.row()), column(m.column()), id(m.internalId()) {}
     };
-    struct qvariant_t {
-        unsigned int type;
-        int value;
-        const char* data;
-    };
-    QVariant variant(const qvariant_t& v) {
-        switch (v.type) {
-            case QVariant::Bool: return QVariant((bool)v.value);
-            case QVariant::String: return QString::fromUtf8(v.data, v.value);
-            default:;
-        }
-        return QVariant();
-    }
-
-/*
-    qvariant_t variant(const QVariant& v) {
-        auto t = v.type();
-        switch (t) {
-            case QVariant::Bool:
-                return { .type = t, .value = { .vbool = 0 } };
-            case QVariant::ByteArray:
-                return { .type = t, .value = { .vbool = 0 } };
-            case QVariant::String:
-                return { .type = t, .value = { .vbool = 0 } };
-            default:;
-        }
-        return { .type = QVariant::Invalid, .value = { .vbool = false } };
-    }
-*/
 }
 
-typedef void (*qvariant_set)(void*, qvariant_t*);
+typedef void (*qstring_set)(QString*, qstring_t*);
+void set_qstring(QString* v, qstring_t* val) {
+    *v = *val;
+}
 
 extern "C" {
     DemoObjectInterface* hello_new(DemoObject*, void (*)(DemoObject*));
@@ -75,7 +49,8 @@ extern "C" {
     int ritemmodel_row_count(RItemModelInterface*, qmodelindex_t parent);
     qmodelindex_t ritemmodel_index(RItemModelInterface*, int row, int column, qmodelindex_t parent);
     qmodelindex_t ritemmodel_parent(RItemModelInterface*, qmodelindex_t);
-    void ritemmodel_data(RItemModelInterface*, qmodelindex_t, int, QVariant*, qvariant_set);
+    void ritemmodel_data_file_name(RItemModelInterface*, int, quintptr, QString*, qstring_set);
+    int ritemmodel_data_file_permissions(RItemModelInterface*, int, quintptr);
 }
 
 DemoObject::DemoObject(QObject *parent):
@@ -139,14 +114,18 @@ int RItemModel::rowCount(const QModelIndex &parent) const
     return ritemmodel_row_count(d, parent);
 }
 
-void set_variant(void* v, qvariant_t* val) {
-    *static_cast<QVariant*>(v) = variant(*val);
-}
-
 QVariant RItemModel::data(const QModelIndex &index, int role) const
 {
     QVariant v;
-    ritemmodel_data(d, index, role, &v, set_variant);
+    if (role == Qt::DisplayRole) {
+        if (index.column() == 0) {
+            QString s;
+            ritemmodel_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
+            v = s;
+        } else if (index.column() == 1) {
+            v.setValue<int>(ritemmodel_data_file_permissions(d, index.row(), index.internalId()));
+        }
+    }
     return v;
 }
 QModelIndex RItemModel::index(int row, int column, const QModelIndex &parent) const

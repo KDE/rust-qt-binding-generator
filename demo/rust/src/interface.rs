@@ -88,7 +88,8 @@ pub trait RItemModelTrait<T> {
     fn row_count(&mut self, parent: QModelIndex) -> c_int;
     fn index(&mut self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
     fn parent(&self, index: QModelIndex) -> QModelIndex;
-    fn data(&mut self, index: QModelIndex, role: c_int) -> Variant;
+    fn file_name(&mut self, row: c_int, parent: usize) -> String;
+    fn file_permissions(&mut self, row: c_int, parent: usize) -> c_int;
 }
 
 #[no_mangle]
@@ -135,11 +136,16 @@ pub unsafe extern "C" fn ritemmodel_parent(ptr: *const RItemModel,
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn ritemmodel_data(ptr: *mut RItemModel,
-                                         index: QModelIndex,
-                                         role: c_int,
-                                         d: *mut c_void,
-                                         set: fn(*mut c_void, &QVariant)) {
-    let data = (&mut *ptr).data(index, role);
-    set(d, &QVariant::from(&data));
+pub unsafe extern "C" fn ritemmodel_data_file_name(ptr: *mut RItemModel,
+                                    row: c_int, parent: usize,
+        d: *mut c_void,
+        set: fn(*mut c_void, QString)) {
+    let data = (&mut *ptr).file_name(row, parent);
+    set(d, QString::from(&data));
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ritemmodel_data_file_permissions(ptr: *mut RItemModel,
+                                    row: c_int, parent: usize) -> c_int {
+    (&mut *ptr).file_permissions(row, parent)
 }

@@ -3,7 +3,6 @@
 #define TEST_OBJECT_TYPES_RUST_H
 
 #include <QObject>
-#include <QVariant>
 #include <QAbstractItemModel>
 
 class ObjectInterface;

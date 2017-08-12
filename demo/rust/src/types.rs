@@ -2,8 +2,6 @@
 #![allow(dead_code)]
 use std::slice;
 use libc::{c_int, uint8_t, uint16_t};
-use std::ptr::null;
-use std::marker::PhantomData;
 
 #[repr(C)]
 pub struct QString {
@@ -55,123 +53,6 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
     }
 }
 
-#[derive(Clone)]
-pub enum Variant {
-    None,
-    Bool(bool),
-    Int(c_int),
-    String(String),
-    ByteArray(Vec<u8>),
-}
-
-impl From<bool> for Variant {
-    fn from(value: bool) -> Variant {
-        Variant::Bool(value)
-    }
-}
-
-impl From<String> for Variant {
-    fn from(value: String) -> Variant {
-        Variant::String(value)
-    }
-}
-
-/* values from qvariant.h and qmetatype.h */
-#[repr(u32)]
-#[derive(Clone, Copy)]
-enum VariantType {
-    Invalid = 0,
-    Bool = 1,
-    Int = 2,
-    String = 10,
-    ByteArray = 12,
-}
-
-#[repr(C)]
-pub struct QVariant<'a> {
-    type_: VariantType,
-    value: c_int,
-    data: *const uint8_t,
-    phantom: PhantomData<&'a u8>,
-}
-
-impl<'a> QVariant<'a> {
-    pub fn type_(&self) -> u32 {
-        self.type_ as u32
-    }
-    pub fn convert(&self) -> Variant {
-        match self.type_ {
-            VariantType::Bool => {
-                Variant::Bool(self.value != 0)
-            },
-            VariantType::Int => {
-                Variant::Int(self.value)
-            },
-            VariantType::String => {
-                let data = unsafe {
-                    let d = self.data as *const uint16_t;
-                    slice::from_raw_parts(d, self.value as usize)
-                };
-                Variant::String(String::from_utf16_lossy(data))
-            }
-            VariantType::ByteArray => {
-                let data = unsafe {
-                    slice::from_raw_parts(self.data, self.value as usize)
-                };
-                Variant::ByteArray(Vec::from(data))
-            }
-            _ => Variant::None
-        }
-    }
-}
-
-impl<'a> From<&'a Variant> for QVariant<'a> {
-    fn from(variant: &'a Variant) -> QVariant {
-        match *variant {
-            Variant::None => {
-                QVariant {
-                    data: null(),
-                    value: 0,
-                    type_: VariantType::Invalid,
-                    phantom: PhantomData,
-                }
-            }
-            Variant::Bool(v) => {
-                QVariant {
-                    data: null(),
-                    value: v as c_int,
-                    type_: VariantType::Bool,
-                    phantom: PhantomData,
-                }
-            }
-            Variant::Int(v) => {
-                QVariant {
-                    data: null(),
-                    value: v,
-                    type_: VariantType::Int,
-                    phantom: PhantomData,
-                }
-            }
-            Variant::String(ref v) => {
-                QVariant {
-                    data: v.as_ptr(),
-                    value: v.len() as c_int,
-                    type_: VariantType::String,
-                    phantom: PhantomData,
-                }
-            }
-            Variant::ByteArray(ref v) => {
-                QVariant {
-                    data: v.as_ptr(),
-                    value: v.len() as c_int,
-                    type_: VariantType::ByteArray,
-                    phantom: PhantomData,
-                }
-            }
-        }
-    }
-}
-
 #[repr(C)]
 pub struct QModelIndex {
     row: c_int,
@@ -214,5 +95,4 @@ impl QModelIndex {
         self.internal_id
     }
 }
-
 
