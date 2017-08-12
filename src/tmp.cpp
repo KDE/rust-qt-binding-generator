@@ -45,6 +45,7 @@ namespace {
         switch (v.type) {
             case QVariant::String: return QString::fromUtf8(static_cast<const char*>(v.data), v.value);
             case QVariant::Bool: return QVariant((bool)v.value);
+            case QVariant::Int: return QVariant(v.value);
             case QVariant::ByteArray: return QVariant(QByteArray(v.data, v.value));
             default:;
         }

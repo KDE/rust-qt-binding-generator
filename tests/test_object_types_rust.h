@@ -6,20 +6,20 @@
 #include <QVariant>
 #include <QAbstractItemModel>
 
-class PersonInterface;
-class Person : public QObject
+class ObjectInterface;
+class Object : public QObject
 {
     Q_OBJECT
-    PersonInterface * const d;
-    Q_PROPERTY(QVariant userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
+    ObjectInterface * const d;
+    Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged FINAL)
 public:
-    explicit Person(QObject *parent = nullptr);
-    ~Person();
-    QVariant userName() const;
-    void setUserName(const QVariant& v);
+    explicit Object(QObject *parent = nullptr);
+    ~Object();
+    QVariant value() const;
+    void setValue(const QVariant& v);
 signals:
-    void userNameChanged();
+    void valueChanged();
 private:
-    QVariant m_userName;
+    QVariant m_value;
 };
 #endif // TEST_OBJECT_TYPES_RUST_H

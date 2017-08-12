@@ -6,10 +6,10 @@
         "implementationModule": "implementation"
     },
     "objects": [{
-        "name": "Person",
+        "name": "Object",
         "type": "Object",
         "properties": [{
-            "name": "userName",
+            "name": "value",
             "type": "QVariant",
             "write": true
         }]

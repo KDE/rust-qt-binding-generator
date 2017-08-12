@@ -57,6 +57,7 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
 pub enum Variant {
     None,
     Bool(bool),
+    Int(c_int),
     String(String),
     ByteArray(Vec<u8>),
 }
@@ -79,6 +80,7 @@ impl From<String> for Variant {
 enum VariantType {
     Invalid = 0,
     Bool = 1,
+    Int = 2,
     String = 10,
     ByteArray = 12,
 }
@@ -99,6 +101,9 @@ impl<'a> QVariant<'a> {
         match self.type_ {
             VariantType::Bool => {
                 Variant::Bool(self.value != 0)
+            },
+            VariantType::Int => {
+                Variant::Int(self.value)
             },
             VariantType::String => {
                 let data = unsafe {
@@ -134,6 +139,14 @@ impl<'a> From<&'a Variant> for QVariant<'a> {
                     data: null(),
                     value: v as c_int,
                     type_: VariantType::Bool,
+                    phantom: PhantomData,
+                }
+            }
+            Variant::Int(v) => {
+                QVariant {
+                    data: null(),
+                    value: v,
+                    type_: VariantType::Int,
                     phantom: PhantomData,
                 }
             }

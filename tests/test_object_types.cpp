@@ -1,6 +1,7 @@
 #include "test_object_types_rust.h"
 #include <QTest>
 #include <QSignalSpy>
+#include <QDebug>
 
 class TestRustObjectTypes : public QObject
 {
@@ -13,18 +14,19 @@ private slots:
 void TestRustObjectTypes::testSetter()
 {
     // GIVEN
-    Person person;
-    const QVariant userName;
-    QSignalSpy spy(&person, &Person::userNameChanged);
+    QFETCH(QVariant, value);
+    Object object;
+    QSignalSpy spy(&object, &Object::valueChanged);
 
     // WHEN
-    person.setUserName(userName);
+    object.setValue(value);
 
     // THEN
     QVERIFY(spy.isValid());
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(person.userName().type(), userName.type());
-    QCOMPARE(person.userName(), userName);
+    auto resultType = object.value().type();
+    QCOMPARE(resultType, value.type());
+    QCOMPARE(object.value(), value);
 }
 
 void TestRustObjectTypes::testSetter_data()

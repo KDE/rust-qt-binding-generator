@@ -45,6 +45,7 @@ namespace {
         switch (v.type) {
             case QVariant::String: return QString::fromUtf8(static_cast<const char*>(v.data), v.value);
             case QVariant::Bool: return QVariant((bool)v.value);
+            case QVariant::Int: return QVariant(v.value);
             case QVariant::ByteArray: return QVariant(QByteArray(v.data, v.value));
             default:;
         }
@@ -109,25 +110,25 @@ void set_qvariant(QVariant* v, qvariant_t* val) {
 }
 
 extern "C" {
-    PersonInterface* person_new(Person*, void (*)(Person*));
-    void person_free(PersonInterface*);
-    void person_user_name_get(PersonInterface*, QVariant*, qvariant_set);
-    void person_user_name_set(void*, qvariant_t);
+    ObjectInterface* object_new(Object*, void (*)(Object*));
+    void object_free(ObjectInterface*);
+    void object_value_get(ObjectInterface*, QVariant*, qvariant_set);
+    void object_value_set(void*, qvariant_t);
 };
-Person::Person(QObject *parent):
+Object::Object(QObject *parent):
     QObject(parent),
-    d(person_new(this,
-        [](Person* o) { emit o->userNameChanged(); })) {}
+    d(object_new(this,
+        [](Object* o) { emit o->valueChanged(); })) {}
 
-Person::~Person() {
-    person_free(d);
+Object::~Object() {
+    object_free(d);
 }
-QVariant Person::userName() const
+QVariant Object::value() const
 {
     QVariant v;
-    person_user_name_get(d, &v, set_qvariant);
+    object_value_get(d, &v, set_qvariant);
     return v;
 }
-void Person::setUserName(const QVariant& v) {
-    variant(v, d, person_user_name_set);
+void Object::setValue(const QVariant& v) {
+    variant(v, d, object_value_set);
 }
