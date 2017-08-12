@@ -84,10 +84,9 @@ impl RItemModelEmitter {
 pub trait RItemModelTrait<T> {
     fn create(emit: RItemModelEmitter, root: T) -> Self;
     fn emit(&self) -> &RItemModelEmitter;
-    fn column_count(&mut self, parent: QModelIndex) -> c_int;
-    fn row_count(&mut self, parent: QModelIndex) -> c_int;
-    fn index(&mut self, row: c_int, column: c_int, parent: QModelIndex) -> QModelIndex;
-    fn parent(&self, index: QModelIndex) -> QModelIndex;
+    fn row_count(&mut self, row: c_int, parent: usize) -> c_int;
+    fn index(&mut self, row: c_int, parent: usize) -> usize;
+    fn parent(&self, row: c_int, parent: usize) -> QModelIndex;
     fn file_name(&mut self, row: c_int, parent: usize) -> String;
     fn file_permissions(&mut self, row: c_int, parent: usize) -> c_int;
 }
@@ -110,29 +109,22 @@ pub unsafe extern "C" fn ritemmodel_free(ptr: *mut RItemModel) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn ritemmodel_column_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
-    (&mut *ptr).column_count(parent)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn ritemmodel_row_count(ptr: *mut RItemModel, parent: QModelIndex) -> i32 {
-    (&mut *ptr).row_count(parent)
+pub unsafe extern "C" fn ritemmodel_row_count(ptr: *mut RItemModel, row: c_int, parent: usize) -> i32 {
+    (&mut *ptr).row_count(row, parent)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn ritemmodel_index(ptr: *mut RItemModel,
-                                          row: i32,
-                                          column: i32,
-                                          parent: QModelIndex)
-                                          -> QModelIndex {
-    (&mut *ptr).index(row, column, parent)
+                                          row: c_int, parent: usize)
+                                          -> usize {
+    (&mut *ptr).index(row, parent)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn ritemmodel_parent(ptr: *const RItemModel,
-                                           index: QModelIndex)
+                                           row: c_int, parent: usize)
                                            -> QModelIndex {
-    (&*ptr).parent(index)
+    (&*ptr).parent(row, parent)
 }
 
 #[no_mangle]

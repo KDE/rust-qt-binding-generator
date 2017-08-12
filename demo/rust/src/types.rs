@@ -56,7 +56,6 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
 #[repr(C)]
 pub struct QModelIndex {
     row: c_int,
-    column: c_int,
     internal_id: usize,
 }
 
@@ -64,35 +63,14 @@ impl QModelIndex {
     pub fn invalid() -> QModelIndex {
         QModelIndex {
             row: -1,
-            column: -1,
             internal_id: 0,
         }
     }
-    pub fn create(row: c_int, column: c_int, id: usize) -> QModelIndex {
+    pub fn create(row: c_int, id: usize) -> QModelIndex {
         QModelIndex {
             row: row,
-            column: column,
             internal_id: id,
         }
-    }
-    pub fn flat(row: c_int, column: c_int) -> QModelIndex {
-        QModelIndex {
-            row: row,
-            column: column,
-            internal_id: 1,
-        }
-    }
-    pub fn is_valid(&self) -> bool {
-        self.internal_id != 0 && self.row >= 0 && self.column >= 0
-    }
-    pub fn row(&self) -> c_int {
-        self.row
-    }
-    pub fn column(&self) -> c_int {
-        self.column
-    }
-    pub fn id(&self) -> usize {
-        self.internal_id
     }
 }
 

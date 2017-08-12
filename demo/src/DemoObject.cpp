@@ -25,10 +25,7 @@ namespace {
     };
     struct qmodelindex_t {
         int row;
-        int column;
-        uint64_t id;
-        qmodelindex_t(const QModelIndex& m):
-           row(m.row()), column(m.column()), id(m.internalId()) {}
+        quintptr id;
     };
 }
 
@@ -45,10 +42,9 @@ extern "C" {
 
     RItemModelInterface* ritemmodel_new(RItemModel*, void (*)(RItemModel*));
     void ritemmodel_free(RItemModelInterface*);
-    int ritemmodel_column_count(RItemModelInterface*, qmodelindex_t parent);
-    int ritemmodel_row_count(RItemModelInterface*, qmodelindex_t parent);
-    qmodelindex_t ritemmodel_index(RItemModelInterface*, int row, int column, qmodelindex_t parent);
-    qmodelindex_t ritemmodel_parent(RItemModelInterface*, qmodelindex_t);
+    int ritemmodel_row_count(RItemModelInterface*, int, quintptr);
+    quintptr ritemmodel_index(RItemModelInterface*, int, quintptr);
+    qmodelindex_t ritemmodel_parent(RItemModelInterface*, int, quintptr);
     void ritemmodel_data_file_name(RItemModelInterface*, int, quintptr, QString*, qstring_set);
     int ritemmodel_data_file_permissions(RItemModelInterface*, int, quintptr);
 }
@@ -105,13 +101,13 @@ void RItemModel::handleNewData() {
     qDebug() << "new data!";
 }
 
-int RItemModel::columnCount(const QModelIndex &parent) const
+int RItemModel::columnCount(const QModelIndex &) const
 {
-    return ritemmodel_column_count(d, parent);
+    return 2;
 }
 int RItemModel::rowCount(const QModelIndex &parent) const
 {
-    return ritemmodel_row_count(d, parent);
+    return ritemmodel_row_count(d, parent.row(), parent.internalId());
 }
 
 QVariant RItemModel::data(const QModelIndex &index, int role) const
@@ -130,14 +126,14 @@ QVariant RItemModel::data(const QModelIndex &index, int role) const
 }
 QModelIndex RItemModel::index(int row, int column, const QModelIndex &parent) const
 {
-    const qmodelindex_t i = ritemmodel_index(d, row, column, parent);
-    return i.id ?createIndex(i.row, i.column, i.id) :QModelIndex();
+    const quintptr id = ritemmodel_index(d, parent.row(), parent.internalId());
+    return id ?createIndex(row, column, id) :QModelIndex();
 }
 QModelIndex RItemModel::parent(const QModelIndex &index) const
 {
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t parent = ritemmodel_parent(d, index);
-    return parent.id ?createIndex(parent.row, parent.column, parent.id) :QModelIndex();
+    const qmodelindex_t parent = ritemmodel_parent(d, index.row(), index.internalId());
+    return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }

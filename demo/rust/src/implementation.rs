@@ -156,22 +156,19 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
     fn emit(&self) -> &RItemModelEmitter {
         &self.emit
     }
-    fn column_count(&mut self, _: QModelIndex) -> c_int {
-        2
-    }
-    fn row_count(&mut self, parent: QModelIndex) -> c_int {
-        let i = self.get(parent.row(), parent.id());
+    fn row_count(&mut self, row: c_int, parent: usize) -> c_int {
+        let i = self.get(row, parent);
         self.entries[i].children.as_ref().unwrap().len() as i32
     }
-    fn index(&mut self, row: i32, column: i32, parent: QModelIndex) -> QModelIndex {
-        QModelIndex::create(row, column, self.get(parent.row(), parent.id()))
+    fn index(&mut self, row: c_int, parent: usize) -> usize {
+        self.get(row, parent)
     }
-    fn parent(&self, index: QModelIndex) -> QModelIndex {
-        if !index.is_valid() || index.id() == 1 {
+    fn parent(&self, row: c_int, index: usize) -> QModelIndex {
+        if index < 2 {
             return QModelIndex::invalid();
         }
-        let e = &self.entries[index.id()];
-        QModelIndex::create(e.row as i32, 0, e.parent)
+        let e = &self.entries[index];
+        QModelIndex::create(e.row as i32, e.parent)
     }
     fn file_name(&mut self, row: c_int, parent: usize) -> String {
         let i = self.get(row, parent);

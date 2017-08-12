@@ -53,3 +53,24 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
     }
 }
 
+#[repr(C)]
+pub struct QModelIndex {
+    row: c_int,
+    internal_id: usize,
+}
+
+impl QModelIndex {
+    pub fn invalid() -> QModelIndex {
+        QModelIndex {
+            row: -1,
+            internal_id: 0,
+        }
+    }
+    pub fn create(row: c_int, id: usize) -> QModelIndex {
+        QModelIndex {
+            row: row,
+            internal_id: id,
+        }
+    }
+}
+
