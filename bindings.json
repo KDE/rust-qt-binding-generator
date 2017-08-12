@@ -3,7 +3,8 @@
     "rust": {
         "dir": "common-rust",
         "interfaceModule": "testinterface",
-        "implementationModule": "testimplementation"
+        "implementationModule": "testimplementation",
+        "typesModule": "types"
     },
     "objects": [{
         "name": "Person",

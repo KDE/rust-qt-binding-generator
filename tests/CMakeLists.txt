@@ -9,6 +9,7 @@ function(rust_test NAME DIRECTORY)
     add_custom_command(
         OUTPUT "${DIR}/src/interface.rs"
                "${DIR}/src/implementation.rs"
+               "${DIR}/src/types.rs"
                "${SRC}/${NAME}_rust.h"
         # if the cpp file is marked GENERATED, CMake will not check it for moc
         #      "${SRC}/${NAME}_rust.cpp"
@@ -20,10 +21,10 @@ function(rust_test NAME DIRECTORY)
     add_custom_command(
         OUTPUT "${DIR}/${RUST_TARGET_DIR}/librust.a"
         COMMAND cargo build ${RUST_BUILD_FLAG}
-        DEPENDS "${DIRECTORY}/src/lib.rs"
-                "${DIRECTORY}/src/implementation.rs"
-                "${DIRECTORY}/src/interface.rs"
-                "${DIRECTORY}/src/types.rs"
+        DEPENDS "${DIR}/src/lib.rs"
+                "${DIR}/src/implementation.rs"
+                "${DIR}/src/interface.rs"
+                "${DIR}/src/types.rs"
         WORKING_DIRECTORY "${DIR}"
     )
     add_custom_target("test_${DIRECTORY}"
