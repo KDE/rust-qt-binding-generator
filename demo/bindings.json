@@ -21,10 +21,6 @@
             "type": "bool",
             "write": true
         }, {
-            "name": "misc",
-            "type": "QVariant",
-            "write": true
-        }, {
             "name": "icon",
             "type": "QByteArray",
             "write": true

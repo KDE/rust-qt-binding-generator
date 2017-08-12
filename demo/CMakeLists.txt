@@ -4,7 +4,7 @@ add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/testinterface.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/testimplementation.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/types.rs"
-  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/bindings.json"
+  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator --overwrite-implementation "${CMAKE_CURRENT_SOURCE_DIR}/bindings.json"
   DEPENDS rust_qt_binding_generator bindings.json
 )
 

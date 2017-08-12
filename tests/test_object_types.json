@@ -10,8 +10,24 @@
         "name": "Object",
         "type": "Object",
         "properties": [{
-            "name": "value",
-            "type": "QVariant",
+            "name": "boolean",
+            "type": "bool",
+            "write": true
+        }, {
+            "name": "integer",
+            "type": "int",
+            "write": true
+        }, {
+            "name": "uinteger",
+            "type": "uint",
+            "write": true
+        }, {
+            "name": "string",
+            "type": "QString",
+            "write": true
+        }, {
+            "name": "bytearray",
+            "type": "QByteArray",
             "write": true
         }]
     }]

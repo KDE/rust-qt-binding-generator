@@ -110,25 +110,67 @@ void set_qvariant(QVariant* v, qvariant_t* val) {
 }
 
 extern "C" {
-    ObjectInterface* object_new(Object*, void (*)(Object*));
+    ObjectInterface* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(ObjectInterface*);
-    void object_value_get(ObjectInterface*, QVariant*, qvariant_set);
-    void object_value_set(void*, qvariant_t);
+    bool object_boolean_get(ObjectInterface*);
+    void object_boolean_set(void*, bool);
+    int object_integer_get(ObjectInterface*);
+    void object_integer_set(void*, int);
+    uint object_uinteger_get(ObjectInterface*);
+    void object_uinteger_set(void*, uint);
+    void object_string_get(ObjectInterface*, QString*, qstring_set);
+    void object_string_set(void*, qstring_t);
+    void object_bytearray_get(ObjectInterface*, QByteArray*, qbytearray_set);
+    void object_bytearray_set(void*, qbytearray_t);
 };
 Object::Object(QObject *parent):
     QObject(parent),
     d(object_new(this,
-        [](Object* o) { emit o->valueChanged(); })) {}
+        [](Object* o) { emit o->booleanChanged(); },
+        [](Object* o) { emit o->integerChanged(); },
+        [](Object* o) { emit o->uintegerChanged(); },
+        [](Object* o) { emit o->stringChanged(); },
+        [](Object* o) { emit o->bytearrayChanged(); })) {}
 
 Object::~Object() {
     object_free(d);
 }
-QVariant Object::value() const
+bool Object::boolean() const
 {
-    QVariant v;
-    object_value_get(d, &v, set_qvariant);
+    return object_boolean_get(d);
+}
+void Object::setBoolean(bool v) {
+    object_boolean_set(d, v);
+}
+int Object::integer() const
+{
+    return object_integer_get(d);
+}
+void Object::setInteger(int v) {
+    object_integer_set(d, v);
+}
+uint Object::uinteger() const
+{
+    return object_uinteger_get(d);
+}
+void Object::setUinteger(uint v) {
+    object_uinteger_set(d, v);
+}
+QString Object::string() const
+{
+    QString v;
+    object_string_get(d, &v, set_qstring);
     return v;
 }
-void Object::setValue(const QVariant& v) {
-    variant(v, d, object_value_set);
+void Object::setString(const QString& v) {
+    object_string_set(d, v);
+}
+QByteArray Object::bytearray() const
+{
+    QByteArray v;
+    object_bytearray_get(d, &v, set_qbytearray);
+    return v;
+}
+void Object::setBytearray(const QByteArray& v) {
+    object_bytearray_set(d, v);
 }

@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_void};
+use libc::{c_int, c_uint, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -14,7 +14,11 @@ pub struct ObjectQObject {}
 #[derive (Clone)]
 pub struct ObjectEmitter {
     qobject: Arc<Mutex<*const ObjectQObject>>,
-    value_changed: fn(*const ObjectQObject),
+    boolean_changed: fn(*const ObjectQObject),
+    integer_changed: fn(*const ObjectQObject),
+    uinteger_changed: fn(*const ObjectQObject),
+    string_changed: fn(*const ObjectQObject),
+    bytearray_changed: fn(*const ObjectQObject),
 }
 
 unsafe impl Send for ObjectEmitter {}
@@ -23,10 +27,34 @@ impl ObjectEmitter {
     fn clear(&self) {
         *self.qobject.lock().unwrap() = null();
     }
-    pub fn value_changed(&self) {
+    pub fn boolean_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.value_changed)(ptr);
+            (self.boolean_changed)(ptr);
+        }
+    }
+    pub fn integer_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.integer_changed)(ptr);
+        }
+    }
+    pub fn uinteger_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.uinteger_changed)(ptr);
+        }
+    }
+    pub fn string_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.string_changed)(ptr);
+        }
+    }
+    pub fn bytearray_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.bytearray_changed)(ptr);
         }
     }
 }
@@ -34,17 +62,33 @@ impl ObjectEmitter {
 pub trait ObjectTrait {
     fn create(emit: ObjectEmitter) -> Self;
     fn emit(&self) -> &ObjectEmitter;
-    fn get_value(&self) -> Variant;
-    fn set_value(&mut self, value: Variant);
+    fn get_boolean(&self) -> bool;
+    fn set_boolean(&mut self, value: bool);
+    fn get_integer(&self) -> c_int;
+    fn set_integer(&mut self, value: c_int);
+    fn get_uinteger(&self) -> c_uint;
+    fn set_uinteger(&mut self, value: c_uint);
+    fn get_string(&self) -> String;
+    fn set_string(&mut self, value: String);
+    fn get_bytearray(&self) -> Vec<u8>;
+    fn set_bytearray(&mut self, value: Vec<u8>);
 }
 
 #[no_mangle]
 pub extern "C" fn object_new(qobject: *const ObjectQObject,
-        value_changed: fn(*const ObjectQObject))
+        boolean_changed: fn(*const ObjectQObject),
+        integer_changed: fn(*const ObjectQObject),
+        uinteger_changed: fn(*const ObjectQObject),
+        string_changed: fn(*const ObjectQObject),
+        bytearray_changed: fn(*const ObjectQObject))
         -> *mut Object {
     let emit = ObjectEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
-        value_changed: value_changed,
+        boolean_changed: boolean_changed,
+        integer_changed: integer_changed,
+        uinteger_changed: uinteger_changed,
+        string_changed: string_changed,
+        bytearray_changed: bytearray_changed,
     };
     let d = Object::create(emit);
     Box::into_raw(Box::new(d))
@@ -56,14 +100,57 @@ pub unsafe extern "C" fn object_free(ptr: *mut Object) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_value_get(ptr: *const Object,
-        p: *mut c_void,
-        set: fn(*mut c_void, QVariant)) {
-    let data = (&*ptr).get_value();
-    set(p, QVariant::from(&data));
+pub unsafe extern "C" fn object_boolean_get(ptr: *const Object) -> bool {
+    (&*ptr).get_boolean()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_value_set(ptr: *mut Object, v: QVariant) {
-    (&mut *ptr).set_value(v.convert());
+pub unsafe extern "C" fn object_boolean_set(ptr: *mut Object, v: bool) {
+    (&mut *ptr).set_boolean(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_integer_get(ptr: *const Object) -> c_int {
+    (&*ptr).get_integer()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_integer_set(ptr: *mut Object, v: c_int) {
+    (&mut *ptr).set_integer(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_uinteger_get(ptr: *const Object) -> c_uint {
+    (&*ptr).get_uinteger()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_uinteger_set(ptr: *mut Object, v: c_uint) {
+    (&mut *ptr).set_uinteger(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_string_get(ptr: *const Object,
+        p: *mut c_void,
+        set: fn(*mut c_void, QString)) {
+    let data = (&*ptr).get_string();
+    set(p, QString::from(&data));
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_string_set(ptr: *mut Object, v: QStringIn) {
+    (&mut *ptr).set_string(v.convert());
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_bytearray_get(ptr: *const Object,
+        p: *mut c_void,
+        set: fn(*mut c_void, QByteArray)) {
+    let data = (&*ptr).get_bytearray();
+    set(p, QByteArray::from(&data));
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_bytearray_set(ptr: *mut Object, v: QByteArray) {
+    (&mut *ptr).set_bytearray(v.convert());
 }

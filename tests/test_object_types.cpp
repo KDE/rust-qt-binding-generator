@@ -7,46 +7,81 @@ class TestRustObjectTypes : public QObject
 {
     Q_OBJECT
 private slots:
-    void testSetter();
-    void testSetter_data();
+// no support for QVariant: it's too hard to implement all of it
+//    void testSetter();
+//    void testSetter_data();
+    void testBool();
+    void testInteger();
+    void testUinteger();
+    void testString();
+    void testByteArray();
 };
 
-void TestRustObjectTypes::testSetter()
+template <typename V, typename Set, typename Get, typename Changed>
+void testSetter(V v, Set set, Get get, Changed changed)
 {
     // GIVEN
-    QFETCH(QVariant, value);
     Object object;
-    QSignalSpy spy(&object, &Object::valueChanged);
+    QSignalSpy spy(&object, changed);
 
     // WHEN
-    object.setValue(value);
+    (object.*set)((V)v);
 
     // THEN
     QVERIFY(spy.isValid());
     QCOMPARE(spy.count(), 1);
-    auto resultType = object.value().type();
-    QCOMPARE(resultType, value.type());
-    QCOMPARE(object.value(), value);
+    QCOMPARE((V)(object.*get)(), (V)v);
 }
 
-void TestRustObjectTypes::testSetter_data()
+void TestRustObjectTypes::testBool()
 {
-    QTest::addColumn<QVariant>("value");
-    QTest::newRow("invalid") << QVariant();
-    QTest::newRow("true") << QVariant(true);
-    QTest::newRow("false") << QVariant(false);
-    QTest::newRow("0") << QVariant((int)0);
-    QTest::newRow("1") << QVariant((int)1);
-    int min_int = std::numeric_limits<int>::min();
-    QTest::newRow("min_int") << QVariant(min_int);
-    int max_int = std::numeric_limits<int>::max();
-    QTest::newRow("max_int") << QVariant(max_int);
-    QTest::newRow("QString()") << QVariant(QString());
-    QTest::newRow("QString(Konqi)") << QVariant("Konqi");
-    QTest::newRow("QString($€𐐷𤭢)") << QVariant("$€𐐷𤭢");
-    QTest::newRow("QByteArray()") << QVariant(QByteArray());
+    testSetter(true, &Object::setBoolean,
+        &Object::boolean, &Object::booleanChanged);
+    testSetter(false, &Object::setBoolean,
+        &Object::boolean, &Object::booleanChanged);
+}
+
+void TestRustObjectTypes::testInteger()
+{
+    testSetter(0, &Object::setInteger,
+        &Object::integer, &Object::integerChanged);
+    testSetter(1, &Object::setInteger,
+        &Object::integer, &Object::integerChanged);
+    testSetter(std::numeric_limits<int>::min(), &Object::setInteger,
+        &Object::integer, &Object::integerChanged);
+    testSetter(std::numeric_limits<int>::max(), &Object::setInteger,
+        &Object::integer, &Object::integerChanged);
+}
+
+void TestRustObjectTypes::testUinteger()
+{
+    testSetter(0, &Object::setUinteger,
+        &Object::uinteger, &Object::uintegerChanged);
+    testSetter(1, &Object::setUinteger,
+        &Object::uinteger, &Object::uintegerChanged);
+    testSetter(std::numeric_limits<uint>::min(), &Object::setUinteger,
+        &Object::uinteger, &Object::uintegerChanged);
+    testSetter(std::numeric_limits<uint>::max(), &Object::setUinteger,
+        &Object::uinteger, &Object::uintegerChanged);
+}
+
+void TestRustObjectTypes::testString()
+{
+    testSetter(QString(), &Object::setString,
+        &Object::string, &Object::stringChanged);
+    testSetter(QString("Konqi"), &Object::setString,
+        &Object::string, &Object::stringChanged);
+    testSetter(QString("$𐐷𤭢"), &Object::setString,
+        &Object::string, &Object::stringChanged);
+}
+
+void TestRustObjectTypes::testByteArray()
+{
+    testSetter(QByteArray(), &Object::setBytearray,
+        &Object::bytearray, &Object::bytearrayChanged);
     const char data[10] = {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9};
-    QTest::newRow("QByteArray(data)") << QVariant(QByteArray(data, 10));
+    testSetter(QByteArray(data, 10), &Object::setBytearray,
+        &Object::bytearray, &Object::bytearrayChanged);
 }
 
 QTEST_MAIN(TestRustObjectTypes)

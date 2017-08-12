@@ -110,15 +110,13 @@ void set_qvariant(QVariant* v, qvariant_t* val) {
 }
 
 extern "C" {
-    PersonInterface* person_new(Person*, void (*)(Person*), void (*)(Person*), void (*)(Person*), void (*)(Person*), void (*)(Person*));
+    PersonInterface* person_new(Person*, void (*)(Person*), void (*)(Person*), void (*)(Person*), void (*)(Person*));
     void person_free(PersonInterface*);
     void person_user_name_get(PersonInterface*, QString*, qstring_set);
     void person_user_name_set(void*, qstring_t);
     int person_age_get(PersonInterface*);
     bool person_active_get(PersonInterface*);
     void person_active_set(void*, bool);
-    void person_misc_get(PersonInterface*, QVariant*, qvariant_set);
-    void person_misc_set(void*, qvariant_t);
     void person_icon_get(PersonInterface*, QByteArray*, qbytearray_set);
     void person_icon_set(void*, qbytearray_t);
     DirectoryInterface* directory_new(Directory*, void (*)(Directory*),
@@ -136,7 +134,6 @@ Person::Person(QObject *parent):
         [](Person* o) { emit o->userNameChanged(); },
         [](Person* o) { emit o->ageChanged(); },
         [](Person* o) { emit o->activeChanged(); },
-        [](Person* o) { emit o->miscChanged(); },
         [](Person* o) { emit o->iconChanged(); })) {}
 
 Person::~Person() {
@@ -161,15 +158,6 @@ bool Person::active() const
 }
 void Person::setActive(bool v) {
     person_active_set(d, v);
-}
-QVariant Person::misc() const
-{
-    QVariant v;
-    person_misc_get(d, &v, set_qvariant);
-    return v;
-}
-void Person::setMisc(const QVariant& v) {
-    variant(v, d, person_misc_set);
 }
 QByteArray Person::icon() const
 {

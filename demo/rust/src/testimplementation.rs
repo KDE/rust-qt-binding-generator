@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 use libc::c_int;
+use libc::c_uint;
 use types::*;
 use testinterface::*;
 
@@ -8,7 +9,6 @@ pub struct Person {
     user_name: String,
     age: c_int,
     active: bool,
-    misc: Variant,
     icon: Vec<u8>,
 }
 
@@ -19,7 +19,6 @@ impl PersonTrait for Person {
             user_name: String::new(),
             age: 0,
             active: true,
-            misc: Variant::None,
             icon: Vec::new(),
         }
     }
@@ -42,13 +41,6 @@ impl PersonTrait for Person {
     fn set_active(&mut self, value: bool) {
         self.active = value;
         self.emit.active_changed();
-    }
-    fn get_misc(&self) -> Variant {
-        self.misc.clone()
-    }
-    fn set_misc(&mut self, value: Variant) {
-        self.misc = value;
-        self.emit.misc_changed();
     }
     fn get_icon(&self) -> Vec<u8> {
         self.icon.clone()

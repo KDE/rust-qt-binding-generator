@@ -14,7 +14,6 @@ class Person : public QObject
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
     Q_PROPERTY(int age READ age NOTIFY ageChanged FINAL)
     Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged FINAL)
-    Q_PROPERTY(QVariant misc READ misc WRITE setMisc NOTIFY miscChanged FINAL)
     Q_PROPERTY(QByteArray icon READ icon WRITE setIcon NOTIFY iconChanged FINAL)
 public:
     explicit Person(QObject *parent = nullptr);
@@ -24,21 +23,17 @@ public:
     int age() const;
     bool active() const;
     void setActive(bool v);
-    QVariant misc() const;
-    void setMisc(const QVariant& v);
     QByteArray icon() const;
     void setIcon(const QByteArray& v);
 signals:
     void userNameChanged();
     void ageChanged();
     void activeChanged();
-    void miscChanged();
     void iconChanged();
 private:
     QString m_userName;
     int m_age;
     bool m_active;
-    QVariant m_misc;
     QByteArray m_icon;
 };
 

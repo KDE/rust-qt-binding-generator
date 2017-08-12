@@ -19,6 +19,7 @@ enum ObjectType {
 enum class BindingType {
     Bool,
     Int,
+    UInt,
     QString,
     QByteArray,
     QVariant
@@ -57,6 +58,13 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustType = "c_int",
                      .rustTypeInit = "0"
                  });
+        f.insert(BindingType::UInt, {
+                     .name = "uint",
+                     .cppSetType = "uint",
+                     .cSetType = "uint",
+                     .rustType = "c_uint",
+                     .rustTypeInit = "0"
+                 });
         f.insert(BindingType::QString, {
                      .name = "QString",
                      .cppSetType = "const QString&",
@@ -70,13 +78,6 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .cSetType = "qbytearray_t",
                      .rustType = "Vec<u8>",
                      .rustTypeInit = "Vec::new()"
-                 });
-        f.insert(BindingType::QVariant, {
-                     .name = "QVariant",
-                     .cppSetType = "const QVariant&",
-                     .cSetType = "qvariant_t",
-                     .rustType = "Variant",
-                     .rustTypeInit = "Variant::None"
                  });
         p = f;
     }
@@ -836,7 +837,7 @@ void writeRustInterface(const Configuration& conf) {
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_void};
+use libc::{c_int, c_uint, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -915,6 +916,7 @@ void writeRustImplementation(const Configuration& conf) {
     QTextStream r(&w.buffer);
     r << QString(R"(#![allow(unused_imports)]
 use libc::c_int;
+use libc::c_uint;
 use types::*;
 use %1::*;
 

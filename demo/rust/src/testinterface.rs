@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_void};
+use libc::{c_int, c_uint, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -17,7 +17,6 @@ pub struct PersonEmitter {
     user_name_changed: fn(*const PersonQObject),
     age_changed: fn(*const PersonQObject),
     active_changed: fn(*const PersonQObject),
-    misc_changed: fn(*const PersonQObject),
     icon_changed: fn(*const PersonQObject),
 }
 
@@ -45,12 +44,6 @@ impl PersonEmitter {
             (self.active_changed)(ptr);
         }
     }
-    pub fn misc_changed(&self) {
-        let ptr = *self.qobject.lock().unwrap();
-        if !ptr.is_null() {
-            (self.misc_changed)(ptr);
-        }
-    }
     pub fn icon_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
@@ -67,8 +60,6 @@ pub trait PersonTrait {
     fn get_age(&self) -> c_int;
     fn get_active(&self) -> bool;
     fn set_active(&mut self, value: bool);
-    fn get_misc(&self) -> Variant;
-    fn set_misc(&mut self, value: Variant);
     fn get_icon(&self) -> Vec<u8>;
     fn set_icon(&mut self, value: Vec<u8>);
 }
@@ -78,7 +69,6 @@ pub extern "C" fn person_new(qobject: *const PersonQObject,
         user_name_changed: fn(*const PersonQObject),
         age_changed: fn(*const PersonQObject),
         active_changed: fn(*const PersonQObject),
-        misc_changed: fn(*const PersonQObject),
         icon_changed: fn(*const PersonQObject))
         -> *mut Person {
     let emit = PersonEmitter {
@@ -86,7 +76,6 @@ pub extern "C" fn person_new(qobject: *const PersonQObject,
         user_name_changed: user_name_changed,
         age_changed: age_changed,
         active_changed: active_changed,
-        misc_changed: misc_changed,
         icon_changed: icon_changed,
     };
     let d = Person::create(emit);
@@ -124,19 +113,6 @@ pub unsafe extern "C" fn person_active_get(ptr: *const Person) -> bool {
 #[no_mangle]
 pub unsafe extern "C" fn person_active_set(ptr: *mut Person, v: bool) {
     (&mut *ptr).set_active(v);
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn person_misc_get(ptr: *const Person,
-        p: *mut c_void,
-        set: fn(*mut c_void, QVariant)) {
-    let data = (&*ptr).get_misc();
-    set(p, QVariant::from(&data));
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn person_misc_set(ptr: *mut Person, v: QVariant) {
-    (&mut *ptr).set_misc(v.convert());
 }
 
 #[no_mangle]
