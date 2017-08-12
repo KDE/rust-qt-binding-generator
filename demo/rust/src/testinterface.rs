@@ -203,6 +203,8 @@ pub trait DirectoryTrait {
     fn get_path(&self) -> String;
     fn set_path(&mut self, value: String);
     fn row_count(&self) -> c_int;
+    fn can_fetch_more(&self) -> bool { false }
+    fn fetch_more(&self) {}
     fn file_icon(&self, row: c_int) -> Variant;
     fn file_path(&self, row: c_int) -> Variant;
     fn file_name(&self, row: c_int) -> Variant;
@@ -257,6 +259,14 @@ pub unsafe extern "C" fn directory_path_set(ptr: *mut Directory, v: QStringIn) {
 #[no_mangle]
 pub unsafe extern "C" fn directory_row_count(ptr: *const Directory) -> c_int {
     (&*ptr).row_count()
+}
+#[no_mangle]
+pub unsafe extern "C" fn directory_can_fetch_more(ptr: *const Directory) -> bool {
+    (&*ptr).can_fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn directory_fetch_more(ptr: *mut Directory) {
+    (&mut *ptr).fetch_more()
 }
 
 #[no_mangle]

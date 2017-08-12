@@ -223,7 +223,9 @@ extern "C" {
     void directory_data_file_name(DirectoryInterface*, int, QVariant*, qvariant_set);
     void directory_data_file_permissions(DirectoryInterface*, int, QVariant*, qvariant_set);
 
-    int directory_row_count(DirectoryInterface*, qmodelindex_t parent);
+    int directory_row_count(DirectoryInterface*);
+    bool directory_can_fetch_more(DirectoryInterface*);
+    void directory_fetch_more(DirectoryInterface*);
 }
 int Directory::columnCount(const QModelIndex &parent) const
 {
@@ -232,7 +234,7 @@ int Directory::columnCount(const QModelIndex &parent) const
 
 int Directory::rowCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : directory_row_count(d, parent);
+    return (parent.isValid()) ? 0 : directory_row_count(d);
 }
 
 QModelIndex Directory::index(int row, int column, const QModelIndex &parent) const
@@ -246,6 +248,18 @@ QModelIndex Directory::index(int row, int column, const QModelIndex &parent) con
 QModelIndex Directory::parent(const QModelIndex &) const
 {
     return QModelIndex();
+}
+
+bool Directory::canFetchMore(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : directory_can_fetch_more(d);
+}
+
+void Directory::fetchMore(const QModelIndex &parent)
+{
+    if (!parent.isValid()) {
+        directory_fetch_more(d);
+    }
 }
 
 QVariant Directory::data(const QModelIndex &index, int role) const

@@ -227,6 +227,8 @@ void writeHeaderItemModel(QTextStream& h, const Object&) {
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &index) const;
     int rowCount(const QModelIndex &parent) const;
+    bool canFetchMore(const QModelIndex &parent) const;
+    void fetchMore(const QModelIndex &parent);
     QHash<int, QByteArray> roleNames() const;
 signals:
     void newDataReady();
@@ -248,7 +250,9 @@ void writeCppListModel(QTextStream& cpp, const Object& o) {
                 .arg(o.name, lcname, snakeCase(role.name));
     }
     cpp << QString(R"(
-    int %2_row_count(%1Interface*, qmodelindex_t parent);
+    int %2_row_count(%1Interface*);
+    bool %2_can_fetch_more(%1Interface*);
+    void %2_fetch_more(%1Interface*);
 }
 int %1::columnCount(const QModelIndex &parent) const
 {
@@ -257,7 +261,7 @@ int %1::columnCount(const QModelIndex &parent) const
 
 int %1::rowCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : %2_row_count(d, parent);
+    return (parent.isValid()) ? 0 : %2_row_count(d);
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
@@ -271,6 +275,18 @@ QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
 QModelIndex %1::parent(const QModelIndex &) const
 {
     return QModelIndex();
+}
+
+bool %1::canFetchMore(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : %2_can_fetch_more(d);
+}
+
+void %1::fetchMore(const QModelIndex &parent)
+{
+    if (!parent.isValid()) {
+        %2_fetch_more(d);
+    }
 }
 
 QVariant %1::data(const QModelIndex &index, int role) const
@@ -681,6 +697,8 @@ pub trait %1Trait {
     }
     if (o.type == ObjectTypeList) {
         r << "    fn row_count(&self) -> c_int;\n";
+        r << "    fn can_fetch_more(&self) -> bool { false }\n";
+        r << "    fn fetch_more(&self) {}\n";
         for (auto role: o.roles) {
             r << QString("    fn %1(&self, row: c_int) -> Variant;\n")
                     .arg(snakeCase(role.name));
@@ -780,6 +798,14 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 #[no_mangle]
 pub unsafe extern "C" fn %2_row_count(ptr: *const %1) -> c_int {
     (&*ptr).row_count()
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1) -> bool {
+    (&*ptr).can_fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1) {
+    (&mut *ptr).fetch_more()
 }
 )").arg(o.name, lcname);
         for (auto role: o.roles) {
