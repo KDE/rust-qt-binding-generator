@@ -137,12 +137,16 @@ QVariant RItemModel::data(const QModelIndex &index, int role) const
         return QVariant("Times");
     }
     QVariant v;
-    if (role == Qt::DisplayRole) {
-        if (index.column() == 0) {
+    if (index.column() == 0) {
+        if (role == Qt::DisplayRole || role == Qt::UserRole + 2) {
             QString s;
             ritemmodel_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
             v = s;
-        } else if (index.column() == 1) {
+        } else if (role == Qt::UserRole + 3) {
+            v.setValue<int>(ritemmodel_data_file_permissions(d, index.row(), index.internalId()));
+        }
+    } else if (index.column() == 1) {
+        if (role == Qt::DisplayRole) {
             v.setValue<int>(ritemmodel_data_file_permissions(d, index.row(), index.internalId()));
         }
     }
@@ -160,4 +164,12 @@ QModelIndex RItemModel::parent(const QModelIndex &index) const
     }
     const qmodelindex_t parent = ritemmodel_parent(d, index.row(), index.internalId());
     return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
+}
+QHash<int, QByteArray> RItemModel::roleNames() const {
+    QHash<int, QByteArray> names;
+    names.insert(Qt::DecorationRole, "FileIcon");
+    names.insert(Qt::UserRole + 1, "FilePath");
+    names.insert(Qt::UserRole + 2, "FileName");
+    names.insert(Qt::UserRole + 3, "FilePermissions");
+    return names;
 }

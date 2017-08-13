@@ -35,12 +35,12 @@ ApplicationWindow {
             //selectionMode: SelectionMode.SingleSelection
             TableViewColumn {
                 title: "Name"
-                role: "display"
+                role: "FileName"
                 width: 300
             }
             TableViewColumn {
                 title: "Permissions"
-                role: "display"
+                role: "FilePermissions"
                 width: 100
             }
             itemDelegate: Item {
