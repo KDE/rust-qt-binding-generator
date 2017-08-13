@@ -77,13 +77,13 @@ impl DirectoryTrait for Directory {
     fn row_count(&self) -> c_int {
         10
     }
+    fn file_name(&self, row: c_int) -> String {
+        String::new()
+    }
     fn file_icon(&self, row: c_int) -> Vec<u8> {
         Vec::new()
     }
     fn file_path(&self, row: c_int) -> String {
-        String::new()
-    }
-    fn file_name(&self, row: c_int) -> String {
         String::new()
     }
     fn file_permissions(&self, row: c_int) -> c_int {

@@ -128,16 +128,16 @@ void Directory::setPath(const QString& v) {
     directory_path_set(d, v);
 }
 enum DirectoryRole {
+    DirectoryRoleFileName = Qt::DisplayRole,
     DirectoryRoleFileIcon = Qt::DecorationRole,
     DirectoryRoleFilePath = Qt::UserRole + 1,
-    DirectoryRoleFileName = Qt::UserRole + 2,
     DirectoryRoleFilePermissions = Qt::UserRole + 3,
 };
 
 extern "C" {
+    void directory_data_file_name(DirectoryInterface*, int, QString*, qstring_set);
     void directory_data_file_icon(DirectoryInterface*, int, QByteArray*, qbytearray_set);
     void directory_data_file_path(DirectoryInterface*, int, QString*, qstring_set);
-    void directory_data_file_name(DirectoryInterface*, int, QString*, qstring_set);
     int directory_data_file_permissions(DirectoryInterface*, int);
 
     int directory_row_count(DirectoryInterface*);
@@ -184,30 +184,53 @@ QVariant Directory::data(const QModelIndex &index, int role) const
     QVariant v;
     QString s;
     QByteArray b;
-    switch ((DirectoryRole)role) {
-    case DirectoryRoleFileIcon:
-        directory_data_file_icon(d, index.row(), &b, set_qbytearray);
-        v.setValue<QByteArray>(b);
+    switch (index.column()) {
+    case 0:
+        switch (role) {
+        case Qt::DisplayRole:
+                directory_data_file_name(d, index.row(), &s, set_qstring);
+                v.setValue<QString>(s);
+            break;
+        case Qt::DecorationRole:
+                directory_data_file_icon(d, index.row(), &b, set_qbytearray);
+                v.setValue<QByteArray>(b);
+            break;
+        case Qt::UserRole + 1:
+                directory_data_file_path(d, index.row(), &s, set_qstring);
+                v.setValue<QString>(s);
+            break;
+        case Qt::UserRole + 2:
+                directory_data_file_name(d, index.row(), &s, set_qstring);
+                v.setValue<QString>(s);
+            break;
+        case Qt::UserRole + 3:
+            v.setValue<int>(directory_data_file_permissions(d, index.row()));
+            break;
+        }
         break;
-    case DirectoryRoleFilePath:
-        directory_data_file_path(d, index.row(), &s, set_qstring);
-        v.setValue<QString>(s);
+    case 1:
+        switch (role) {
+        case Qt::DisplayRole:
+                directory_data_file_path(d, index.row(), &s, set_qstring);
+                v.setValue<QString>(s);
+            break;
+        }
         break;
-    case DirectoryRoleFileName:
-        directory_data_file_name(d, index.row(), &s, set_qstring);
-        v.setValue<QString>(s);
-        break;
-    case DirectoryRoleFilePermissions:
-        v.setValue<int>(directory_data_file_permissions(d, index.row()));
+    case 2:
+        switch (role) {
+        case Qt::DisplayRole:
+            v.setValue<int>(directory_data_file_permissions(d, index.row()));
+            break;
+        }
         break;
     }
     return v;
 }
 QHash<int, QByteArray> Directory::roleNames() const {
     QHash<int, QByteArray> names;
+    names.insert(Qt::DisplayRole, "FileName");
     names.insert(Qt::DecorationRole, "FileIcon");
     names.insert(Qt::UserRole + 1, "FilePath");
-    names.insert(Qt::UserRole + 2, "FileName");
     names.insert(Qt::UserRole + 3, "FilePermissions");
     return names;
 }
