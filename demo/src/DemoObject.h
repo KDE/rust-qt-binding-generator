@@ -45,6 +45,7 @@ public:
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &index) const;
     int rowCount(const QModelIndex &parent) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
 private slots:
     void handleNewData();

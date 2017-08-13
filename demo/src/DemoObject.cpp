@@ -1,5 +1,6 @@
 #include "DemoObject.h"
 #include <QSize>
+#include <QColor>
 #include <QDebug>
 #include <cstdint>
 #include <unistd.h>
@@ -91,6 +92,23 @@ RItemModel::RItemModel(QObject *parent):
     connect(this, &RItemModel::newDataReady, this, &RItemModel::handleNewData,
         Qt::QueuedConnection);
     qDebug() << sizeof(QObject) << sizeof(RItemModel);
+    qDebug() << setHeaderData(0, Qt::Horizontal, "FileIcon", Qt::DecorationRole);
+    setHeaderData(0, Qt::Horizontal, "FilePath", Qt::UserRole + 1);
+    setHeaderData(0, Qt::Horizontal, "FileName", Qt::UserRole + 2);
+    setHeaderData(0, Qt::Horizontal, "FilePermissions", Qt::UserRole + 3);
+}
+
+QVariant RItemModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::DisplayRole) {
+        return QVariant("hello");
+    }
+    if (role == Qt::BackgroundRole) {
+        return QVariant(QColor(Qt::green));
+    }
+    if (role == Qt::FontRole) {
+        return QVariant("Times");
+    }
+    return QVariant();
 }
 
 RItemModel::~RItemModel() {
@@ -112,6 +130,12 @@ int RItemModel::rowCount(const QModelIndex &parent) const
 
 QVariant RItemModel::data(const QModelIndex &index, int role) const
 {
+    if (role == Qt::BackgroundRole) {
+        return QVariant(QColor(Qt::green));
+    }
+    if (role == Qt::FontRole) {
+        return QVariant("Times");
+    }
     QVariant v;
     if (role == Qt::DisplayRole) {
         if (index.column() == 0) {
