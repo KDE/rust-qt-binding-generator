@@ -1,4 +1,6 @@
 #![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
 use libc::c_int;
 use libc::c_uint;
 use types::*;

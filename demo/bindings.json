@@ -66,5 +66,46 @@
                 "type": "int"
             }]
         ]
+    }, {
+        "name": "Tree",
+        "type": "UniformTree",
+        "properties": [{
+            "name": "path",
+            "type": "QString",
+            "write": true
+        }],
+        "roles": [
+            [{
+                "name": "FileName",
+                "value": "Qt::DisplayRole",
+                "type": "QString"
+            }, {
+                "name": "FileIcon",
+                "value": "Qt::DecorationRole",
+                "type": "QByteArray"
+            }, {
+                "name": "FilePath",
+                "value": "Qt::UserRole + 1",
+                "type": "QString"
+            }, {
+                "name": "FileName",
+                "value": "Qt::UserRole + 2",
+                "type": "QString"
+            }, {
+                "name": "FilePermissions",
+                "value": "Qt::UserRole + 3",
+                "type": "int"
+            }],
+            [{
+                "name": "FilePath",
+                "value": "Qt::DisplayRole",
+                "type": "QString"
+            }],
+            [{
+                "name": "FilePermissions",
+                "value": "Qt::DisplayRole",
+                "type": "int"
+            }]
+        ]
     }]
 }

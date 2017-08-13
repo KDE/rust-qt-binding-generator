@@ -63,4 +63,32 @@ signals:
 private:
     QString m_path;
 };
+
+class TreeInterface;
+class Tree : public QAbstractItemModel
+{
+    Q_OBJECT
+    TreeInterface * const d;
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged FINAL)
+public:
+    explicit Tree(QObject *parent = nullptr);
+    ~Tree();
+    QString path() const;
+    void setPath(const QString& v);
+
+    int columnCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const;
+    QModelIndex parent(const QModelIndex &index) const;
+    int rowCount(const QModelIndex &parent) const;
+    bool canFetchMore(const QModelIndex &parent) const;
+    void fetchMore(const QModelIndex &parent);
+    QHash<int, QByteArray> roleNames() const;
+signals:
+    void newDataReady();
+signals:
+    void pathChanged();
+private:
+    QString m_path;
+};
 #endif // TMP_H

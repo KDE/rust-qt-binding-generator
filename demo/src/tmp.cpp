@@ -28,6 +28,10 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
+    struct qmodelindex_t {
+        int row;
+        quintptr id;
+    };
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -56,6 +60,14 @@ extern "C" {
     void directory_free(DirectoryInterface*);
     void directory_path_get(DirectoryInterface*, QString*, qstring_set);
     void directory_path_set(void*, qstring_t);
+    TreeInterface* tree_new(Tree*, void (*)(Tree*),
+        void (*)(Tree*, int, quintptr, int, int),
+        void (*)(Tree*),
+        void (*)(Tree*, int, quintptr, int, int),
+        void (*)(Tree*));
+    void tree_free(TreeInterface*);
+    void tree_path_get(TreeInterface*, QString*, qstring_set);
+    void tree_path_set(void*, qstring_t);
 };
 Person::Person(QObject *parent):
     QObject(parent),
@@ -127,13 +139,6 @@ QString Directory::path() const
 void Directory::setPath(const QString& v) {
     directory_path_set(d, v);
 }
-enum DirectoryRole {
-    DirectoryRoleFileName = Qt::DisplayRole,
-    DirectoryRoleFileIcon = Qt::DecorationRole,
-    DirectoryRoleFilePath = Qt::UserRole + 1,
-    DirectoryRoleFilePermissions = Qt::UserRole + 3,
-};
-
 extern "C" {
     void directory_data_file_name(DirectoryInterface*, int, QString*, qstring_set);
     void directory_data_file_icon(DirectoryInterface*, int, QByteArray*, qbytearray_set);
@@ -146,7 +151,7 @@ extern "C" {
 }
 int Directory::columnCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : 1;
+    return (parent.isValid()) ? 0 : 3;
 }
 
 int Directory::rowCount(const QModelIndex &parent) const
@@ -188,20 +193,20 @@ QVariant Directory::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::DisplayRole:
-                directory_data_file_name(d, index.row(), &s, set_qstring);
-                v.setValue<QString>(s);
+            directory_data_file_name(d, index.row(), &s, set_qstring);
+            v.setValue<QString>(s);
             break;
         case Qt::DecorationRole:
-                directory_data_file_icon(d, index.row(), &b, set_qbytearray);
-                v.setValue<QByteArray>(b);
+            directory_data_file_icon(d, index.row(), &b, set_qbytearray);
+            v.setValue<QByteArray>(b);
             break;
         case Qt::UserRole + 1:
-                directory_data_file_path(d, index.row(), &s, set_qstring);
-                v.setValue<QString>(s);
+            directory_data_file_path(d, index.row(), &s, set_qstring);
+            v.setValue<QString>(s);
             break;
         case Qt::UserRole + 2:
-                directory_data_file_name(d, index.row(), &s, set_qstring);
-                v.setValue<QString>(s);
+            directory_data_file_name(d, index.row(), &s, set_qstring);
+            v.setValue<QString>(s);
             break;
         case Qt::UserRole + 3:
             v.setValue<int>(directory_data_file_permissions(d, index.row()));
@@ -211,8 +216,8 @@ QVariant Directory::data(const QModelIndex &index, int role) const
     case 1:
         switch (role) {
         case Qt::DisplayRole:
-                directory_data_file_path(d, index.row(), &s, set_qstring);
-                v.setValue<QString>(s);
+            directory_data_file_path(d, index.row(), &s, set_qstring);
+            v.setValue<QString>(s);
             break;
         }
         break;
@@ -234,3 +239,137 @@ QHash<int, QByteArray> Directory::roleNames() const {
     names.insert(Qt::UserRole + 3, "FilePermissions");
     return names;
 }
+
+Tree::Tree(QObject *parent):
+    QAbstractItemModel(parent),
+    d(tree_new(this,
+        [](Tree* o) { emit o->pathChanged(); },
+        [](Tree* o, int row, quintptr id, int first, int last) {
+            emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
+        },
+        [](Tree* o) {
+            emit o->endInsertRows();
+        },
+        [](Tree* o, int row, quintptr id, int first, int last) {
+            emit o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
+        },
+        [](Tree* o) {
+            emit o->endRemoveRows();
+        }
+)) {}
+
+Tree::~Tree() {
+    tree_free(d);
+}
+QString Tree::path() const
+{
+    QString v;
+    tree_path_get(d, &v, set_qstring);
+    return v;
+}
+void Tree::setPath(const QString& v) {
+    tree_path_set(d, v);
+}
+extern "C" {
+    void tree_data_file_name(TreeInterface*, int, quintptr, QString*, qstring_set);
+    void tree_data_file_icon(TreeInterface*, int, quintptr, QByteArray*, qbytearray_set);
+    void tree_data_file_path(TreeInterface*, int, quintptr, QString*, qstring_set);
+    int tree_data_file_permissions(TreeInterface*, int, quintptr);
+
+    int tree_row_count(TreeInterface*, int, quintptr);
+    bool tree_can_fetch_more(TreeInterface*, int, quintptr);
+    void tree_fetch_more(TreeInterface*, int, quintptr);
+    quintptr tree_index(TreeInterface*, int, quintptr);
+    qmodelindex_t tree_parent(TreeInterface*, int, quintptr);
+}
+int Tree::columnCount(const QModelIndex &) const
+{
+    return 3;
+}
+
+int Tree::rowCount(const QModelIndex &parent) const
+{
+    return tree_row_count(d, parent.row(), parent.internalId());
+}
+
+QModelIndex Tree::index(int row, int column, const QModelIndex &parent) const
+{
+    const quintptr id = tree_index(d, parent.row(), parent.internalId());
+    return id ?createIndex(row, column, id) :QModelIndex();
+}
+
+QModelIndex Tree::parent(const QModelIndex &index) const
+{
+    if (!index.isValid()) {
+        return QModelIndex();
+    }
+    const qmodelindex_t parent = tree_parent(d, index.row(), index.internalId());
+    return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
+}
+
+bool Tree::canFetchMore(const QModelIndex &parent) const
+{
+    return tree_can_fetch_more(d, parent.row(), parent.internalId());
+}
+
+void Tree::fetchMore(const QModelIndex &parent)
+{
+    tree_fetch_more(d, parent.row(), parent.internalId());
+}
+
+QVariant Tree::data(const QModelIndex &index, int role) const
+{
+    QVariant v;
+    QString s;
+    QByteArray b;
+    switch (index.column()) {
+    case 0:
+        switch (role) {
+        case Qt::DisplayRole:
+            tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
+            v.setValue<QString>(s);
+            break;
+        case Qt::DecorationRole:
+            tree_data_file_icon(d, index.row(), index.internalId(), &b, set_qbytearray);
+            v.setValue<QByteArray>(b);
+            break;
+        case Qt::UserRole + 1:
+            tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
+            v.setValue<QString>(s);
+            break;
+        case Qt::UserRole + 2:
+            tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
+            v.setValue<QString>(s);
+            break;
+        case Qt::UserRole + 3:
+            v.setValue<int>(tree_data_file_permissions(d, index.row(), index.internalId()));
+            break;
+        }
+        break;
+    case 1:
+        switch (role) {
+        case Qt::DisplayRole:
+            tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
+            v.setValue<QString>(s);
+            break;
+        }
+        break;
+    case 2:
+        switch (role) {
+        case Qt::DisplayRole:
+            v.setValue<int>(tree_data_file_permissions(d, index.row(), index.internalId()));
+            break;
+        }
+        break;
+    }
+    return v;
+}
+QHash<int, QByteArray> Tree::roleNames() const {
+    QHash<int, QByteArray> names;
+    names.insert(Qt::DisplayRole, "FileName");
+    names.insert(Qt::DecorationRole, "FileIcon");
+    names.insert(Qt::UserRole + 1, "FilePath");
+    names.insert(Qt::UserRole + 3, "FilePermissions");
+    return names;
+}
+

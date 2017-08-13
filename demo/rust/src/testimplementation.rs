@@ -1,4 +1,6 @@
 #![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
 use libc::c_int;
 use libc::c_uint;
 use types::*;
@@ -88,5 +90,51 @@ impl DirectoryTrait for Directory {
     }
     fn file_permissions(&self, row: c_int) -> c_int {
         0
+    }
+}
+pub struct Tree {
+    emit: TreeEmitter,
+    model: TreeUniformTree,
+    path: String,
+}
+
+impl TreeTrait for Tree {
+    fn create(emit: TreeEmitter, model: TreeUniformTree) -> Tree {
+        Tree {
+            emit: emit,
+            model: model,
+            path: String::new(),
+        }
+    }
+    fn emit(&self) -> &TreeEmitter {
+        &self.emit
+    }
+    fn get_path(&self) -> String {
+        self.path.clone()
+    }
+    fn set_path(&mut self, value: String) {
+        self.path = value;
+        self.emit.path_changed();
+    }
+    fn row_count(&self, row: c_int, parent: usize) -> c_int {
+        10
+    }
+    fn file_name(&self, row: c_int, parent: usize) -> String {
+        String::new()
+    }
+    fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8> {
+        Vec::new()
+    }
+    fn file_path(&self, row: c_int, parent: usize) -> String {
+        String::new()
+    }
+    fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
+        0
+    }
+    fn index(&mut self, row: c_int, parent: usize) -> usize {
+        0
+    }
+    fn parent(&self, row: c_int, parent: usize) -> QModelIndex {
+        QModelIndex::create(0, 0)
     }
 }

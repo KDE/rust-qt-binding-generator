@@ -28,6 +28,10 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
+    struct qmodelindex_t {
+        int row;
+        quintptr id;
+    };
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
