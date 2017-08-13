@@ -92,21 +92,21 @@ impl DirectoryTrait for Directory {
         0
     }
 }
-pub struct Tree {
-    emit: TreeEmitter,
-    model: TreeUniformTree,
+pub struct TestTree {
+    emit: TestTreeEmitter,
+    model: TestTreeUniformTree,
     path: String,
 }
 
-impl TreeTrait for Tree {
-    fn create(emit: TreeEmitter, model: TreeUniformTree) -> Tree {
-        Tree {
+impl TestTreeTrait for TestTree {
+    fn create(emit: TestTreeEmitter, model: TestTreeUniformTree) -> TestTree {
+        TestTree {
             emit: emit,
             model: model,
             path: String::new(),
         }
     }
-    fn emit(&self) -> &TreeEmitter {
+    fn emit(&self) -> &TestTreeEmitter {
         &self.emit
     }
     fn get_path(&self) -> String {
@@ -131,7 +131,7 @@ impl TreeTrait for Tree {
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
         0
     }
-    fn index(&mut self, row: c_int, parent: usize) -> usize {
+    fn index(&self, row: c_int, parent: usize) -> usize {
         0
     }
     fn parent(&self, row: c_int, parent: usize) -> QModelIndex {

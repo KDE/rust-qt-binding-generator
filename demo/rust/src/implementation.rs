@@ -7,31 +7,6 @@ use std::ffi::OsString;
 use std::default::Default;
 use std::thread;
 
-pub struct Hello {
-    emit: HelloEmitter,
-    hello: String,
-}
-
-impl HelloTrait for Hello {
-    fn create(emit: HelloEmitter) -> Self {
-        Hello {
-            emit: emit,
-            hello: String::new(),
-        }
-    }
-    fn get_hello(&self) -> &String {
-        &self.hello
-    }
-    fn set_hello(&mut self, value: String) {
-        self.hello = value;
-        self.emit.hello_changed();
-    }
-}
-
-impl Drop for Hello {
-    fn drop(&mut self) {}
-}
-
 pub struct DirEntry {
     name: OsString,
 }
@@ -75,7 +50,7 @@ pub trait Item: Default {
     fn file_permissions(&self) -> c_int;
 }
 
-pub type RItemModel = RGeneralItemModel<DirEntry>;
+pub type Tree = RGeneralItemModel<DirEntry>;
 
 struct Entry<T: Item> {
     parent: usize,
@@ -85,7 +60,7 @@ struct Entry<T: Item> {
 }
 
 pub struct RGeneralItemModel<T: Item> {
-    emit: RItemModelEmitter,
+    emit: TreeEmitter,
     entries: Vec<Entry<T>>,
 }
 
@@ -99,7 +74,7 @@ impl<T: Item> RGeneralItemModel<T> {
         if self.entries[p].children.is_none() {
             self.retrieve(p);
             let emit = self.emit.clone();
-            thread::spawn(move || { emit.new_data_ready(); });
+//            thread::spawn(move || { emit.new_data_ready(); });
         }
         p
     }
@@ -134,34 +109,35 @@ impl<T: Item> RGeneralItemModel<T> {
     }
 }
 
-impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
-    fn create(emit: RItemModelEmitter, root: T) -> Self {
+impl<T: Item> TreeTrait for RGeneralItemModel<T> {
+    fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self {
         let none = Entry {
             parent: 0,
             row: 0,
             children: None,
             data: T::default(),
         };
-        let root = Entry {
-            parent: 0,
-            row: 0,
-            children: None,
-            data: root,
-        };
         RGeneralItemModel {
             emit: emit,
-            entries: vec![none, root],
+            entries: vec![none],
         }
     }
-    fn emit(&self) -> &RItemModelEmitter {
+    fn emit(&self) -> &TreeEmitter {
         &self.emit
     }
-    fn row_count(&mut self, row: c_int, parent: usize) -> c_int {
-        let i = self.get(row, parent);
-        self.entries[i].children.as_ref().unwrap().len() as i32
+    fn get_path(&self) -> String {
+        String::new()
     }
-    fn index(&mut self, row: c_int, parent: usize) -> usize {
-        self.get(row, parent)
+    fn set_path(&mut self, value: String) {
+    }
+    fn row_count(&self, row: c_int, parent: usize) -> c_int {
+        //let i = self.get(row, parent);
+        //self.entries[i].children.as_ref().unwrap().len() as i32
+        0
+    }
+    fn index(&self, row: c_int, parent: usize) -> usize {
+        //self.get(row, parent)
+        0
     }
     fn parent(&self, row: c_int, index: usize) -> QModelIndex {
         if index < 2 {
@@ -170,12 +146,20 @@ impl<T: Item> RItemModelTrait<T> for RGeneralItemModel<T> {
         let e = &self.entries[index];
         QModelIndex::create(e.row as i32, e.parent)
     }
-    fn file_name(&mut self, row: c_int, parent: usize) -> String {
-        let i = self.get(row, parent);
-        self.entries[i].data.file_name()
+    fn file_name(&self, row: c_int, parent: usize) -> String {
+        //let i = self.get(row, parent);
+        //self.entries[i].data.file_name()
+        String::new()
     }
-    fn file_permissions(&mut self, row: c_int, parent: usize) -> c_int {
-        let i = self.get(row,parent);
-        self.entries[i].data.file_permissions()
+    fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
+        //let i = self.get(row,parent);
+        //self.entries[i].data.file_permissions()
+        0
+    }
+    fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8> {
+        Vec::new()
+    }
+    fn file_path(&self, row: c_int, parent: usize) -> String {
+        String::new()
     }
 }

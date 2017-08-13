@@ -1,5 +1,5 @@
 {
-    "cppFile": "src/tmp.cpp",
+    "cppFile": "src/Bindings.cpp",
     "rust": {
         "dir": "rust",
         "interfaceModule": "testinterface",
@@ -67,7 +67,7 @@
             }]
         ]
     }, {
-        "name": "Tree",
+        "name": "TestTree",
         "type": "UniformTree",
         "properties": [{
             "name": "path",

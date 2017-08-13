@@ -277,17 +277,17 @@ pub unsafe extern "C" fn directory_data_file_permissions(ptr: *const Directory, 
     (&*ptr).file_permissions(row)
 }
 
-pub struct TreeQObject {}
+pub struct TestTreeQObject {}
 
 #[derive (Clone)]
-pub struct TreeEmitter {
-    qobject: Arc<Mutex<*const TreeQObject>>,
-    path_changed: fn(*const TreeQObject),
+pub struct TestTreeEmitter {
+    qobject: Arc<Mutex<*const TestTreeQObject>>,
+    path_changed: fn(*const TestTreeQObject),
 }
 
-unsafe impl Send for TreeEmitter {}
+unsafe impl Send for TestTreeEmitter {}
 
-impl TreeEmitter {
+impl TestTreeEmitter {
     fn clear(&self) {
         *self.qobject.lock().unwrap() = null();
     }
@@ -299,32 +299,32 @@ impl TreeEmitter {
     }
 }
 
-pub struct TreeUniformTree {
-    qobject: *const TreeQObject,
-    tree_begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
-    tree_end_insert_rows: fn(*const TreeQObject),
-    tree_begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
-    tree_end_remove_rows: fn(*const TreeQObject),
+pub struct TestTreeUniformTree {
+    qobject: *const TestTreeQObject,
+    test_tree_begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
+    test_tree_end_insert_rows: fn(*const TestTreeQObject),
+    test_tree_begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
+    test_tree_end_remove_rows: fn(*const TestTreeQObject),
 }
 
-impl TreeUniformTree {
-    pub fn tree_begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
-        (self.tree_begin_insert_rows)(self.qobject,row, parent, first, last);
+impl TestTreeUniformTree {
+    pub fn test_tree_begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
+        (self.test_tree_begin_insert_rows)(self.qobject,row, parent, first, last);
     }
-    pub fn tree_end_insert_rows(&self) {
-        (self.tree_end_insert_rows)(self.qobject);
+    pub fn test_tree_end_insert_rows(&self) {
+        (self.test_tree_end_insert_rows)(self.qobject);
     }
-    pub fn tree_begin_remove_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
-        (self.tree_begin_remove_rows)(self.qobject,row, parent, first, last);
+    pub fn test_tree_begin_remove_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
+        (self.test_tree_begin_remove_rows)(self.qobject,row, parent, first, last);
     }
-    pub fn tree_end_remove_rows(&self) {
-        (self.tree_end_remove_rows)(self.qobject);
+    pub fn test_tree_end_remove_rows(&self) {
+        (self.test_tree_end_remove_rows)(self.qobject);
     }
 }
 
-pub trait TreeTrait {
-    fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self;
-    fn emit(&self) -> &TreeEmitter;
+pub trait TestTreeTrait {
+    fn create(emit: TestTreeEmitter, model: TestTreeUniformTree) -> Self;
+    fn emit(&self) -> &TestTreeEmitter;
     fn get_path(&self) -> String;
     fn set_path(&mut self, value: String);
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
@@ -334,44 +334,44 @@ pub trait TreeTrait {
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int;
-    fn index(&mut self, row: c_int, parent: usize) -> usize;
+    fn index(&self, row: c_int, parent: usize) -> usize;
     fn parent(&self, row: c_int, parent: usize) -> QModelIndex;
 }
 
 #[no_mangle]
-pub extern "C" fn tree_new(qobject: *const TreeQObject,
-        path_changed: fn(*const TreeQObject),
-        tree_begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize,
+pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
+        path_changed: fn(*const TestTreeQObject),
+        test_tree_begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
-        tree_end_insert_rows: fn(*const TreeQObject),
-        tree_begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize,
+        test_tree_end_insert_rows: fn(*const TestTreeQObject),
+        test_tree_begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
-        tree_end_remove_rows: fn(*const TreeQObject))
-        -> *mut Tree {
-    let emit = TreeEmitter {
+        test_tree_end_remove_rows: fn(*const TestTreeQObject))
+        -> *mut TestTree {
+    let emit = TestTreeEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
         path_changed: path_changed,
     };
-    let model = TreeUniformTree {
+    let model = TestTreeUniformTree {
         qobject: qobject,
-        tree_begin_insert_rows: tree_begin_insert_rows,
-        tree_end_insert_rows: tree_end_insert_rows,
-        tree_begin_remove_rows: tree_begin_remove_rows,
-        tree_end_remove_rows: tree_end_remove_rows,
+        test_tree_begin_insert_rows: test_tree_begin_insert_rows,
+        test_tree_end_insert_rows: test_tree_end_insert_rows,
+        test_tree_begin_remove_rows: test_tree_begin_remove_rows,
+        test_tree_end_remove_rows: test_tree_end_remove_rows,
     };
-    let d = Tree::create(emit, model);
+    let d = TestTree::create(emit, model);
     Box::into_raw(Box::new(d))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_free(ptr: *mut Tree) {
+pub unsafe extern "C" fn test_tree_free(ptr: *mut TestTree) {
     Box::from_raw(ptr).emit().clear();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_path_get(ptr: *const Tree,
+pub unsafe extern "C" fn test_tree_path_get(ptr: *const TestTree,
         p: *mut c_void,
         set: fn(*mut c_void, QString)) {
     let data = (&*ptr).get_path();
@@ -379,25 +379,25 @@ pub unsafe extern "C" fn tree_path_get(ptr: *const Tree,
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_path_set(ptr: *mut Tree, v: QStringIn) {
+pub unsafe extern "C" fn test_tree_path_set(ptr: *mut TestTree, v: QStringIn) {
     (&mut *ptr).set_path(v.convert());
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_row_count(ptr: *const Tree, row: c_int, parent: usize) -> c_int {
+pub unsafe extern "C" fn test_tree_row_count(ptr: *const TestTree, row: c_int, parent: usize) -> c_int {
     (&*ptr).row_count(row, parent)
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_can_fetch_more(ptr: *const Tree, row: c_int, parent: usize) -> bool {
+pub unsafe extern "C" fn test_tree_can_fetch_more(ptr: *const TestTree, row: c_int, parent: usize) -> bool {
     (&*ptr).can_fetch_more(row, parent)
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_fetch_more(ptr: *mut Tree, row: c_int, parent: usize) {
+pub unsafe extern "C" fn test_tree_fetch_more(ptr: *mut TestTree, row: c_int, parent: usize) {
     (&mut *ptr).fetch_more(row, parent)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_name(ptr: *const Tree,
+pub unsafe extern "C" fn test_tree_data_file_name(ptr: *const TestTree,
                                     row: c_int, parent: usize,
         d: *mut c_void,
         set: fn(*mut c_void, QString)) {
@@ -406,7 +406,7 @@ pub unsafe extern "C" fn tree_data_file_name(ptr: *const Tree,
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_icon(ptr: *const Tree,
+pub unsafe extern "C" fn test_tree_data_file_icon(ptr: *const TestTree,
                                     row: c_int, parent: usize,
         d: *mut c_void,
         set: fn(*mut c_void, QByteArray)) {
@@ -415,7 +415,7 @@ pub unsafe extern "C" fn tree_data_file_icon(ptr: *const Tree,
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree,
+pub unsafe extern "C" fn test_tree_data_file_path(ptr: *const TestTree,
                                     row: c_int, parent: usize,
         d: *mut c_void,
         set: fn(*mut c_void, QString)) {
@@ -424,15 +424,15 @@ pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree,
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_permissions(ptr: *const Tree, row: c_int, parent: usize) -> c_int {
+pub unsafe extern "C" fn test_tree_data_file_permissions(ptr: *const TestTree, row: c_int, parent: usize) -> c_int {
     (&*ptr).file_permissions(row, parent)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_index(ptr: *mut Tree, row: c_int, parent: usize) -> usize {
-    (&mut *ptr).index(row, parent)
+pub unsafe extern "C" fn test_tree_index(ptr: *const TestTree, row: c_int, parent: usize) -> usize {
+    (&*ptr).index(row, parent)
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_parent(ptr: *const Tree, row: c_int, parent: usize) -> QModelIndex {
+pub unsafe extern "C" fn test_tree_parent(ptr: *const TestTree, row: c_int, parent: usize) -> QModelIndex {
     (&*ptr).parent(row, parent)
 }

@@ -1,5 +1,5 @@
-#include "DemoObject.h"
-#include "tmp.h"
+#include "Tree.h"
+#include "Bindings.h"
 #include <cstdlib>
 
 #include <KAboutData>
@@ -55,7 +55,7 @@ int main (int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    RItemModel model;
+    Tree model;
     QTreeView view;
     view.setUniformRowHeights(true);
     view.setModel(&model);

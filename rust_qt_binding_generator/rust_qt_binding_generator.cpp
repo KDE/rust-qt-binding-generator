@@ -289,17 +289,17 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
     cpp << "extern \"C\" {\n";
     for (auto role: o.allRoles) {
         if (role.type.isComplex()) {
-            cpp << QString("    void %2_data_%3(%1Interface*%5, %4);\n")
+            cpp << QString("    void %2_data_%3(const %1Interface*%5, %4);\n")
                 .arg(o.name, lcname, snakeCase(role.name), cGetType(role.type), indexDecl);
         } else {
-            cpp << QString("    %4 %2_data_%3(%1Interface*%5);\n")
+            cpp << QString("    %4 %2_data_%3(const %1Interface*%5);\n")
                 .arg(o.name, lcname, snakeCase(role.name), role.type.name, indexDecl);
         }
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(
-    int %2_row_count(%1Interface*);
-    bool %2_can_fetch_more(%1Interface*);
+    int %2_row_count(const %1Interface*);
+    bool %2_can_fetch_more(const %1Interface*);
     void %2_fetch_more(%1Interface*);
 }
 int %1::columnCount(const QModelIndex &parent) const
@@ -339,11 +339,11 @@ void %1::fetchMore(const QModelIndex &parent)
 )").arg(o.name, lcname, QString::number(o.columnRoles.size()));
     } else {
         cpp << QString(R"(
-    int %2_row_count(%1Interface*, int, quintptr);
-    bool %2_can_fetch_more(%1Interface*, int, quintptr);
+    int %2_row_count(const %1Interface*, int, quintptr);
+    bool %2_can_fetch_more(const %1Interface*, int, quintptr);
     void %2_fetch_more(%1Interface*, int, quintptr);
-    quintptr %2_index(%1Interface*, int, quintptr);
-    qmodelindex_t %2_parent(%1Interface*, int, quintptr);
+    quintptr %2_index(const %1Interface*, int, quintptr);
+    qmodelindex_t %2_parent(const %1Interface*, int, quintptr);
 }
 int %1::columnCount(const QModelIndex &) const
 {
@@ -784,7 +784,7 @@ pub trait %1Trait {
         }
     }
     if (o.type == ObjectType::UniformTree) {
-        r << "    fn index(&mut self, row: c_int, parent: usize) -> usize;\n";
+        r << "    fn index(&self, row: c_int, parent: usize) -> usize;\n";
         r << "    fn parent(&self, row: c_int, parent: usize) -> QModelIndex;\n";
     }
 
@@ -931,8 +931,8 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
     if (o.type == ObjectType::UniformTree) {
         r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_index(ptr: *mut %1, row: c_int, parent: usize) -> usize {
-    (&mut *ptr).index(row, parent)
+pub unsafe extern "C" fn %2_index(ptr: *const %1, row: c_int, parent: usize) -> usize {
+    (&*ptr).index(row, parent)
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_parent(ptr: *const %1, row: c_int, parent: usize) -> QModelIndex {
@@ -1037,7 +1037,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         }
     }
     if (o.type == ObjectType::UniformTree) {
-        r << R"(    fn index(&mut self, row: c_int, parent: usize) -> usize {
+        r << R"(    fn index(&self, row: c_int, parent: usize) -> usize {
         0
     }
     fn parent(&self, row: c_int, parent: usize) -> QModelIndex {
