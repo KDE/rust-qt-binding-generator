@@ -22,11 +22,11 @@ ApplicationWindow {
             model: directory
             TableViewColumn {
                 title: "Name"
-                role: "FileName"
+                role: "fileName"
             }
             TableViewColumn {
                 title: "Permissions"
-                role: "FilePermissions"
+                role: "filePermissions"
             }
         }
         TreeView {
@@ -35,12 +35,12 @@ ApplicationWindow {
             //selectionMode: SelectionMode.SingleSelection
             TableViewColumn {
                 title: "Name"
-                role: "FileName"
+                role: "fileName"
                 width: 300
             }
             TableViewColumn {
                 title: "Permissions"
-                role: "FilePermissions"
+                role: "filePermissions"
                 width: 100
             }
             itemDelegate: Item {

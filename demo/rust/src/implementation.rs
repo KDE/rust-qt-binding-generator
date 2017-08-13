@@ -11,13 +11,10 @@ pub struct DirEntry {
     name: OsString,
 }
 
-impl DirEntry {
-    pub fn create(name: &str) -> DirEntry {
+impl Item for DirEntry {
+    fn create(name: &str) -> DirEntry {
         DirEntry { name: OsString::from(name) }
     }
-}
-
-impl Item for DirEntry {
     fn file_name(&self) -> String {
         self.name.to_string_lossy().to_string()
     }
@@ -45,6 +42,7 @@ impl Default for DirEntry {
 }
 
 pub trait Item: Default {
+    fn create(name: &str) -> Self;
     fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
     fn file_name(&self) -> String;
     fn file_permissions(&self) -> c_int;
@@ -61,29 +59,60 @@ struct Entry<T: Item> {
 
 pub struct RGeneralItemModel<T: Item> {
     emit: TreeEmitter,
+    model: TreeUniformTree,
     entries: Vec<Entry<T>>,
+    path: String,
 }
 
 impl<T: Item> RGeneralItemModel<T> {
-    fn get(&mut self, row: c_int, parent: usize) -> usize {
-        let p = if parent > 0 {
-            self.entries[parent].children.as_ref().unwrap()[row as usize]
-        } else {
-            1
+    fn reset(&mut self) {
+        self.entries.clear();
+        let none0 = Entry {
+            parent: 0,
+            row: 0,
+            children: Some(vec![2]),
+            data: T::default(),
         };
-        if self.entries[p].children.is_none() {
-            self.retrieve(p);
-            let emit = self.emit.clone();
-//            thread::spawn(move || { emit.new_data_ready(); });
+        self.entries.push(none0);
+        let none1 = Entry {
+            parent: 0,
+            row: 0,
+            children: Some(vec![2]),
+            data: T::default(),
+        };
+        self.entries.push(none1);
+        let root = Entry {
+            parent: 1,
+            row: 0,
+            children: None,
+            data: T::create(&self.path),
+        };
+        self.entries.push(root);
+    }
+    fn get_index(&self, mut row: c_int, parent: usize) -> Option<usize> {
+        if parent == 0 || row < 0 {
+            return Some(1);
         }
-        p
+        let r = self.entries.get(parent)
+            .and_then(|i| i.children.as_ref())
+            .and_then(|i| i.get(row as usize))
+            .map(|i| *i);
+            if r.is_some() {
+println!("get_index {} {} {}", row, parent, r.unwrap());}
+        r
+    }
+    fn get(&self, row: c_int, parent: usize) -> Option<&Entry<T>> {
+println!("get entries {}", self.entries.len());
+        self.get_index(row, parent)
+            .map(|i| &self.entries[i])
     }
     fn retrieve(&mut self, id: usize) {
         let mut new_entries = Vec::new();
         let mut children = Vec::new();
         {
             let parents = self.get_parents(id);
-            let entries = self.entries[id].data.retrieve(parents);
+            let entry = &self.entries[id];
+            let entries = entry.data.retrieve(parents);
             for (row, d) in entries.into_iter().enumerate() {
                 let e = Entry {
                     parent: id,
@@ -94,9 +123,13 @@ impl<T: Item> RGeneralItemModel<T> {
                 children.push(self.entries.len() + row);
                 new_entries.push(e);
             }
+println!("begin_insert_rows {} {} {} {}", entry.row, id, 0, new_entries.len() - 1);
+            self.model.begin_insert_rows(entry.row as c_int, id, 0,
+                (new_entries.len() - 1) as c_int);
         }
         self.entries[id].children = Some(children);
         self.entries.append(&mut new_entries);
+        self.model.end_insert_rows();
     }
     fn get_parents(&self, id: usize) -> Vec<&T> {
         let mut pos = id;
@@ -111,45 +144,72 @@ impl<T: Item> RGeneralItemModel<T> {
 
 impl<T: Item> TreeTrait for RGeneralItemModel<T> {
     fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self {
-        let none = Entry {
-            parent: 0,
-            row: 0,
-            children: None,
-            data: T::default(),
-        };
-        RGeneralItemModel {
+        let mut tree = RGeneralItemModel {
             emit: emit,
-            entries: vec![none],
-        }
+            model: model,
+            entries: Vec::new(),
+            path: String::new()
+        };
+        tree.reset();
+        tree
     }
     fn emit(&self) -> &TreeEmitter {
         &self.emit
     }
     fn get_path(&self) -> String {
-        String::new()
+        self.path.clone()
     }
     fn set_path(&mut self, value: String) {
+        if self.path != value {
+            self.path = value;
+            self.emit.path_changed();
+            self.reset();
+        }
+    }
+    fn can_fetch_more(&self, row: c_int, parent: usize) -> bool {
+println!("entries {}", self.entries.len());
+        let r = self.get(row, parent)
+            .map(|entry| entry.children.is_none())
+            .unwrap_or(false);
+        println!("can_fetch_more {} {} {}", row, parent, r);
+        r
+    }
+    fn fetch_more(&mut self, row: c_int, parent: usize) {
+        if !self.can_fetch_more(row, parent) {
+            return;
+        }
+println!("fetch more! {} {}", row, parent);
+        let p = self.get_index(row, parent).unwrap();
+        self.retrieve(p);
     }
     fn row_count(&self, row: c_int, parent: usize) -> c_int {
-        //let i = self.get(row, parent);
-        //self.entries[i].children.as_ref().unwrap().len() as i32
-        0
+        let r = self.get(row, parent)
+            .and_then(|entry| entry.children.as_ref())
+            .map(|i| i.len())
+            .unwrap_or(0) as c_int;
+        println!("rrow_count {} {} {}", row, parent, r);
+        r
     }
     fn index(&self, row: c_int, parent: usize) -> usize {
-        //self.get(row, parent)
-        0
+        let r = self.get_index(row, parent)
+            .unwrap_or(0);
+println!("index {} {} {}", row, parent, r);
+        r
     }
     fn parent(&self, row: c_int, index: usize) -> QModelIndex {
-        if index < 2 {
-            return QModelIndex::invalid();
+println!("parent {} {}", row, index);
+        if index > 1 {
+            if let Some(entry) = self.get(row, index) {
+                return QModelIndex::create(entry.row as i32, entry.parent);
+            }
         }
-        let e = &self.entries[index];
-        QModelIndex::create(e.row as i32, e.parent)
+        QModelIndex::invalid()
     }
     fn file_name(&self, row: c_int, parent: usize) -> String {
-        //let i = self.get(row, parent);
-        //self.entries[i].data.file_name()
-        String::new()
+        println!("file_name {} {}", row, parent);
+        self.get(row, parent)
+            .map(|entry| entry.data.file_name())
+            .unwrap_or_default()
     }
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
         //let i = self.get(row,parent);

@@ -152,24 +152,24 @@ impl DirectoryEmitter {
 
 pub struct DirectoryList {
     qobject: *const DirectoryQObject,
-    directory_begin_insert_rows: fn(*const DirectoryQObject, c_int, c_int),
-    directory_end_insert_rows: fn(*const DirectoryQObject),
-    directory_begin_remove_rows: fn(*const DirectoryQObject, c_int, c_int),
-    directory_end_remove_rows: fn(*const DirectoryQObject),
+    begin_insert_rows: fn(*const DirectoryQObject, c_int, c_int),
+    end_insert_rows: fn(*const DirectoryQObject),
+    begin_remove_rows: fn(*const DirectoryQObject, c_int, c_int),
+    end_remove_rows: fn(*const DirectoryQObject),
 }
 
 impl DirectoryList {
-    pub fn directory_begin_insert_rows(&self, first: c_int, last: c_int) {
-        (self.directory_begin_insert_rows)(self.qobject, first, last);
+    pub fn begin_insert_rows(&self, first: c_int, last: c_int) {
+        (self.begin_insert_rows)(self.qobject, first, last);
     }
-    pub fn directory_end_insert_rows(&self) {
-        (self.directory_end_insert_rows)(self.qobject);
+    pub fn end_insert_rows(&self) {
+        (self.end_insert_rows)(self.qobject);
     }
-    pub fn directory_begin_remove_rows(&self, first: c_int, last: c_int) {
-        (self.directory_begin_remove_rows)(self.qobject, first, last);
+    pub fn begin_remove_rows(&self, first: c_int, last: c_int) {
+        (self.begin_remove_rows)(self.qobject, first, last);
     }
-    pub fn directory_end_remove_rows(&self) {
-        (self.directory_end_remove_rows)(self.qobject);
+    pub fn end_remove_rows(&self) {
+        (self.end_remove_rows)(self.qobject);
     }
 }
 
@@ -180,7 +180,7 @@ pub trait DirectoryTrait {
     fn set_path(&mut self, value: String);
     fn row_count(&self) -> c_int;
     fn can_fetch_more(&self) -> bool { false }
-    fn fetch_more(&self) {}
+    fn fetch_more(&mut self) {}
     fn file_name(&self, row: c_int) -> String;
     fn file_icon(&self, row: c_int) -> Vec<u8>;
     fn file_path(&self, row: c_int) -> String;
@@ -190,14 +190,14 @@ pub trait DirectoryTrait {
 #[no_mangle]
 pub extern "C" fn directory_new(qobject: *const DirectoryQObject,
         path_changed: fn(*const DirectoryQObject),
-        directory_begin_insert_rows: fn(*const DirectoryQObject,
+        begin_insert_rows: fn(*const DirectoryQObject,
             c_int,
             c_int),
-        directory_end_insert_rows: fn(*const DirectoryQObject),
-        directory_begin_remove_rows: fn(*const DirectoryQObject,
+        end_insert_rows: fn(*const DirectoryQObject),
+        begin_remove_rows: fn(*const DirectoryQObject,
             c_int,
             c_int),
-        directory_end_remove_rows: fn(*const DirectoryQObject))
+        end_remove_rows: fn(*const DirectoryQObject))
         -> *mut Directory {
     let emit = DirectoryEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
@@ -205,10 +205,10 @@ pub extern "C" fn directory_new(qobject: *const DirectoryQObject,
     };
     let model = DirectoryList {
         qobject: qobject,
-        directory_begin_insert_rows: directory_begin_insert_rows,
-        directory_end_insert_rows: directory_end_insert_rows,
-        directory_begin_remove_rows: directory_begin_remove_rows,
-        directory_end_remove_rows: directory_end_remove_rows,
+        begin_insert_rows: begin_insert_rows,
+        end_insert_rows: end_insert_rows,
+        begin_remove_rows: begin_remove_rows,
+        end_remove_rows: end_remove_rows,
     };
     let d = Directory::create(emit, model);
     Box::into_raw(Box::new(d))
@@ -301,24 +301,24 @@ impl TestTreeEmitter {
 
 pub struct TestTreeUniformTree {
     qobject: *const TestTreeQObject,
-    test_tree_begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
-    test_tree_end_insert_rows: fn(*const TestTreeQObject),
-    test_tree_begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
-    test_tree_end_remove_rows: fn(*const TestTreeQObject),
+    begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
+    end_insert_rows: fn(*const TestTreeQObject),
+    begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
+    end_remove_rows: fn(*const TestTreeQObject),
 }
 
 impl TestTreeUniformTree {
-    pub fn test_tree_begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
-        (self.test_tree_begin_insert_rows)(self.qobject,row, parent, first, last);
+    pub fn begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
+        (self.begin_insert_rows)(self.qobject,row, parent, first, last);
     }
-    pub fn test_tree_end_insert_rows(&self) {
-        (self.test_tree_end_insert_rows)(self.qobject);
+    pub fn end_insert_rows(&self) {
+        (self.end_insert_rows)(self.qobject);
     }
-    pub fn test_tree_begin_remove_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
-        (self.test_tree_begin_remove_rows)(self.qobject,row, parent, first, last);
+    pub fn begin_remove_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
+        (self.begin_remove_rows)(self.qobject,row, parent, first, last);
     }
-    pub fn test_tree_end_remove_rows(&self) {
-        (self.test_tree_end_remove_rows)(self.qobject);
+    pub fn end_remove_rows(&self) {
+        (self.end_remove_rows)(self.qobject);
     }
 }
 
@@ -329,7 +329,7 @@ pub trait TestTreeTrait {
     fn set_path(&mut self, value: String);
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
     fn can_fetch_more(&self, row: c_int, parent: usize) -> bool { false }
-    fn fetch_more(&self, row: c_int, parent: usize) {}
+    fn fetch_more(&mut self, row: c_int, parent: usize) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
@@ -341,14 +341,14 @@ pub trait TestTreeTrait {
 #[no_mangle]
 pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
         path_changed: fn(*const TestTreeQObject),
-        test_tree_begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
+        begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
-        test_tree_end_insert_rows: fn(*const TestTreeQObject),
-        test_tree_begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
+        end_insert_rows: fn(*const TestTreeQObject),
+        begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
-        test_tree_end_remove_rows: fn(*const TestTreeQObject))
+        end_remove_rows: fn(*const TestTreeQObject))
         -> *mut TestTree {
     let emit = TestTreeEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
@@ -356,10 +356,10 @@ pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
     };
     let model = TestTreeUniformTree {
         qobject: qobject,
-        test_tree_begin_insert_rows: test_tree_begin_insert_rows,
-        test_tree_end_insert_rows: test_tree_end_insert_rows,
-        test_tree_begin_remove_rows: test_tree_begin_remove_rows,
-        test_tree_end_remove_rows: test_tree_end_remove_rows,
+        begin_insert_rows: begin_insert_rows,
+        end_insert_rows: end_insert_rows,
+        begin_remove_rows: begin_remove_rows,
+        end_remove_rows: end_remove_rows,
     };
     let d = TestTree::create(emit, model);
     Box::into_raw(Box::new(d))

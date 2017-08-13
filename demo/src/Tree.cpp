@@ -106,6 +106,9 @@ int Tree::rowCount(const QModelIndex &parent) const
 
 QModelIndex Tree::index(int row, int column, const QModelIndex &parent) const
 {
+    if (row < 0 || column < 0 || column >= 3) {
+        return QModelIndex();
+    }
     const quintptr id = tree_index(d, parent.row(), parent.internalId());
     return id ?createIndex(row, column, id) :QModelIndex();
 }
@@ -178,10 +181,10 @@ QVariant Tree::data(const QModelIndex &index, int role) const
 }
 QHash<int, QByteArray> Tree::roleNames() const {
     QHash<int, QByteArray> names;
-    names.insert(Qt::DisplayRole, "FileName");
-    names.insert(Qt::DecorationRole, "FileIcon");
-    names.insert(Qt::UserRole + 1, "FilePath");
-    names.insert(Qt::UserRole + 3, "FilePermissions");
+    names.insert(Qt::DisplayRole, "fileName");
+    names.insert(Qt::DecorationRole, "fileIcon");
+    names.insert(Qt::UserRole + 1, "filePath");
+    names.insert(Qt::UserRole + 3, "filePermissions");
     return names;
 }
 

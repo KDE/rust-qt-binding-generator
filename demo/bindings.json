@@ -35,33 +35,33 @@
         }],
         "roles": [
             [{
-                "name": "FileName",
+                "name": "fileName",
                 "value": "Qt::DisplayRole",
                 "type": "QString"
             }, {
-                "name": "FileIcon",
+                "name": "fileIcon",
                 "value": "Qt::DecorationRole",
                 "type": "QByteArray"
             }, {
-                "name": "FilePath",
+                "name": "filePath",
                 "value": "Qt::UserRole + 1",
                 "type": "QString"
             }, {
-                "name": "FileName",
+                "name": "fileName",
                 "value": "Qt::UserRole + 2",
                 "type": "QString"
             }, {
-                "name": "FilePermissions",
+                "name": "filePermissions",
                 "value": "Qt::UserRole + 3",
                 "type": "int"
             }],
             [{
-                "name": "FilePath",
+                "name": "filePath",
                 "value": "Qt::DisplayRole",
                 "type": "QString"
             }],
             [{
-                "name": "FilePermissions",
+                "name": "filePermissions",
                 "value": "Qt::DisplayRole",
                 "type": "int"
             }]
@@ -76,33 +76,33 @@
         }],
         "roles": [
             [{
-                "name": "FileName",
+                "name": "fileName",
                 "value": "Qt::DisplayRole",
                 "type": "QString"
             }, {
-                "name": "FileIcon",
+                "name": "fileIcon",
                 "value": "Qt::DecorationRole",
                 "type": "QByteArray"
             }, {
-                "name": "FilePath",
+                "name": "filePath",
                 "value": "Qt::UserRole + 1",
                 "type": "QString"
             }, {
-                "name": "FileName",
+                "name": "fileName",
                 "value": "Qt::UserRole + 2",
                 "type": "QString"
             }, {
-                "name": "FilePermissions",
+                "name": "filePermissions",
                 "value": "Qt::UserRole + 3",
                 "type": "int"
             }],
             [{
-                "name": "FilePath",
+                "name": "filePath",
                 "value": "Qt::DisplayRole",
                 "type": "QString"
             }],
             [{
-                "name": "FilePermissions",
+                "name": "filePermissions",
                 "value": "Qt::DisplayRole",
                 "type": "int"
             }]

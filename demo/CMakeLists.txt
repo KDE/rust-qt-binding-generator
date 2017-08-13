@@ -13,7 +13,6 @@ add_custom_command(
 
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/interface.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/types.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Tree.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/tmp.cpp"
@@ -34,7 +33,7 @@ add_custom_command(
 )
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
 
-set(Demo_SRCS src/main.cpp src/Tree.cpp src/Bindings.cpp
+set(Demo_SRCS src/main.cpp src/Tree.cpp src/Bindings.cpp src/modeltest.cpp
     resource_file.qrc)
 
 add_executable(Demo ${Demo_SRCS})

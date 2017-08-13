@@ -264,11 +264,11 @@ QString baseType(const Object& o) {
 
 void writeHeaderItemModel(QTextStream& h, const Object&) {
     h << QString(R"(
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QModelIndex index(int row, int column, const QModelIndex &parent) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &index) const;
-    int rowCount(const QModelIndex &parent) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
     bool canFetchMore(const QModelIndex &parent) const;
     void fetchMore(const QModelIndex &parent);
     QHash<int, QByteArray> roleNames() const;
@@ -357,6 +357,9 @@ int %1::rowCount(const QModelIndex &parent) const
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
 {
+    if (row < 0 || column < 0 || column >= %3) {
+        return QModelIndex();
+    }
     const quintptr id = %2_index(d, parent.row(), parent.internalId());
     return id ?createIndex(row, column, id) :QModelIndex();
 }
@@ -729,28 +732,28 @@ impl %1Emitter {
         }
         r << QString(R"(}
 
-pub struct %1%3 {
+pub struct %1%2 {
     qobject: *const %1QObject,
-    %2_begin_insert_rows: fn(*const %1QObject,%4 c_int, c_int),
-    %2_end_insert_rows: fn(*const %1QObject),
-    %2_begin_remove_rows: fn(*const %1QObject,%4 c_int, c_int),
-    %2_end_remove_rows: fn(*const %1QObject),
+    begin_insert_rows: fn(*const %1QObject,%3 c_int, c_int),
+    end_insert_rows: fn(*const %1QObject),
+    begin_remove_rows: fn(*const %1QObject,%3 c_int, c_int),
+    end_remove_rows: fn(*const %1QObject),
 }
 
-impl %1%3 {
-    pub fn %2_begin_insert_rows(&self,%4 first: c_int, last: c_int) {
-        (self.%2_begin_insert_rows)(self.qobject,%5 first, last);
+impl %1%2 {
+    pub fn begin_insert_rows(&self,%3 first: c_int, last: c_int) {
+        (self.begin_insert_rows)(self.qobject,%4 first, last);
     }
-    pub fn %2_end_insert_rows(&self) {
-        (self.%2_end_insert_rows)(self.qobject);
+    pub fn end_insert_rows(&self) {
+        (self.end_insert_rows)(self.qobject);
     }
-    pub fn %2_begin_remove_rows(&self,%4 first: c_int, last: c_int) {
-        (self.%2_begin_remove_rows)(self.qobject,%5 first, last);
+    pub fn begin_remove_rows(&self,%3 first: c_int, last: c_int) {
+        (self.begin_remove_rows)(self.qobject,%4 first, last);
     }
-    pub fn %2_end_remove_rows(&self) {
-        (self.%2_end_remove_rows)(self.qobject);
+    pub fn end_remove_rows(&self) {
+        (self.end_remove_rows)(self.qobject);
     }
-)").arg(o.name, lcname, type, indexDecl, index);
+)").arg(o.name, type, indexDecl, index);
     }
 
     r << QString(R"(}
@@ -773,7 +776,7 @@ pub trait %1Trait {
         }
         r << QString(R"(    fn row_count(&self%1) -> c_int;
     fn can_fetch_more(&self%1) -> bool { false }
-    fn fetch_more(&self%1) {}
+    fn fetch_more(&mut self%1) {}
 )").arg(index);
         if (o.type == ObjectType::List) {
             index = ", row: c_int";
@@ -802,14 +805,14 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
             indexDecl = "row: c_int, parent: usize,";
         }
         r << QString(R"(,
-        %2_begin_insert_rows: fn(*const %1QObject,%3
+        begin_insert_rows: fn(*const %1QObject,%2
             c_int,
             c_int),
-        %2_end_insert_rows: fn(*const %1QObject),
-        %2_begin_remove_rows: fn(*const %1QObject,%3
+        end_insert_rows: fn(*const %1QObject),
+        begin_remove_rows: fn(*const %1QObject,%2
             c_int,
             c_int),
-        %2_end_remove_rows: fn(*const %1QObject))").arg(o.name, lcname, indexDecl);
+        end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl);
     }
     r << QString(R"()
         -> *mut %1 {
@@ -824,13 +827,13 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
         const QString type = o.type == ObjectType::List ? "List" : "UniformTree";
         model = ", model";
         r << QString(R"(    };
-    let model = %1%3 {
+    let model = %1%2 {
         qobject: qobject,
-        %2_begin_insert_rows: %2_begin_insert_rows,
-        %2_end_insert_rows: %2_end_insert_rows,
-        %2_begin_remove_rows: %2_begin_remove_rows,
-        %2_end_remove_rows: %2_end_remove_rows,
-)").arg(o.name, lcname, type);
+        begin_insert_rows: begin_insert_rows,
+        end_insert_rows: end_insert_rows,
+        begin_remove_rows: begin_remove_rows,
+        end_remove_rows: end_remove_rows,
+)").arg(o.name, type);
     }
     r << QString(R"(    };
     let d = %1::create(emit%3);

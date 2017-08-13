@@ -33,24 +33,24 @@ impl TreeEmitter {
 
 pub struct TreeUniformTree {
     qobject: *const TreeQObject,
-    tree_begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
-    tree_end_insert_rows: fn(*const TreeQObject),
-    tree_begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
-    tree_end_remove_rows: fn(*const TreeQObject),
+    begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
+    end_insert_rows: fn(*const TreeQObject),
+    begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
+    end_remove_rows: fn(*const TreeQObject),
 }
 
 impl TreeUniformTree {
-    pub fn tree_begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
-        (self.tree_begin_insert_rows)(self.qobject,row, parent, first, last);
+    pub fn begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
+        (self.begin_insert_rows)(self.qobject,row, parent, first, last);
     }
-    pub fn tree_end_insert_rows(&self) {
-        (self.tree_end_insert_rows)(self.qobject);
+    pub fn end_insert_rows(&self) {
+        (self.end_insert_rows)(self.qobject);
     }
-    pub fn tree_begin_remove_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
-        (self.tree_begin_remove_rows)(self.qobject,row, parent, first, last);
+    pub fn begin_remove_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
+        (self.begin_remove_rows)(self.qobject,row, parent, first, last);
     }
-    pub fn tree_end_remove_rows(&self) {
-        (self.tree_end_remove_rows)(self.qobject);
+    pub fn end_remove_rows(&self) {
+        (self.end_remove_rows)(self.qobject);
     }
 }
 
@@ -61,7 +61,7 @@ pub trait TreeTrait {
     fn set_path(&mut self, value: String);
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
     fn can_fetch_more(&self, row: c_int, parent: usize) -> bool { false }
-    fn fetch_more(&self, row: c_int, parent: usize) {}
+    fn fetch_more(&mut self, row: c_int, parent: usize) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
@@ -73,14 +73,14 @@ pub trait TreeTrait {
 #[no_mangle]
 pub extern "C" fn tree_new(qobject: *const TreeQObject,
         path_changed: fn(*const TreeQObject),
-        tree_begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize,
+        begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
-        tree_end_insert_rows: fn(*const TreeQObject),
-        tree_begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize,
+        end_insert_rows: fn(*const TreeQObject),
+        begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
-        tree_end_remove_rows: fn(*const TreeQObject))
+        end_remove_rows: fn(*const TreeQObject))
         -> *mut Tree {
     let emit = TreeEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
@@ -88,10 +88,10 @@ pub extern "C" fn tree_new(qobject: *const TreeQObject,
     };
     let model = TreeUniformTree {
         qobject: qobject,
-        tree_begin_insert_rows: tree_begin_insert_rows,
-        tree_end_insert_rows: tree_end_insert_rows,
-        tree_begin_remove_rows: tree_begin_remove_rows,
-        tree_end_remove_rows: tree_end_remove_rows,
+        begin_insert_rows: begin_insert_rows,
+        end_insert_rows: end_insert_rows,
+        begin_remove_rows: begin_remove_rows,
+        end_remove_rows: end_remove_rows,
     };
     let d = Tree::create(emit, model);
     Box::into_raw(Box::new(d))

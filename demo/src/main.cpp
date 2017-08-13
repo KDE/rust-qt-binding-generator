@@ -12,6 +12,9 @@
 #include <QtQml/qqml.h>
 #include <QQmlContext>
 #include <QDebug>
+#include <QFileSystemModel>
+#include <QStandardItemModel>
+#include "modeltest.h"
 
 int main (int argc, char *argv[])
 {
@@ -53,16 +56,37 @@ int main (int argc, char *argv[])
     qmlRegisterType<Directory>("rust", 1, 0, "Directory");
     qmlRegisterType<Person>("rust", 1, 0, "Person");
 
-    QQmlApplicationEngine engine;
+    QFileSystemModel m;
+    m.setRootPath("/");
+    qDebug() << m.rowCount();
+    QModelIndex i = m.index(0,0);
+    qDebug() << i;
+    qDebug() << m.parent(i);
+    qDebug() << m.data(i);
+    qDebug() << m.rowCount(i) << m.canFetchMore(i);
+    qDebug() << "---";
+/*
+    QStandardItemModel sm;
+    sm.appendRow(new QStandardItem());
+*/
 
     Tree model;
+    ModelTest test(&model);
+    model.setPath("/");
+    qDebug() << model.rowCount();
+    i = model.index(0,0);
+    qDebug() << i;
+    qDebug() << model.parent(i);
+    qDebug() << model.data(i);
+    qDebug() << model.rowCount(i) << model.canFetchMore(i);
     QTreeView view;
     view.setUniformRowHeights(true);
     view.setModel(&model);
     view.show();
-
+    /*
+    QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("fsModel", &model);
     engine.load(QUrl(QStringLiteral("qrc:///demo.qml")));
-
+*/
     return app.exec();
 }
