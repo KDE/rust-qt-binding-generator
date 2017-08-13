@@ -1159,7 +1159,7 @@ int main(int argc, char *argv[]) {
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument("configuration",
-        QCoreApplication::translate("main", "Configuration file"));
+        QCoreApplication::translate("main", "Configuration file(s)"));
 
     // A boolean option (--overwrite-implementation)
     QCommandLineOption overwriteOption(QStringList()
@@ -1177,15 +1177,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    const QString configurationFile(args.at(0));
-    Configuration configuration = parseConfiguration(configurationFile);
-    configuration.overwriteImplementation = parser.isSet(overwriteOption);
-
-    writeHeader(configuration);
-    writeCpp(configuration);
-    writeRustInterface(configuration);
-    writeRustImplementation(configuration);
-    writeRustTypes(configuration);
+    for (auto path: args) {
+        const QString configurationFile(path);
+        Configuration configuration = parseConfiguration(configurationFile);
+        configuration.overwriteImplementation = parser.isSet(overwriteOption);
+    
+        writeHeader(configuration);
+        writeCpp(configuration);
+        writeRustInterface(configuration);
+        writeRustImplementation(configuration);
+        writeRustTypes(configuration);
+    }
 
     return 0;
 }
