@@ -134,7 +134,7 @@ impl TestTreeTrait for TestTree {
     fn index(&self, row: c_int, parent: usize) -> usize {
         0
     }
-    fn parent(&self, row: c_int, parent: usize) -> QModelIndex {
+    fn parent(&self, parent: usize) -> QModelIndex {
         QModelIndex::create(0, 0)
     }
 }

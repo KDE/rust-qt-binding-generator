@@ -87,26 +87,31 @@ extern "C" {
     void tree_data_file_icon(const TreeInterface*, int, quintptr, QByteArray*, qbytearray_set);
     void tree_data_file_path(const TreeInterface*, int, quintptr, QString*, qstring_set);
     int tree_data_file_permissions(const TreeInterface*, int, quintptr);
+    int tree_data_file_type(const TreeInterface*, int, quintptr);
+    qulonglong tree_data_file_size(const TreeInterface*, int, quintptr);
 
     int tree_row_count(const TreeInterface*, int, quintptr);
     bool tree_can_fetch_more(const TreeInterface*, int, quintptr);
     void tree_fetch_more(TreeInterface*, int, quintptr);
     quintptr tree_index(const TreeInterface*, int, quintptr);
-    qmodelindex_t tree_parent(const TreeInterface*, int, quintptr);
+    qmodelindex_t tree_parent(const TreeInterface*, quintptr);
 }
 int Tree::columnCount(const QModelIndex &) const
 {
-    return 3;
+    return 5;
 }
 
 int Tree::rowCount(const QModelIndex &parent) const
 {
+    if (parent.isValid() && parent.column() != 0) {
+        return 0;
+    }
     return tree_row_count(d, parent.row(), parent.internalId());
 }
 
 QModelIndex Tree::index(int row, int column, const QModelIndex &parent) const
 {
-    if (row < 0 || column < 0 || column >= 3) {
+    if (row < 0 || column < 0 || column >= 5) {
         return QModelIndex();
     }
     const quintptr id = tree_index(d, parent.row(), parent.internalId());
@@ -118,7 +123,7 @@ QModelIndex Tree::parent(const QModelIndex &index) const
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t parent = tree_parent(d, index.row(), index.internalId());
+    const qmodelindex_t parent = tree_parent(d, index.internalId());
     return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
@@ -159,6 +164,12 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 3:
             v.setValue<int>(tree_data_file_permissions(d, index.row(), index.internalId()));
             break;
+        case Qt::UserRole + 4:
+            v.setValue<int>(tree_data_file_type(d, index.row(), index.internalId()));
+            break;
+        case Qt::UserRole + 5:
+            v.setValue<qulonglong>(tree_data_file_size(d, index.row(), index.internalId()));
+            break;
         }
         break;
     case 1:
@@ -176,6 +187,20 @@ QVariant Tree::data(const QModelIndex &index, int role) const
             break;
         }
         break;
+    case 3:
+        switch (role) {
+        case Qt::DisplayRole:
+            v.setValue<int>(tree_data_file_type(d, index.row(), index.internalId()));
+            break;
+        }
+        break;
+    case 4:
+        switch (role) {
+        case Qt::DisplayRole:
+            v.setValue<qulonglong>(tree_data_file_size(d, index.row(), index.internalId()));
+            break;
+        }
+        break;
     }
     return v;
 }
@@ -185,6 +210,8 @@ QHash<int, QByteArray> Tree::roleNames() const {
     names.insert(Qt::DecorationRole, "fileIcon");
     names.insert(Qt::UserRole + 1, "filePath");
     names.insert(Qt::UserRole + 3, "filePermissions");
+    names.insert(Qt::UserRole + 4, "fileType");
+    names.insert(Qt::UserRole + 5, "fileSize");
     return names;
 }
 

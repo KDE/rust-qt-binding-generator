@@ -18,6 +18,7 @@ ApplicationWindow {
     SplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
+/*
         TreeView {
             model: directory
             TableViewColumn {
@@ -29,6 +30,7 @@ ApplicationWindow {
                 role: "filePermissions"
             }
         }
+*/
         TreeView {
             model: fsModel
             selection: selectionModel
@@ -36,13 +38,14 @@ ApplicationWindow {
             TableViewColumn {
                 title: "Name"
                 role: "fileName"
-                width: 300
+                width: 200
             }
             TableViewColumn {
-                title: "Permissions"
-                role: "filePermissions"
+                title: "Size"
+                role: "fileSize"
                 width: 100
             }
+/*
             itemDelegate: Item {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
@@ -54,7 +57,6 @@ ApplicationWindow {
             onClicked: {
                 selectionModel.setCurrentIndex(index, ItemSelectionModel.Select)
             }
-/*
             rowDelegate: Item {
                 anchors.fill: parent
                 Text {

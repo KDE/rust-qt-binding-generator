@@ -35,6 +35,14 @@
                 "name": "filePermissions",
                 "value": "Qt::UserRole + 3",
                 "type": "int"
+            }, {
+                "name": "fileType",
+                "value": "Qt::UserRole + 4",
+                "type": "int"
+            }, {
+                "name": "fileSize",
+                "value": "Qt::UserRole + 5",
+                "type": "ulonglong"
             }],
             [{
                 "name": "filePath",
@@ -45,6 +53,16 @@
                 "name": "filePermissions",
                 "value": "Qt::DisplayRole",
                 "type": "int"
+            }],
+            [{
+                "name": "fileType",
+                "value": "Qt::DisplayRole",
+                "type": "int"
+            }],
+            [{
+                "name": "fileSize",
+                "value": "Qt::DisplayRole",
+                "type": "ulonglong"
             }]
         ]
     }]

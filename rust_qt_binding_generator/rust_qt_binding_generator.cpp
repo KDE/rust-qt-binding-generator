@@ -21,6 +21,7 @@ enum class BindingType {
     Bool,
     Int,
     UInt,
+    ULongLong,
     QString,
     QByteArray
 };
@@ -63,6 +64,13 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .cppSetType = "uint",
                      .cSetType = "uint",
                      .rustType = "c_uint",
+                     .rustTypeInit = "0"
+                 });
+        f.insert(BindingType::ULongLong, {
+                     .name = "ulonglong",
+                     .cppSetType = "qulonglong",
+                     .cSetType = "qulonglong",
+                     .rustType = "c_ulonglong",
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::QString, {
@@ -293,7 +301,7 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
                 .arg(o.name, lcname, snakeCase(role.name), cGetType(role.type), indexDecl);
         } else {
             cpp << QString("    %4 %2_data_%3(const %1Interface*%5);\n")
-                .arg(o.name, lcname, snakeCase(role.name), role.type.name, indexDecl);
+                .arg(o.name, lcname, snakeCase(role.name), role.type.cppSetType, indexDecl);
         }
     }
     if (o.type == ObjectType::List) {
@@ -343,7 +351,7 @@ void %1::fetchMore(const QModelIndex &parent)
     bool %2_can_fetch_more(const %1Interface*, int, quintptr);
     void %2_fetch_more(%1Interface*, int, quintptr);
     quintptr %2_index(const %1Interface*, int, quintptr);
-    qmodelindex_t %2_parent(const %1Interface*, int, quintptr);
+    qmodelindex_t %2_parent(const %1Interface*, quintptr);
 }
 int %1::columnCount(const QModelIndex &) const
 {
@@ -352,6 +360,9 @@ int %1::columnCount(const QModelIndex &) const
 
 int %1::rowCount(const QModelIndex &parent) const
 {
+    if (parent.isValid() && parent.column() != 0) {
+        return 0;
+    }
     return %2_row_count(d, parent.row(), parent.internalId());
 }
 
@@ -369,7 +380,7 @@ QModelIndex %1::parent(const QModelIndex &index) const
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t parent = %2_parent(d, index.row(), index.internalId());
+    const qmodelindex_t parent = %2_parent(d, index.internalId());
     return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
@@ -410,7 +421,7 @@ QVariant %1::data(const QModelIndex &index, int role) const
                 cpp << "            v.setValue<QByteArray>(b);\n";
             } else {
                 cpp << QString("            v.setValue<%3>(%1_data_%2(d%5));\n")
-                       .arg(lcname, snakeCase(role.name), role.type.name, index);
+                       .arg(lcname, snakeCase(role.name), role.type.cppSetType, index);
             }
             cpp << "            break;\n";
         }
@@ -788,7 +799,7 @@ pub trait %1Trait {
     }
     if (o.type == ObjectType::UniformTree) {
         r << "    fn index(&self, row: c_int, parent: usize) -> usize;\n";
-        r << "    fn parent(&self, row: c_int, parent: usize) -> QModelIndex;\n";
+        r << "    fn parent(&self, parent: usize) -> QModelIndex;\n";
     }
 
     r << QString(R"(}
@@ -938,8 +949,8 @@ pub unsafe extern "C" fn %2_index(ptr: *const %1, row: c_int, parent: usize) -> 
     (&*ptr).index(row, parent)
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_parent(ptr: *const %1, row: c_int, parent: usize) -> QModelIndex {
-    (&*ptr).parent(row, parent)
+pub unsafe extern "C" fn %2_parent(ptr: *const %1, parent: usize) -> QModelIndex {
+    (&*ptr).parent(parent)
 }
 )").arg(o.name, lcname);
 
@@ -959,7 +970,7 @@ void writeRustInterface(const Configuration& conf) {
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_void};
+use libc::{c_int, c_uint, c_ulonglong, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -1043,7 +1054,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         r << R"(    fn index(&self, row: c_int, parent: usize) -> usize {
         0
     }
-    fn parent(&self, row: c_int, parent: usize) -> QModelIndex {
+    fn parent(&self, parent: usize) -> QModelIndex {
         QModelIndex::create(0, 0)
     }
 )";

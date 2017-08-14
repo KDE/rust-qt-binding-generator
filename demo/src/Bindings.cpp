@@ -280,7 +280,7 @@ extern "C" {
     bool test_tree_can_fetch_more(const TestTreeInterface*, int, quintptr);
     void test_tree_fetch_more(TestTreeInterface*, int, quintptr);
     quintptr test_tree_index(const TestTreeInterface*, int, quintptr);
-    qmodelindex_t test_tree_parent(const TestTreeInterface*, int, quintptr);
+    qmodelindex_t test_tree_parent(const TestTreeInterface*, quintptr);
 }
 int TestTree::columnCount(const QModelIndex &) const
 {
@@ -289,6 +289,9 @@ int TestTree::columnCount(const QModelIndex &) const
 
 int TestTree::rowCount(const QModelIndex &parent) const
 {
+    if (parent.isValid() && parent.column() != 0) {
+        return 0;
+    }
     return test_tree_row_count(d, parent.row(), parent.internalId());
 }
 
@@ -306,7 +309,7 @@ QModelIndex TestTree::parent(const QModelIndex &index) const
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t parent = test_tree_parent(d, index.row(), index.internalId());
+    const qmodelindex_t parent = test_tree_parent(d, index.internalId());
     return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 

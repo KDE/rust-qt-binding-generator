@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_void};
+use libc::{c_int, c_uint, c_ulonglong, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -66,8 +66,10 @@ pub trait TreeTrait {
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int;
+    fn file_type(&self, row: c_int, parent: usize) -> c_int;
+    fn file_size(&self, row: c_int, parent: usize) -> c_ulonglong;
     fn index(&self, row: c_int, parent: usize) -> usize;
-    fn parent(&self, row: c_int, parent: usize) -> QModelIndex;
+    fn parent(&self, parent: usize) -> QModelIndex;
 }
 
 #[no_mangle]
@@ -161,10 +163,20 @@ pub unsafe extern "C" fn tree_data_file_permissions(ptr: *const Tree, row: c_int
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn tree_data_file_type(ptr: *const Tree, row: c_int, parent: usize) -> c_int {
+    (&*ptr).file_type(row, parent)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tree_data_file_size(ptr: *const Tree, row: c_int, parent: usize) -> c_ulonglong {
+    (&*ptr).file_size(row, parent)
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn tree_index(ptr: *const Tree, row: c_int, parent: usize) -> usize {
     (&*ptr).index(row, parent)
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_parent(ptr: *const Tree, row: c_int, parent: usize) -> QModelIndex {
-    (&*ptr).parent(row, parent)
+pub unsafe extern "C" fn tree_parent(ptr: *const Tree, parent: usize) -> QModelIndex {
+    (&*ptr).parent(parent)
 }

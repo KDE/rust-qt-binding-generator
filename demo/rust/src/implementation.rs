@@ -1,6 +1,7 @@
 use interface::*;
 use types::*;
-use libc::c_int;
+use std::fs::*;
+use libc::{c_int, c_ulonglong};
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::ffi::OsString;
@@ -9,11 +10,17 @@ use std::thread;
 
 pub struct DirEntry {
     name: OsString,
+    file_type: c_int,
+    file_size: u64,
 }
 
 impl Item for DirEntry {
     fn create(name: &str) -> DirEntry {
-        DirEntry { name: OsString::from(name) }
+        DirEntry {
+            name: OsString::from(name),
+            file_type: 0,
+            file_size: 0
+        }
     }
     fn file_name(&self) -> String {
         self.name.to_string_lossy().to_string()
@@ -21,13 +28,25 @@ impl Item for DirEntry {
     fn file_permissions(&self) -> c_int {
         42
     }
+    fn file_type(&self) -> c_int {
+        self.file_type
+    }
+    fn file_size(&self) -> u64 {
+        self.file_size
+    }
     fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         let mut v = Vec::new();
         if let Ok(it) = read_dir(path) {
             for i in it.filter_map(|v| v.ok()) {
-                let de = DirEntry { name: i.file_name() };
-                v.push(de);
+                if let Ok(metadata) = i.metadata() {
+                    let de = DirEntry {
+                        name: i.file_name(),
+                        file_type: 0,
+                        file_size: metadata.len()
+                    };
+                    v.push(de);
+                }
             }
         }
         v.sort_by(|a, b| a.name.cmp(&b.name));
@@ -37,7 +56,11 @@ impl Item for DirEntry {
 
 impl Default for DirEntry {
     fn default() -> DirEntry {
-        DirEntry { name: OsString::new() }
+        DirEntry {
+            name: OsString::new(),
+            file_type: 0,
+            file_size: 0
+        }
     }
 }
 
@@ -46,6 +69,8 @@ pub trait Item: Default {
     fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
     fn file_name(&self) -> String;
     fn file_permissions(&self) -> c_int;
+    fn file_type(&self) -> c_int;
+    fn file_size(&self) -> u64;
 }
 
 pub type Tree = RGeneralItemModel<DirEntry>;
@@ -106,30 +131,35 @@ println!("get entries {}", self.entries.len());
         self.get_index(row, parent)
             .map(|i| &self.entries[i])
     }
-    fn retrieve(&mut self, id: usize) {
+    fn retrieve(&mut self, row: c_int, parent: usize) {
+        let id = self.get_index(row, parent).unwrap();
         let mut new_entries = Vec::new();
         let mut children = Vec::new();
         {
             let parents = self.get_parents(id);
             let entry = &self.entries[id];
             let entries = entry.data.retrieve(parents);
-            for (row, d) in entries.into_iter().enumerate() {
+            for (r, d) in entries.into_iter().enumerate() {
                 let e = Entry {
                     parent: id,
-                    row: row,
+                    row: r,
                     children: None,
                     data: d,
                 };
-                children.push(self.entries.len() + row);
+                children.push(self.entries.len() + r);
                 new_entries.push(e);
             }
+            if new_entries.len() > 0 {
 println!("begin_insert_rows {} {} {} {}", entry.row, id, 0, new_entries.len() - 1);
-            self.model.begin_insert_rows(entry.row as c_int, id, 0,
-                (new_entries.len() - 1) as c_int);
+                self.model.begin_insert_rows(row, parent, 0,
+                    (new_entries.len() - 1) as c_int);
+            }
         }
         self.entries[id].children = Some(children);
-        self.entries.append(&mut new_entries);
-        self.model.end_insert_rows();
+        if new_entries.len() > 0 {
+            self.entries.append(&mut new_entries);
+            self.model.end_insert_rows();
+        }
     }
     fn get_parents(&self, id: usize) -> Vec<&T> {
         let mut pos = id;
@@ -178,9 +208,7 @@ println!("entries {}", self.entries.len());
         if !self.can_fetch_more(row, parent) {
             return;
         }
-println!("fetch more! {} {}", row, parent);
-        let p = self.get_index(row, parent).unwrap();
-        self.retrieve(p);
+        self.retrieve(row, parent);
     }
     fn row_count(&self, row: c_int, parent: usize) -> c_int {
         let r = self.get(row, parent)
@@ -196,13 +224,14 @@ println!("fetch more! {} {}", row, parent);
 println!("index {} {} {}", row, parent, r);
         r
     }
-    fn parent(&self, row: c_int, index: usize) -> QModelIndex {
-println!("parent {} {}", row, index);
+    fn parent(&self, index: usize) -> QModelIndex {
         if index > 1 {
-            if let Some(entry) = self.get(row, index) {
+            if let Some(entry) = self.entries.get(index) {
+println!("parent {} {} {}", index, entry.row, entry.parent);
                 return QModelIndex::create(entry.row as i32, entry.parent);
             }
         }
+println!("parent {} invalid", index);
         QModelIndex::invalid()
     }
     fn file_name(&self, row: c_int, parent: usize) -> String {
@@ -221,5 +250,13 @@ println!("parent {} {}", row, index);
     }
     fn file_path(&self, row: c_int, parent: usize) -> String {
         String::new()
+    }
+    fn file_type(&self, row: c_int, parent: usize) -> c_int {
+        0
+    }
+    fn file_size(&self, row: c_int, parent: usize) -> c_ulonglong {
+        self.get(row, parent)
+            .map(|entry| entry.data.file_size())
+            .unwrap_or_default()
     }
 }

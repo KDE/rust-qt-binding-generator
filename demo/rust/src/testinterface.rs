@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_void};
+use libc::{c_int, c_uint, c_ulonglong, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -335,7 +335,7 @@ pub trait TestTreeTrait {
     fn file_path(&self, row: c_int, parent: usize) -> String;
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int;
     fn index(&self, row: c_int, parent: usize) -> usize;
-    fn parent(&self, row: c_int, parent: usize) -> QModelIndex;
+    fn parent(&self, parent: usize) -> QModelIndex;
 }
 
 #[no_mangle]
@@ -433,6 +433,6 @@ pub unsafe extern "C" fn test_tree_index(ptr: *const TestTree, row: c_int, paren
     (&*ptr).index(row, parent)
 }
 #[no_mangle]
-pub unsafe extern "C" fn test_tree_parent(ptr: *const TestTree, row: c_int, parent: usize) -> QModelIndex {
-    (&*ptr).parent(row, parent)
+pub unsafe extern "C" fn test_tree_parent(ptr: *const TestTree, parent: usize) -> QModelIndex {
+    (&*ptr).parent(parent)
 }
