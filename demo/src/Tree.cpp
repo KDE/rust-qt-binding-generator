@@ -109,6 +109,11 @@ int Tree::columnCount(const QModelIndex &) const
     return 5;
 }
 
+bool Tree::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
+}
+
 int Tree::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid() && parent.column() != 0) {

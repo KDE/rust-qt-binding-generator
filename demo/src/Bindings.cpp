@@ -164,6 +164,11 @@ int Directory::columnCount(const QModelIndex &parent) const
     return (parent.isValid()) ? 0 : 3;
 }
 
+bool Directory::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
+}
+
 int Directory::rowCount(const QModelIndex &parent) const
 {
     return (parent.isValid()) ? 0 : directory_row_count(d);
@@ -301,6 +306,11 @@ extern "C" {
 int TestTree::columnCount(const QModelIndex &) const
 {
     return 3;
+}
+
+bool TestTree::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
 }
 
 int TestTree::rowCount(const QModelIndex &parent) const

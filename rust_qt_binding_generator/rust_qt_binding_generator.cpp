@@ -276,6 +276,7 @@ void writeHeaderItemModel(QTextStream& h, const Object&) {
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &index) const;
+    bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     bool canFetchMore(const QModelIndex &parent) const;
     void fetchMore(const QModelIndex &parent);
@@ -313,6 +314,11 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
 int %1::columnCount(const QModelIndex &parent) const
 {
     return (parent.isValid()) ? 0 : %3;
+}
+
+bool %1::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
 }
 
 int %1::rowCount(const QModelIndex &parent) const
@@ -356,6 +362,11 @@ void %1::fetchMore(const QModelIndex &parent)
 int %1::columnCount(const QModelIndex &) const
 {
     return %3;
+}
+
+bool %1::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
 }
 
 int %1::rowCount(const QModelIndex &parent) const
