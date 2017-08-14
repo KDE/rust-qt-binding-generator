@@ -91,6 +91,7 @@ pub struct RGeneralItemModel<T: Item> {
 
 impl<T: Item> RGeneralItemModel<T> {
     fn reset(&mut self) {
+        self.model.begin_reset_model();
         self.entries.clear();
         let none0 = Entry {
             parent: 0,
@@ -113,6 +114,7 @@ impl<T: Item> RGeneralItemModel<T> {
             data: T::create(&self.path),
         };
         self.entries.push(root);
+        self.model.end_reset_model();
     }
     fn get_index(&self, mut row: c_int, parent: usize) -> Option<usize> {
         if parent == 0 || row < 0 {
