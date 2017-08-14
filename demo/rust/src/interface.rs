@@ -33,6 +33,8 @@ impl TreeEmitter {
 
 pub struct TreeUniformTree {
     qobject: *const TreeQObject,
+    begin_reset_model: fn(*const TreeQObject),
+    end_reset_model: fn(*const TreeQObject),
     begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
     end_insert_rows: fn(*const TreeQObject),
     begin_remove_rows: fn(*const TreeQObject,row: c_int, parent: usize, c_int, c_int),
@@ -40,6 +42,12 @@ pub struct TreeUniformTree {
 }
 
 impl TreeUniformTree {
+    pub fn begin_reset_model(&self) {
+        (self.begin_reset_model)(self.qobject);
+    }
+    pub fn end_reset_model(&self) {
+        (self.end_reset_model)(self.qobject);
+    }
     pub fn begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
         (self.begin_insert_rows)(self.qobject,row, parent, first, last);
     }
@@ -75,6 +83,8 @@ pub trait TreeTrait {
 #[no_mangle]
 pub extern "C" fn tree_new(qobject: *const TreeQObject,
         path_changed: fn(*const TreeQObject),
+        begin_reset_model: fn(*const TreeQObject),
+        end_reset_model: fn(*const TreeQObject),
         begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
@@ -90,6 +100,8 @@ pub extern "C" fn tree_new(qobject: *const TreeQObject,
     };
     let model = TreeUniformTree {
         qobject: qobject,
+        begin_reset_model: begin_reset_model,
+        end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
         end_insert_rows: end_insert_rows,
         begin_remove_rows: begin_remove_rows,

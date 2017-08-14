@@ -483,6 +483,8 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
+        void (*)(%1*),
+        void (*)(%1*),
         void (*)(%1*, int, int),
         void (*)(%1*),
         void (*)(%1*, int, int),
@@ -490,6 +492,8 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
+        void (*)(%1*),
+        void (*)(%1*),
         void (*)(%1*, int, quintptr, int, int),
         void (*)(%1*),
         void (*)(%1*, int, quintptr, int, int),
@@ -525,6 +529,12 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
+        [](%1* o) {
+            emit o->beginResetModel();
+        },
+        [](%1* o) {
+            emit o->endResetModel();
+        },
         [](%1* o, int first, int last) {
             emit o->beginInsertRows(QModelIndex(), first, last);
         },
@@ -541,6 +551,12 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
+        [](%1* o) {
+            emit o->beginResetModel();
+        },
+        [](%1* o) {
+            emit o->endResetModel();
+        },
         [](%1* o, int row, quintptr id, int first, int last) {
             emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
         },
@@ -745,6 +761,8 @@ impl %1Emitter {
 
 pub struct %1%2 {
     qobject: *const %1QObject,
+    begin_reset_model: fn(*const %1QObject),
+    end_reset_model: fn(*const %1QObject),
     begin_insert_rows: fn(*const %1QObject,%3 c_int, c_int),
     end_insert_rows: fn(*const %1QObject),
     begin_remove_rows: fn(*const %1QObject,%3 c_int, c_int),
@@ -752,6 +770,12 @@ pub struct %1%2 {
 }
 
 impl %1%2 {
+    pub fn begin_reset_model(&self) {
+        (self.begin_reset_model)(self.qobject);
+    }
+    pub fn end_reset_model(&self) {
+        (self.end_reset_model)(self.qobject);
+    }
     pub fn begin_insert_rows(&self,%3 first: c_int, last: c_int) {
         (self.begin_insert_rows)(self.qobject,%4 first, last);
     }
@@ -816,6 +840,8 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
             indexDecl = "row: c_int, parent: usize,";
         }
         r << QString(R"(,
+        begin_reset_model: fn(*const %1QObject),
+        end_reset_model: fn(*const %1QObject),
         begin_insert_rows: fn(*const %1QObject,%2
             c_int,
             c_int),
@@ -840,6 +866,8 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
         r << QString(R"(    };
     let model = %1%2 {
         qobject: qobject,
+        begin_reset_model: begin_reset_model,
+        end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
         end_insert_rows: end_insert_rows,
         begin_remove_rows: begin_remove_rows,

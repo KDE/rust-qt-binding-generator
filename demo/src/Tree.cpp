@@ -44,6 +44,8 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 
 extern "C" {
     TreeInterface* tree_new(Tree*, void (*)(Tree*),
+        void (*)(Tree*),
+        void (*)(Tree*),
         void (*)(Tree*, int, quintptr, int, int),
         void (*)(Tree*),
         void (*)(Tree*, int, quintptr, int, int),
@@ -56,6 +58,12 @@ Tree::Tree(QObject *parent):
     QAbstractItemModel(parent),
     d(tree_new(this,
         [](Tree* o) { emit o->pathChanged(); },
+        [](Tree* o) {
+            emit o->beginResetModel();
+        },
+        [](Tree* o) {
+            emit o->endResetModel();
+        },
         [](Tree* o, int row, quintptr id, int first, int last) {
             emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
         },

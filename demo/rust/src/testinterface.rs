@@ -152,6 +152,8 @@ impl DirectoryEmitter {
 
 pub struct DirectoryList {
     qobject: *const DirectoryQObject,
+    begin_reset_model: fn(*const DirectoryQObject),
+    end_reset_model: fn(*const DirectoryQObject),
     begin_insert_rows: fn(*const DirectoryQObject, c_int, c_int),
     end_insert_rows: fn(*const DirectoryQObject),
     begin_remove_rows: fn(*const DirectoryQObject, c_int, c_int),
@@ -159,6 +161,12 @@ pub struct DirectoryList {
 }
 
 impl DirectoryList {
+    pub fn begin_reset_model(&self) {
+        (self.begin_reset_model)(self.qobject);
+    }
+    pub fn end_reset_model(&self) {
+        (self.end_reset_model)(self.qobject);
+    }
     pub fn begin_insert_rows(&self, first: c_int, last: c_int) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
@@ -190,6 +198,8 @@ pub trait DirectoryTrait {
 #[no_mangle]
 pub extern "C" fn directory_new(qobject: *const DirectoryQObject,
         path_changed: fn(*const DirectoryQObject),
+        begin_reset_model: fn(*const DirectoryQObject),
+        end_reset_model: fn(*const DirectoryQObject),
         begin_insert_rows: fn(*const DirectoryQObject,
             c_int,
             c_int),
@@ -205,6 +215,8 @@ pub extern "C" fn directory_new(qobject: *const DirectoryQObject,
     };
     let model = DirectoryList {
         qobject: qobject,
+        begin_reset_model: begin_reset_model,
+        end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
         end_insert_rows: end_insert_rows,
         begin_remove_rows: begin_remove_rows,
@@ -301,6 +313,8 @@ impl TestTreeEmitter {
 
 pub struct TestTreeUniformTree {
     qobject: *const TestTreeQObject,
+    begin_reset_model: fn(*const TestTreeQObject),
+    end_reset_model: fn(*const TestTreeQObject),
     begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
     end_insert_rows: fn(*const TestTreeQObject),
     begin_remove_rows: fn(*const TestTreeQObject,row: c_int, parent: usize, c_int, c_int),
@@ -308,6 +322,12 @@ pub struct TestTreeUniformTree {
 }
 
 impl TestTreeUniformTree {
+    pub fn begin_reset_model(&self) {
+        (self.begin_reset_model)(self.qobject);
+    }
+    pub fn end_reset_model(&self) {
+        (self.end_reset_model)(self.qobject);
+    }
     pub fn begin_insert_rows(&self,row: c_int, parent: usize, first: c_int, last: c_int) {
         (self.begin_insert_rows)(self.qobject,row, parent, first, last);
     }
@@ -341,6 +361,8 @@ pub trait TestTreeTrait {
 #[no_mangle]
 pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
         path_changed: fn(*const TestTreeQObject),
+        begin_reset_model: fn(*const TestTreeQObject),
+        end_reset_model: fn(*const TestTreeQObject),
         begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
             c_int,
             c_int),
@@ -356,6 +378,8 @@ pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
     };
     let model = TestTreeUniformTree {
         qobject: qobject,
+        begin_reset_model: begin_reset_model,
+        end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
         end_insert_rows: end_insert_rows,
         begin_remove_rows: begin_remove_rows,

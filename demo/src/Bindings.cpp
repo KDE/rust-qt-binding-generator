@@ -53,6 +53,8 @@ extern "C" {
     void person_icon_get(PersonInterface*, QByteArray*, qbytearray_set);
     void person_icon_set(void*, qbytearray_t);
     DirectoryInterface* directory_new(Directory*, void (*)(Directory*),
+        void (*)(Directory*),
+        void (*)(Directory*),
         void (*)(Directory*, int, int),
         void (*)(Directory*),
         void (*)(Directory*, int, int),
@@ -61,6 +63,8 @@ extern "C" {
     void directory_path_get(DirectoryInterface*, QString*, qstring_set);
     void directory_path_set(void*, qstring_t);
     TestTreeInterface* test_tree_new(TestTree*, void (*)(TestTree*),
+        void (*)(TestTree*),
+        void (*)(TestTree*),
         void (*)(TestTree*, int, quintptr, int, int),
         void (*)(TestTree*),
         void (*)(TestTree*, int, quintptr, int, int),
@@ -113,6 +117,12 @@ Directory::Directory(QObject *parent):
     QAbstractItemModel(parent),
     d(directory_new(this,
         [](Directory* o) { emit o->pathChanged(); },
+        [](Directory* o) {
+            emit o->beginResetModel();
+        },
+        [](Directory* o) {
+            emit o->endResetModel();
+        },
         [](Directory* o, int first, int last) {
             emit o->beginInsertRows(QModelIndex(), first, last);
         },
@@ -244,6 +254,12 @@ TestTree::TestTree(QObject *parent):
     QAbstractItemModel(parent),
     d(test_tree_new(this,
         [](TestTree* o) { emit o->pathChanged(); },
+        [](TestTree* o) {
+            emit o->beginResetModel();
+        },
+        [](TestTree* o) {
+            emit o->endResetModel();
+        },
         [](TestTree* o, int row, quintptr id, int first, int last) {
             emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
         },
