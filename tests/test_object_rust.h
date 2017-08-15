@@ -5,11 +5,13 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-class PersonInterface;
 class Person : public QObject
 {
     Q_OBJECT
-    PersonInterface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
 public:
     explicit Person(QObject *parent = nullptr);

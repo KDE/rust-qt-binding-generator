@@ -5,11 +5,13 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-class TreeInterface;
 class Tree : public QAbstractItemModel
 {
     Q_OBJECT
-    TreeInterface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged FINAL)
 public:
     explicit Tree(QObject *parent = nullptr);

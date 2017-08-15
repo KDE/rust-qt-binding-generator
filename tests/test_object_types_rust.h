@@ -5,11 +5,13 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-class ObjectInterface;
 class Object : public QObject
 {
     Q_OBJECT
-    ObjectInterface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
     Q_PROPERTY(bool boolean READ boolean WRITE setBoolean NOTIFY booleanChanged FINAL)
     Q_PROPERTY(int integer READ integer WRITE setInteger NOTIFY integerChanged FINAL)
     Q_PROPERTY(uint uinteger READ uinteger WRITE setUinteger NOTIFY uintegerChanged FINAL)

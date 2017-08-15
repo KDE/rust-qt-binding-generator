@@ -43,18 +43,18 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    ObjectInterface* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
-    void object_free(ObjectInterface*);
-    bool object_boolean_get(ObjectInterface*);
-    void object_boolean_set(void*, bool);
-    int object_integer_get(ObjectInterface*);
-    void object_integer_set(void*, int);
-    uint object_uinteger_get(ObjectInterface*);
-    void object_uinteger_set(void*, uint);
-    void object_string_get(ObjectInterface*, QString*, qstring_set);
-    void object_string_set(void*, qstring_t);
-    void object_bytearray_get(ObjectInterface*, QByteArray*, qbytearray_set);
-    void object_bytearray_set(void*, qbytearray_t);
+    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
+    void object_free(Object::Private*);
+    bool object_boolean_get(const Object::Private*);
+    void object_boolean_set(Object::Private*, bool);
+    int object_integer_get(const Object::Private*);
+    void object_integer_set(Object::Private*, int);
+    uint object_uinteger_get(const Object::Private*);
+    void object_uinteger_set(Object::Private*, uint);
+    void object_string_get(const Object::Private*, QString*, qstring_set);
+    void object_string_set(Object::Private*, qstring_t);
+    void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
+    void object_bytearray_set(Object::Private*, qbytearray_t);
 };
 Object::Object(QObject *parent):
     QObject(parent),

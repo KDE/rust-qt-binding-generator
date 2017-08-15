@@ -5,11 +5,13 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-class PersonInterface;
 class Person : public QObject
 {
     Q_OBJECT
-    PersonInterface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
     Q_PROPERTY(int age READ age NOTIFY ageChanged FINAL)
     Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged FINAL)
@@ -36,11 +38,13 @@ private:
     QByteArray m_icon;
 };
 
-class DirectoryInterface;
 class Directory : public QAbstractItemModel
 {
     Q_OBJECT
-    DirectoryInterface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged FINAL)
 public:
     explicit Directory(QObject *parent = nullptr);
@@ -66,11 +70,13 @@ private:
     QString m_path;
 };
 
-class TestTreeInterface;
 class TestTree : public QAbstractItemModel
 {
     Q_OBJECT
-    TestTreeInterface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged FINAL)
 public:
     explicit TestTree(QObject *parent = nullptr);

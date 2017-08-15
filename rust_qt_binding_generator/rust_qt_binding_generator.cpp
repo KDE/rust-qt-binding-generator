@@ -299,18 +299,18 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
     cpp << "extern \"C\" {\n";
     for (auto role: o.allRoles) {
         if (role.type.isComplex()) {
-            cpp << QString("    void %2_data_%3(const %1Interface*%5, %4);\n")
+            cpp << QString("    void %2_data_%3(const %1::Private*%5, %4);\n")
                 .arg(o.name, lcname, snakeCase(role.name), cGetType(role.type), indexDecl);
         } else {
-            cpp << QString("    %4 %2_data_%3(const %1Interface*%5);\n")
+            cpp << QString("    %4 %2_data_%3(const %1::Private*%5);\n")
                 .arg(o.name, lcname, snakeCase(role.name), role.type.cppSetType, indexDecl);
         }
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(
-    int %2_row_count(const %1Interface*);
-    bool %2_can_fetch_more(const %1Interface*);
-    void %2_fetch_more(%1Interface*);
+    int %2_row_count(const %1::Private*);
+    bool %2_can_fetch_more(const %1::Private*);
+    void %2_fetch_more(%1::Private*);
 }
 int %1::columnCount(const QModelIndex &parent) const
 {
@@ -354,11 +354,11 @@ void %1::fetchMore(const QModelIndex &parent)
 )").arg(o.name, lcname, QString::number(o.columnRoles.size()));
     } else {
         cpp << QString(R"(
-    int %2_row_count(const %1Interface*, int, quintptr);
-    bool %2_can_fetch_more(const %1Interface*, int, quintptr);
-    void %2_fetch_more(%1Interface*, int, quintptr);
-    quintptr %2_index(const %1Interface*, int, quintptr);
-    qmodelindex_t %2_parent(const %1Interface*, quintptr);
+    int %2_row_count(const %1::Private*, int, quintptr);
+    bool %2_can_fetch_more(const %1::Private*, int, quintptr);
+    void %2_fetch_more(%1::Private*, int, quintptr);
+    quintptr %2_index(const %1::Private*, int, quintptr);
+    qmodelindex_t %2_parent(const %1::Private*, quintptr);
 }
 int %1::columnCount(const QModelIndex &) const
 {
@@ -458,11 +458,13 @@ QVariant %1::data(const QModelIndex &index, int role) const
 
 void writeHeaderObject(QTextStream& h, const Object& o) {
     h << QString(R"(
-class %1Interface;
 class %1 : public %3
 {
     Q_OBJEC%2
-    %1Interface * const d;
+public:
+    class Private;
+private:
+    Private * const d;
 )").arg(o.name, "T", baseType(o));
     for (auto p: o.properties) {
         h << QString("    Q_PROPERTY(%1 %2 READ %2 %3NOTIFY %2Changed FINAL)")
@@ -495,7 +497,7 @@ class %1 : public %3
 
 void writeObjectCDecl(QTextStream& cpp, const Object& o) {
     const QString lcname(snakeCase(o.name));
-    cpp << QString("    %1Interface* %2_new(%1*").arg(o.name, lcname);
+    cpp << QString("    %1::Private* %2_new(%1*").arg(o.name, lcname);
     for (int i = 0; i < o.properties.size(); ++i) {
         cpp << QString(", void (*)(%1*)").arg(o.name);
     }
@@ -520,20 +522,20 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
         void (*)(%1*))").arg(o.name);
     }
     cpp << ");" << endl;
-    cpp << QString("    void %2_free(%1Interface*);").arg(o.name, lcname)
+    cpp << QString("    void %2_free(%1::Private*);").arg(o.name, lcname)
         << endl;
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
         if (p.type.isComplex()) {
-            cpp << QString("    void %2_get(%1Interface*, %3);")
+            cpp << QString("    void %2_get(const %1::Private*, %3);")
                 .arg(o.name, base, cGetType(p.type)) << endl;
         } else {
-            cpp << QString("    %3 %2_get(%1Interface*);")
+            cpp << QString("    %3 %2_get(const %1::Private*);")
                 .arg(o.name, base, p.type.name) << endl;
         }
         if (p.write) {
-            cpp << QString("    void %1_set(void*, %2);")
-                .arg(base, p.type.cSetType) << endl;
+            cpp << QString("    void %2_set(%1::Private*, %3);")
+                .arg(o.name, base, p.type.cSetType) << endl;
         }
     }
 }

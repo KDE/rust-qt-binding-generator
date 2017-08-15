@@ -43,7 +43,7 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    TreeInterface* tree_new(Tree*, void (*)(Tree*),
+    Tree::Private* tree_new(Tree*, void (*)(Tree*),
         void (*)(const Tree*, int, quintptr),
         void (*)(Tree*),
         void (*)(Tree*),
@@ -51,9 +51,9 @@ extern "C" {
         void (*)(Tree*),
         void (*)(Tree*, int, quintptr, int, int),
         void (*)(Tree*));
-    void tree_free(TreeInterface*);
-    void tree_path_get(TreeInterface*, QString*, qstring_set);
-    void tree_path_set(void*, qstring_t);
+    void tree_free(Tree::Private*);
+    void tree_path_get(const Tree::Private*, QString*, qstring_set);
+    void tree_path_set(Tree::Private*, qstring_t);
 };
 Tree::Tree(QObject *parent):
     QAbstractItemModel(parent),
@@ -100,18 +100,18 @@ void Tree::setPath(const QString& v) {
     tree_path_set(d, v);
 }
 extern "C" {
-    void tree_data_file_name(const TreeInterface*, int, quintptr, QString*, qstring_set);
-    void tree_data_file_icon(const TreeInterface*, int, quintptr, QByteArray*, qbytearray_set);
-    void tree_data_file_path(const TreeInterface*, int, quintptr, QString*, qstring_set);
-    int tree_data_file_permissions(const TreeInterface*, int, quintptr);
-    int tree_data_file_type(const TreeInterface*, int, quintptr);
-    qulonglong tree_data_file_size(const TreeInterface*, int, quintptr);
+    void tree_data_file_name(const Tree::Private*, int, quintptr, QString*, qstring_set);
+    void tree_data_file_icon(const Tree::Private*, int, quintptr, QByteArray*, qbytearray_set);
+    void tree_data_file_path(const Tree::Private*, int, quintptr, QString*, qstring_set);
+    int tree_data_file_permissions(const Tree::Private*, int, quintptr);
+    int tree_data_file_type(const Tree::Private*, int, quintptr);
+    qulonglong tree_data_file_size(const Tree::Private*, int, quintptr);
 
-    int tree_row_count(const TreeInterface*, int, quintptr);
-    bool tree_can_fetch_more(const TreeInterface*, int, quintptr);
-    void tree_fetch_more(TreeInterface*, int, quintptr);
-    quintptr tree_index(const TreeInterface*, int, quintptr);
-    qmodelindex_t tree_parent(const TreeInterface*, quintptr);
+    int tree_row_count(const Tree::Private*, int, quintptr);
+    bool tree_can_fetch_more(const Tree::Private*, int, quintptr);
+    void tree_fetch_more(Tree::Private*, int, quintptr);
+    quintptr tree_index(const Tree::Private*, int, quintptr);
+    qmodelindex_t tree_parent(const Tree::Private*, quintptr);
 }
 int Tree::columnCount(const QModelIndex &) const
 {

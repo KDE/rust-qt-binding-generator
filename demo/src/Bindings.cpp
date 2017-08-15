@@ -43,16 +43,16 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    PersonInterface* person_new(Person*, void (*)(Person*), void (*)(Person*), void (*)(Person*), void (*)(Person*));
-    void person_free(PersonInterface*);
-    void person_user_name_get(PersonInterface*, QString*, qstring_set);
-    void person_user_name_set(void*, qstring_t);
-    int person_age_get(PersonInterface*);
-    bool person_active_get(PersonInterface*);
-    void person_active_set(void*, bool);
-    void person_icon_get(PersonInterface*, QByteArray*, qbytearray_set);
-    void person_icon_set(void*, qbytearray_t);
-    DirectoryInterface* directory_new(Directory*, void (*)(Directory*),
+    Person::Private* person_new(Person*, void (*)(Person*), void (*)(Person*), void (*)(Person*), void (*)(Person*));
+    void person_free(Person::Private*);
+    void person_user_name_get(const Person::Private*, QString*, qstring_set);
+    void person_user_name_set(Person::Private*, qstring_t);
+    int person_age_get(const Person::Private*);
+    bool person_active_get(const Person::Private*);
+    void person_active_set(Person::Private*, bool);
+    void person_icon_get(const Person::Private*, QByteArray*, qbytearray_set);
+    void person_icon_set(Person::Private*, qbytearray_t);
+    Directory::Private* directory_new(Directory*, void (*)(Directory*),
         void (*)(const Directory*),
         void (*)(Directory*),
         void (*)(Directory*),
@@ -60,10 +60,10 @@ extern "C" {
         void (*)(Directory*),
         void (*)(Directory*, int, int),
         void (*)(Directory*));
-    void directory_free(DirectoryInterface*);
-    void directory_path_get(DirectoryInterface*, QString*, qstring_set);
-    void directory_path_set(void*, qstring_t);
-    TestTreeInterface* test_tree_new(TestTree*, void (*)(TestTree*),
+    void directory_free(Directory::Private*);
+    void directory_path_get(const Directory::Private*, QString*, qstring_set);
+    void directory_path_set(Directory::Private*, qstring_t);
+    TestTree::Private* test_tree_new(TestTree*, void (*)(TestTree*),
         void (*)(const TestTree*, int, quintptr),
         void (*)(TestTree*),
         void (*)(TestTree*),
@@ -71,9 +71,9 @@ extern "C" {
         void (*)(TestTree*),
         void (*)(TestTree*, int, quintptr, int, int),
         void (*)(TestTree*));
-    void test_tree_free(TestTreeInterface*);
-    void test_tree_path_get(TestTreeInterface*, QString*, qstring_set);
-    void test_tree_path_set(void*, qstring_t);
+    void test_tree_free(TestTree::Private*);
+    void test_tree_path_get(const TestTree::Private*, QString*, qstring_set);
+    void test_tree_path_set(TestTree::Private*, qstring_t);
 };
 Person::Person(QObject *parent):
     QObject(parent),
@@ -160,14 +160,14 @@ void Directory::setPath(const QString& v) {
     directory_path_set(d, v);
 }
 extern "C" {
-    void directory_data_file_name(const DirectoryInterface*, int, QString*, qstring_set);
-    void directory_data_file_icon(const DirectoryInterface*, int, QByteArray*, qbytearray_set);
-    void directory_data_file_path(const DirectoryInterface*, int, QString*, qstring_set);
-    int directory_data_file_permissions(const DirectoryInterface*, int);
+    void directory_data_file_name(const Directory::Private*, int, QString*, qstring_set);
+    void directory_data_file_icon(const Directory::Private*, int, QByteArray*, qbytearray_set);
+    void directory_data_file_path(const Directory::Private*, int, QString*, qstring_set);
+    int directory_data_file_permissions(const Directory::Private*, int);
 
-    int directory_row_count(const DirectoryInterface*);
-    bool directory_can_fetch_more(const DirectoryInterface*);
-    void directory_fetch_more(DirectoryInterface*);
+    int directory_row_count(const Directory::Private*);
+    bool directory_can_fetch_more(const Directory::Private*);
+    void directory_fetch_more(Directory::Private*);
 }
 int Directory::columnCount(const QModelIndex &parent) const
 {
@@ -310,16 +310,16 @@ void TestTree::setPath(const QString& v) {
     test_tree_path_set(d, v);
 }
 extern "C" {
-    void test_tree_data_file_name(const TestTreeInterface*, int, quintptr, QString*, qstring_set);
-    void test_tree_data_file_icon(const TestTreeInterface*, int, quintptr, QByteArray*, qbytearray_set);
-    void test_tree_data_file_path(const TestTreeInterface*, int, quintptr, QString*, qstring_set);
-    int test_tree_data_file_permissions(const TestTreeInterface*, int, quintptr);
+    void test_tree_data_file_name(const TestTree::Private*, int, quintptr, QString*, qstring_set);
+    void test_tree_data_file_icon(const TestTree::Private*, int, quintptr, QByteArray*, qbytearray_set);
+    void test_tree_data_file_path(const TestTree::Private*, int, quintptr, QString*, qstring_set);
+    int test_tree_data_file_permissions(const TestTree::Private*, int, quintptr);
 
-    int test_tree_row_count(const TestTreeInterface*, int, quintptr);
-    bool test_tree_can_fetch_more(const TestTreeInterface*, int, quintptr);
-    void test_tree_fetch_more(TestTreeInterface*, int, quintptr);
-    quintptr test_tree_index(const TestTreeInterface*, int, quintptr);
-    qmodelindex_t test_tree_parent(const TestTreeInterface*, quintptr);
+    int test_tree_row_count(const TestTree::Private*, int, quintptr);
+    bool test_tree_can_fetch_more(const TestTree::Private*, int, quintptr);
+    void test_tree_fetch_more(TestTree::Private*, int, quintptr);
+    quintptr test_tree_index(const TestTree::Private*, int, quintptr);
+    qmodelindex_t test_tree_parent(const TestTree::Private*, quintptr);
 }
 int TestTree::columnCount(const QModelIndex &) const
 {

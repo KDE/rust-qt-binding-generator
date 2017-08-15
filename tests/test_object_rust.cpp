@@ -43,10 +43,10 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    PersonInterface* person_new(Person*, void (*)(Person*));
-    void person_free(PersonInterface*);
-    void person_user_name_get(PersonInterface*, QString*, qstring_set);
-    void person_user_name_set(void*, qstring_t);
+    Person::Private* person_new(Person*, void (*)(Person*));
+    void person_free(Person::Private*);
+    void person_user_name_get(const Person::Private*, QString*, qstring_set);
+    void person_user_name_set(Person::Private*, qstring_t);
 };
 Person::Person(QObject *parent):
     QObject(parent),
