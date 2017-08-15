@@ -106,6 +106,7 @@ extern "C" {
     int tree_data_file_permissions(const Tree::Private*, int, quintptr);
     int tree_data_file_type(const Tree::Private*, int, quintptr);
     qulonglong tree_data_file_size(const Tree::Private*, int, quintptr);
+    void tree_sort(Tree::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int tree_row_count(const Tree::Private*, int, quintptr);
     bool tree_can_fetch_more(const Tree::Private*, int, quintptr);
@@ -165,6 +166,10 @@ void Tree::fetchMore(const QModelIndex &parent)
     tree_fetch_more(d, parent.row(), parent.internalId());
 }
 
+void Tree::sort(int column, Qt::SortOrder order)
+{
+    tree_sort(d, column, order);
+}
 QVariant Tree::data(const QModelIndex &index, int role) const
 {
     QVariant v;

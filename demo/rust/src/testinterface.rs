@@ -196,6 +196,7 @@ pub trait DirectoryTrait {
     fn row_count(&self) -> c_int;
     fn can_fetch_more(&self) -> bool { false }
     fn fetch_more(&mut self) {}
+    fn sort(&mut self, c_int, SortOrder) {}
     fn file_name(&self, row: c_int) -> String;
     fn file_icon(&self, row: c_int) -> Vec<u8>;
     fn file_path(&self, row: c_int) -> String;
@@ -264,6 +265,10 @@ pub unsafe extern "C" fn directory_can_fetch_more(ptr: *const Directory) -> bool
 #[no_mangle]
 pub unsafe extern "C" fn directory_fetch_more(ptr: *mut Directory) {
     (&mut *ptr).fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn directory_sort(ptr: *mut Directory, column: c_int, order: SortOrder) {
+    (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]
@@ -366,6 +371,7 @@ pub trait TestTreeTrait {
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
     fn can_fetch_more(&self, c_int, usize) -> bool { false }
     fn fetch_more(&mut self, c_int, usize) {}
+    fn sort(&mut self, c_int, SortOrder) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
@@ -436,6 +442,10 @@ pub unsafe extern "C" fn test_tree_can_fetch_more(ptr: *const TestTree, row: c_i
 #[no_mangle]
 pub unsafe extern "C" fn test_tree_fetch_more(ptr: *mut TestTree, row: c_int, parent: usize) {
     (&mut *ptr).fetch_more(row, parent)
+}
+#[no_mangle]
+pub unsafe extern "C" fn test_tree_sort(ptr: *mut TestTree, column: c_int, order: SortOrder) {
+    (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]

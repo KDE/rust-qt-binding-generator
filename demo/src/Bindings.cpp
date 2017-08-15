@@ -164,6 +164,7 @@ extern "C" {
     void directory_data_file_icon(const Directory::Private*, int, QByteArray*, qbytearray_set);
     void directory_data_file_path(const Directory::Private*, int, QString*, qstring_set);
     int directory_data_file_permissions(const Directory::Private*, int);
+    void directory_sort(Directory::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int directory_row_count(const Directory::Private*);
     bool directory_can_fetch_more(const Directory::Private*);
@@ -209,6 +210,10 @@ void Directory::fetchMore(const QModelIndex &parent)
     }
 }
 
+void Directory::sort(int column, Qt::SortOrder order)
+{
+    directory_sort(d, column, order);
+}
 QVariant Directory::data(const QModelIndex &index, int role) const
 {
     QVariant v;
@@ -314,6 +319,7 @@ extern "C" {
     void test_tree_data_file_icon(const TestTree::Private*, int, quintptr, QByteArray*, qbytearray_set);
     void test_tree_data_file_path(const TestTree::Private*, int, quintptr, QString*, qstring_set);
     int test_tree_data_file_permissions(const TestTree::Private*, int, quintptr);
+    void test_tree_sort(TestTree::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int test_tree_row_count(const TestTree::Private*, int, quintptr);
     bool test_tree_can_fetch_more(const TestTree::Private*, int, quintptr);
@@ -373,6 +379,10 @@ void TestTree::fetchMore(const QModelIndex &parent)
     test_tree_fetch_more(d, parent.row(), parent.internalId());
 }
 
+void TestTree::sort(int column, Qt::SortOrder order)
+{
+    test_tree_sort(d, column, order);
+}
 QVariant TestTree::data(const QModelIndex &index, int role) const
 {
     QVariant v;

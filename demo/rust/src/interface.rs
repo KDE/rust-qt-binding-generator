@@ -77,6 +77,7 @@ pub trait TreeTrait {
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
     fn can_fetch_more(&self, c_int, usize) -> bool { false }
     fn fetch_more(&mut self, c_int, usize) {}
+    fn sort(&mut self, c_int, SortOrder) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
@@ -149,6 +150,10 @@ pub unsafe extern "C" fn tree_can_fetch_more(ptr: *const Tree, row: c_int, paren
 #[no_mangle]
 pub unsafe extern "C" fn tree_fetch_more(ptr: *mut Tree, row: c_int, parent: usize) {
     (&mut *ptr).fetch_more(row, parent)
+}
+#[no_mangle]
+pub unsafe extern "C" fn tree_sort(ptr: *mut Tree, column: c_int, order: SortOrder) {
+    (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]

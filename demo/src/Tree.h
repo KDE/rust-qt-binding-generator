@@ -27,6 +27,7 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     bool canFetchMore(const QModelIndex &parent) const override;
     void fetchMore(const QModelIndex &parent) override;
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     QHash<int, QByteArray> roleNames() const override;
 signals:
     // new data is ready to be made available to the model with fetchMore()

@@ -280,6 +280,7 @@ void writeHeaderItemModel(QTextStream& h) {
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     bool canFetchMore(const QModelIndex &parent) const override;
     void fetchMore(const QModelIndex &parent) override;
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     QHash<int, QByteArray> roleNames() const override;
 signals:
     // new data is ready to be made available to the model with fetchMore()
@@ -306,6 +307,7 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
                 .arg(o.name, lcname, snakeCase(role.name), role.type.cppSetType, indexDecl);
         }
     }
+    cpp << QString("    void %2_sort(%1::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);\n").arg(o.name, lcname);
     if (o.type == ObjectType::List) {
         cpp << QString(R"(
     int %2_row_count(const %1::Private*);
@@ -415,13 +417,17 @@ void %1::fetchMore(const QModelIndex &parent)
     }
 
     cpp << QString(R"(
+void %1::sort(int column, Qt::SortOrder order)
+{
+    %2_sort(d, column, order);
+}
 QVariant %1::data(const QModelIndex &index, int role) const
 {
     QVariant v;
     QString s;
     QByteArray b;
     switch (index.column()) {
-)").arg(o.name);
+)").arg(o.name, lcname);
 
     for (int col = 0; col < o.columnRoles.size(); ++col) {
         auto roles = o.columnRoles[col];
@@ -880,6 +886,7 @@ pub trait %1Trait {
         }
         r << QString(R"(    fn can_fetch_more(&self%1) -> bool { false }
     fn fetch_more(&mut self%1) {}
+    fn sort(&mut self, c_int, SortOrder) {}
 )").arg(index);
         if (o.type == ObjectType::List) {
             index = ", row: c_int";
@@ -1022,6 +1029,10 @@ pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1%3) -> bool {
 #[no_mangle]
 pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1%3) {
     (&mut *ptr).fetch_more(%4)
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: c_int, order: SortOrder) {
+    (&mut *ptr).sort(column, order)
 }
 )").arg(o.name, lcname, indexDecl, index);
         if (o.type == ObjectType::UniformTree) {
@@ -1266,6 +1277,12 @@ impl QModelIndex {
             internal_id: id,
         }
     }
+}
+
+#[repr(C)]
+pub enum SortOrder {
+    Ascending = 0,
+    Descending = 1
 }
 
 )");
