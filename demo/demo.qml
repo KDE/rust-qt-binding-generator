@@ -32,7 +32,7 @@ ApplicationWindow {
         }
 */
         TreeView {
-            model: fsModel
+            model: sortedFsModel
             selection: selectionModel
             //selectionMode: SelectionMode.SingleSelection
             TableViewColumn {
@@ -45,30 +45,6 @@ ApplicationWindow {
                 role: "fileSize"
                 width: 100
             }
-/*
-            itemDelegate: Item {
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: "blue"//styleData.textColor
-                    elide: styleData.elideMode
-                    text: styleData.index.column + " " + styleData.value
-                }
-            }
-            onClicked: {
-                selectionModel.setCurrentIndex(index, ItemSelectionModel.Select)
-            }
-            rowDelegate: Item {
-                anchors.fill: parent
-                Text {
-                    text: styleData.row
-                }
-            }
-*/
         }
-/*
-        TableView {
-            model: fsModel
-        }
-*/
     }
 }

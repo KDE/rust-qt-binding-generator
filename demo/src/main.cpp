@@ -8,9 +8,11 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QTreeView>
+#include <QHeaderView>
 #include <QQmlApplicationEngine>
 #include <QtQml/qqml.h>
 #include <QQmlContext>
+#include <QSortFilterProxyModel>
 
 int main (int argc, char *argv[])
 {
@@ -54,12 +56,23 @@ int main (int argc, char *argv[])
 
     Tree model;
     model.setPath("/");
+    QSortFilterProxyModel sortedModel;
+    sortedModel.setSourceModel(&model);
+    sortedModel.setDynamicSortFilter(true);
     QTreeView view;
     view.setUniformRowHeights(true);
-    view.setModel(&model);
+    view.setSortingEnabled(true);
+    view.setModel(&sortedModel);
+    auto root = sortedModel.index(0, 0);
+    view.expand(root);
+    view.sortByColumn(0, Qt::AscendingOrder);
     view.show();
+    view.header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("fsModel", &model);
+    engine.rootContext()->setContextProperty("sortedFsModel", &sortedModel);
     engine.load(QUrl(QStringLiteral("qrc:///demo.qml")));
+
     return app.exec();
 }
