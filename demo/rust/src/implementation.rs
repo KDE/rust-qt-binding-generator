@@ -10,17 +10,18 @@ use std::thread;
 
 pub struct DirEntry {
     name: OsString,
-    file_type: c_int,
-    file_size: u64,
+    metadata: Option<Metadata>,
 }
 
 impl Item for DirEntry {
     fn create(name: &str) -> DirEntry {
         DirEntry {
             name: OsString::from(name),
-            file_type: 0,
-            file_size: 0
+            metadata: metadata(name).ok(),
         }
+    }
+    fn can_fetch_more(&self) -> bool {
+        self.metadata.as_ref().map_or(false, |m|m.is_dir())
     }
     fn file_name(&self) -> String {
         self.name.to_string_lossy().to_string()
@@ -29,24 +30,21 @@ impl Item for DirEntry {
         42
     }
     fn file_type(&self) -> c_int {
-        self.file_type
+        0
     }
     fn file_size(&self) -> u64 {
-        self.file_size
+        self.metadata.as_ref().map_or(0, |m|m.len())
     }
     fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
-        let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         let mut v = Vec::new();
+        let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         if let Ok(it) = read_dir(path) {
             for i in it.filter_map(|v| v.ok()) {
-                if let Ok(metadata) = i.metadata() {
-                    let de = DirEntry {
-                        name: i.file_name(),
-                        file_type: 0,
-                        file_size: metadata.len()
-                    };
-                    v.push(de);
-                }
+                let de = DirEntry {
+                    name: i.file_name(),
+                    metadata: i.metadata().ok()
+                };
+                v.push(de);
             }
         }
         v.sort_by(|a, b| a.name.cmp(&b.name));
@@ -58,14 +56,14 @@ impl Default for DirEntry {
     fn default() -> DirEntry {
         DirEntry {
             name: OsString::new(),
-            file_type: 0,
-            file_size: 0
+            metadata: None,
         }
     }
 }
 
 pub trait Item: Default {
     fn create(name: &str) -> Self;
+    fn can_fetch_more(&self) -> bool;
     fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
     fn file_name(&self) -> String;
     fn file_permissions(&self) -> c_int;
@@ -196,7 +194,8 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> {
     }
     fn can_fetch_more(&self, row: c_int, parent: usize) -> bool {
         self.get(row, parent)
-            .map(|entry| entry.children.is_none())
+            .map(|entry| entry.children.is_none()
+                 && entry.data.can_fetch_more())
             .unwrap_or(false)
     }
     fn fetch_more(&mut self, row: c_int, parent: usize) {
