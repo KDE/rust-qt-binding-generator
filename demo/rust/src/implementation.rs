@@ -96,7 +96,7 @@ impl<T: Item> RGeneralItemModel<T> {
         let none0 = Entry {
             parent: 0,
             row: 0,
-            children: Some(vec![2]),
+            children: Some(vec![1]),
             data: T::default(),
         };
         self.entries.push(none0);
@@ -116,20 +116,17 @@ impl<T: Item> RGeneralItemModel<T> {
         self.entries.push(root);
         self.model.end_reset_model();
     }
-    fn get_index(&self, mut row: c_int, parent: usize) -> Option<usize> {
+    fn get_index(&self, row: c_int, parent: usize) -> Option<usize> {
+        // for an invalid index return the root
         if parent == 0 || row < 0 {
             return Some(1);
         }
-        let r = self.entries.get(parent)
+        self.entries.get(parent)
             .and_then(|i| i.children.as_ref())
             .and_then(|i| i.get(row as usize))
-            .map(|i| *i);
-            if r.is_some() {
-println!("get_index {} {} {}", row, parent, r.unwrap());}
-        r
+            .map(|i| *i)
     }
     fn get(&self, row: c_int, parent: usize) -> Option<&Entry<T>> {
-println!("get entries {}", self.entries.len());
         self.get_index(row, parent)
             .map(|i| &self.entries[i])
     }
@@ -152,7 +149,6 @@ println!("get entries {}", self.entries.len());
                 new_entries.push(e);
             }
             if new_entries.len() > 0 {
-println!("begin_insert_rows {} {} {} {}", entry.row, id, 0, new_entries.len() - 1);
                 self.model.begin_insert_rows(row, parent, 0,
                     (new_entries.len() - 1) as c_int);
             }
@@ -199,12 +195,9 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> {
         }
     }
     fn can_fetch_more(&self, row: c_int, parent: usize) -> bool {
-println!("entries {}", self.entries.len());
-        let r = self.get(row, parent)
+        self.get(row, parent)
             .map(|entry| entry.children.is_none())
-            .unwrap_or(false);
-        println!("can_fetch_more {} {} {}", row, parent, r);
-        r
+            .unwrap_or(false)
     }
     fn fetch_more(&mut self, row: c_int, parent: usize) {
         if !self.can_fetch_more(row, parent) {
@@ -217,35 +210,31 @@ println!("entries {}", self.entries.len());
             .and_then(|entry| entry.children.as_ref())
             .map(|i| i.len())
             .unwrap_or(0) as c_int;
-        println!("rrow_count {} {} {}", row, parent, r);
+        // model does lazy loading, signal that data may be available
+        if r == 0 && self.can_fetch_more(row, parent) {
+            self.emit.new_data_ready(row, parent);
+        }
         r
     }
     fn index(&self, row: c_int, parent: usize) -> usize {
-        let r = self.get_index(row, parent)
-            .unwrap_or(0);
-println!("index {} {} {}", row, parent, r);
-        r
+        self.get_index(row, parent).unwrap_or(0)
     }
     fn parent(&self, index: usize) -> QModelIndex {
-        if index > 1 {
-            if let Some(entry) = self.entries.get(index) {
-println!("parent {} {} {}", index, entry.row, entry.parent);
-                return QModelIndex::create(entry.row as i32, entry.parent);
-            }
+        if index >= self.entries.len() {
+            return QModelIndex::invalid();
         }
-println!("parent {} invalid", index);
-        QModelIndex::invalid()
+        let entry = &self.entries[index];
+        QModelIndex::create(entry.row as i32, entry.parent)
     }
     fn file_name(&self, row: c_int, parent: usize) -> String {
-        println!("file_name {} {}", row, parent);
         self.get(row, parent)
             .map(|entry| entry.data.file_name())
             .unwrap_or_default()
     }
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
-        //let i = self.get(row,parent);
-        //self.entries[i].data.file_permissions()
-        0
+        self.get(row, parent)
+            .map(|entry| entry.data.file_permissions())
+            .unwrap_or_default()
     }
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8> {
         Vec::new()
@@ -254,7 +243,9 @@ println!("parent {} invalid", index);
         String::new()
     }
     fn file_type(&self, row: c_int, parent: usize) -> c_int {
-        0
+        self.get(row, parent)
+            .map(|entry| entry.data.file_type())
+            .unwrap_or_default()
     }
     fn file_size(&self, row: c_int, parent: usize) -> c_ulonglong {
         self.get(row, parent)

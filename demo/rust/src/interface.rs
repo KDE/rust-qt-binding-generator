@@ -15,6 +15,7 @@ pub struct TreeQObject {}
 pub struct TreeEmitter {
     qobject: Arc<Mutex<*const TreeQObject>>,
     path_changed: fn(*const TreeQObject),
+    new_data_ready: fn(*const TreeQObject, row: c_int, parent: usize),
 }
 
 unsafe impl Send for TreeEmitter {}
@@ -27,6 +28,12 @@ impl TreeEmitter {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
             (self.path_changed)(ptr);
+        }
+    }
+    pub fn new_data_ready(&self, row: c_int, parent: usize) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr, row, parent);
         }
     }
 }
@@ -68,8 +75,8 @@ pub trait TreeTrait {
     fn get_path(&self) -> String;
     fn set_path(&mut self, value: String);
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
-    fn can_fetch_more(&self, row: c_int, parent: usize) -> bool { false }
-    fn fetch_more(&mut self, row: c_int, parent: usize) {}
+    fn can_fetch_more(&self, c_int, usize) -> bool { false }
+    fn fetch_more(&mut self, c_int, usize) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
@@ -83,6 +90,7 @@ pub trait TreeTrait {
 #[no_mangle]
 pub extern "C" fn tree_new(qobject: *const TreeQObject,
         path_changed: fn(*const TreeQObject),
+        new_data_ready: fn(*const TreeQObject, row: c_int, parent: usize),
         begin_reset_model: fn(*const TreeQObject),
         end_reset_model: fn(*const TreeQObject),
         begin_insert_rows: fn(*const TreeQObject,row: c_int, parent: usize,
@@ -97,6 +105,7 @@ pub extern "C" fn tree_new(qobject: *const TreeQObject,
     let emit = TreeEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
         path_changed: path_changed,
+        new_data_ready: new_data_ready,
     };
     let model = TreeUniformTree {
         qobject: qobject,

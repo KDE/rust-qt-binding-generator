@@ -11,10 +11,6 @@
 #include <QQmlApplicationEngine>
 #include <QtQml/qqml.h>
 #include <QQmlContext>
-#include <QDebug>
-#include <QFileSystemModel>
-#include <QStandardItemModel>
-//#include "modeltest.h"
 
 int main (int argc, char *argv[])
 {
@@ -56,64 +52,14 @@ int main (int argc, char *argv[])
     qmlRegisterType<Directory>("rust", 1, 0, "Directory");
     qmlRegisterType<Person>("rust", 1, 0, "Person");
 
-    QFileSystemModel m;
-    m.setRootPath("/");
-    qDebug() << m.rowCount();
-    QModelIndex i = m.index(0,0);
-    qDebug() << i;
-    qDebug() << m.parent(i);
-    qDebug() << m.data(i);
-    qDebug() << m.rowCount(i) << m.canFetchMore(i);
-    qDebug() << "---";
-/*
-    QStandardItemModel sm;
-    sm.appendRow(new QStandardItem());
-*/
-
     Tree model;
-    //ModelTest test(&model);
     model.setPath("/");
-    qDebug() << "rowCount()" << model.rowCount();
-    i = model.index(0,0);
-    qDebug() << i;
-    qDebug() << model.parent(i);
-    qDebug() << model.data(i);
-    qDebug() << "rowCount(i)" << model.rowCount(i) << model.canFetchMore(i);
-    model.fetchMore(i);
-    model.fetchMore(model.index(1,0,i));
-    model.fetchMore(model.index(2,0,i));
-    model.fetchMore(model.index(3,0,i));
-    model.fetchMore(model.index(4,0,i));
-    model.fetchMore(model.index(5,0,i));
-    qDebug() << "rowCount(i)" << model.rowCount(i) << model.canFetchMore(i);
-    i = model.index(0, 0, i);
-    model.fetchMore(model.index(1,0,i));
-    model.fetchMore(model.index(2,0,i));
-    model.fetchMore(model.index(3,0,i));
-    model.fetchMore(model.index(4,0,i));
-    model.fetchMore(model.index(5,0,i));
-    qDebug() << "rowCount(i)" << model.data(i) << model.rowCount(i) << model.canFetchMore(i);
-    model.fetchMore(i);
-    model.fetchMore(model.index(1,0,i));
-    model.fetchMore(model.index(2,0,i));
-    model.fetchMore(model.index(3,0,i));
-    model.fetchMore(model.index(4,0,i));
-    model.fetchMore(model.index(5,0,i));
-    qDebug() << "rowCount(i)" << model.data(i) << model.rowCount(i) << model.canFetchMore(i);
-    i = model.index(0, 0, i);
-    qDebug() << "rowCount(i)" << model.data(i) << model.rowCount(i) << model.canFetchMore(i);
-    model.fetchMore(i);
-    //qDebug() << "rowCount(i)" << model.data(i) << model.rowCount(i) << model.canFetchMore(i);
-
     QTreeView view;
     view.setUniformRowHeights(true);
     view.setModel(&model);
-    view.expandAll();
     view.show();
-
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("fsModel", &model);
     engine.load(QUrl(QStringLiteral("qrc:///demo.qml")));
-    /**/
     return app.exec();
 }

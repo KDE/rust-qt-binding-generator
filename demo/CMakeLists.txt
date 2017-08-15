@@ -33,7 +33,7 @@ add_custom_command(
 )
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
 
-set(Demo_SRCS src/main.cpp src/Tree.cpp src/Bindings.cpp #src/modeltest.cpp
+set(Demo_SRCS src/main.cpp src/Tree.cpp src/Bindings.cpp
     resource_file.qrc)
 
 add_executable(Demo ${Demo_SRCS})

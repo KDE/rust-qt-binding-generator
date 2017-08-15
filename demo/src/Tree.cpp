@@ -44,6 +44,7 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 
 extern "C" {
     TreeInterface* tree_new(Tree*, void (*)(Tree*),
+        void (*)(const Tree*, int, quintptr),
         void (*)(Tree*),
         void (*)(Tree*),
         void (*)(Tree*, int, quintptr, int, int),
@@ -58,25 +59,33 @@ Tree::Tree(QObject *parent):
     QAbstractItemModel(parent),
     d(tree_new(this,
         [](Tree* o) { emit o->pathChanged(); },
-        [](Tree* o) {
-            emit o->beginResetModel();
+        [](const Tree* o, int row, quintptr id) {
+            emit o->newDataReady(o->createIndex(row, 0, id));
         },
         [](Tree* o) {
-            emit o->endResetModel();
+            o->beginResetModel();
+        },
+        [](Tree* o) {
+            o->endResetModel();
         },
         [](Tree* o, int row, quintptr id, int first, int last) {
-            emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
+            o->beginInsertRows(o->createIndex(row, 0, id), first, last);
         },
         [](Tree* o) {
-            emit o->endInsertRows();
+            o->endInsertRows();
         },
         [](Tree* o, int row, quintptr id, int first, int last) {
-            emit o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
+            o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
         },
         [](Tree* o) {
-            emit o->endRemoveRows();
+            o->endRemoveRows();
         }
-)) {}
+    )) {
+    connect(this, &Tree::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
+
 
 Tree::~Tree() {
     tree_free(d);
@@ -127,8 +136,11 @@ QModelIndex Tree::index(int row, int column, const QModelIndex &parent) const
     if (row < 0 || column < 0 || column >= 5) {
         return QModelIndex();
     }
+    if (parent.isValid() && parent.column() != 0) {
+        return QModelIndex();
+    }
     const quintptr id = tree_index(d, parent.row(), parent.internalId());
-    return id ?createIndex(row, column, id) :QModelIndex();
+    return createIndex(row, column, id);
 }
 
 QModelIndex Tree::parent(const QModelIndex &index) const
@@ -142,6 +154,9 @@ QModelIndex Tree::parent(const QModelIndex &index) const
 
 bool Tree::canFetchMore(const QModelIndex &parent) const
 {
+    if (parent.isValid() && parent.column() != 0) {
+        return false;
+    }
     return tree_can_fetch_more(d, parent.row(), parent.internalId());
 }
 

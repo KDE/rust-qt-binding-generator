@@ -53,6 +53,7 @@ extern "C" {
     void person_icon_get(PersonInterface*, QByteArray*, qbytearray_set);
     void person_icon_set(void*, qbytearray_t);
     DirectoryInterface* directory_new(Directory*, void (*)(Directory*),
+        void (*)(const Directory*),
         void (*)(Directory*),
         void (*)(Directory*),
         void (*)(Directory*, int, int),
@@ -63,6 +64,7 @@ extern "C" {
     void directory_path_get(DirectoryInterface*, QString*, qstring_set);
     void directory_path_set(void*, qstring_t);
     TestTreeInterface* test_tree_new(TestTree*, void (*)(TestTree*),
+        void (*)(const TestTree*, int, quintptr),
         void (*)(TestTree*),
         void (*)(TestTree*),
         void (*)(TestTree*, int, quintptr, int, int),
@@ -117,25 +119,33 @@ Directory::Directory(QObject *parent):
     QAbstractItemModel(parent),
     d(directory_new(this,
         [](Directory* o) { emit o->pathChanged(); },
-        [](Directory* o) {
-            emit o->beginResetModel();
+        [](const Directory* o) {
+            emit o->newDataReady(QModelIndex());
         },
         [](Directory* o) {
-            emit o->endResetModel();
+            o->beginResetModel();
+        },
+        [](Directory* o) {
+            o->endResetModel();
         },
         [](Directory* o, int first, int last) {
-            emit o->beginInsertRows(QModelIndex(), first, last);
+            o->beginInsertRows(QModelIndex(), first, last);
         },
         [](Directory* o) {
-            emit o->endInsertRows();
+            o->endInsertRows();
         },
         [](Directory* o, int first, int last) {
-            emit o->beginRemoveRows(QModelIndex(), first, last);
+            o->beginRemoveRows(QModelIndex(), first, last);
         },
         [](Directory* o) {
-            emit o->endRemoveRows();
+            o->endRemoveRows();
         }
-)) {}
+    )) {
+    connect(this, &Directory::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
+
 
 Directory::~Directory() {
     directory_free(d);
@@ -259,25 +269,33 @@ TestTree::TestTree(QObject *parent):
     QAbstractItemModel(parent),
     d(test_tree_new(this,
         [](TestTree* o) { emit o->pathChanged(); },
-        [](TestTree* o) {
-            emit o->beginResetModel();
+        [](const TestTree* o, int row, quintptr id) {
+            emit o->newDataReady(o->createIndex(row, 0, id));
         },
         [](TestTree* o) {
-            emit o->endResetModel();
+            o->beginResetModel();
+        },
+        [](TestTree* o) {
+            o->endResetModel();
         },
         [](TestTree* o, int row, quintptr id, int first, int last) {
-            emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
+            o->beginInsertRows(o->createIndex(row, 0, id), first, last);
         },
         [](TestTree* o) {
-            emit o->endInsertRows();
+            o->endInsertRows();
         },
         [](TestTree* o, int row, quintptr id, int first, int last) {
-            emit o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
+            o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
         },
         [](TestTree* o) {
-            emit o->endRemoveRows();
+            o->endRemoveRows();
         }
-)) {}
+    )) {
+    connect(this, &TestTree::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
+
 
 TestTree::~TestTree() {
     test_tree_free(d);
@@ -326,8 +344,11 @@ QModelIndex TestTree::index(int row, int column, const QModelIndex &parent) cons
     if (row < 0 || column < 0 || column >= 3) {
         return QModelIndex();
     }
+    if (parent.isValid() && parent.column() != 0) {
+        return QModelIndex();
+    }
     const quintptr id = test_tree_index(d, parent.row(), parent.internalId());
-    return id ?createIndex(row, column, id) :QModelIndex();
+    return createIndex(row, column, id);
 }
 
 QModelIndex TestTree::parent(const QModelIndex &index) const
@@ -341,6 +362,9 @@ QModelIndex TestTree::parent(const QModelIndex &index) const
 
 bool TestTree::canFetchMore(const QModelIndex &parent) const
 {
+    if (parent.isValid() && parent.column() != 0) {
+        return false;
+    }
     return test_tree_can_fetch_more(d, parent.row(), parent.internalId());
 }
 

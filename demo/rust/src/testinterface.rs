@@ -134,6 +134,7 @@ pub struct DirectoryQObject {}
 pub struct DirectoryEmitter {
     qobject: Arc<Mutex<*const DirectoryQObject>>,
     path_changed: fn(*const DirectoryQObject),
+    new_data_ready: fn(*const DirectoryQObject),
 }
 
 unsafe impl Send for DirectoryEmitter {}
@@ -146,6 +147,12 @@ impl DirectoryEmitter {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
             (self.path_changed)(ptr);
+        }
+    }
+    pub fn new_data_ready(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr);
         }
     }
 }
@@ -198,6 +205,7 @@ pub trait DirectoryTrait {
 #[no_mangle]
 pub extern "C" fn directory_new(qobject: *const DirectoryQObject,
         path_changed: fn(*const DirectoryQObject),
+        new_data_ready: fn(*const DirectoryQObject),
         begin_reset_model: fn(*const DirectoryQObject),
         end_reset_model: fn(*const DirectoryQObject),
         begin_insert_rows: fn(*const DirectoryQObject,
@@ -212,6 +220,7 @@ pub extern "C" fn directory_new(qobject: *const DirectoryQObject,
     let emit = DirectoryEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
         path_changed: path_changed,
+        new_data_ready: new_data_ready,
     };
     let model = DirectoryList {
         qobject: qobject,
@@ -295,6 +304,7 @@ pub struct TestTreeQObject {}
 pub struct TestTreeEmitter {
     qobject: Arc<Mutex<*const TestTreeQObject>>,
     path_changed: fn(*const TestTreeQObject),
+    new_data_ready: fn(*const TestTreeQObject, row: c_int, parent: usize),
 }
 
 unsafe impl Send for TestTreeEmitter {}
@@ -307,6 +317,12 @@ impl TestTreeEmitter {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
             (self.path_changed)(ptr);
+        }
+    }
+    pub fn new_data_ready(&self, row: c_int, parent: usize) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr, row, parent);
         }
     }
 }
@@ -348,8 +364,8 @@ pub trait TestTreeTrait {
     fn get_path(&self) -> String;
     fn set_path(&mut self, value: String);
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
-    fn can_fetch_more(&self, row: c_int, parent: usize) -> bool { false }
-    fn fetch_more(&mut self, row: c_int, parent: usize) {}
+    fn can_fetch_more(&self, c_int, usize) -> bool { false }
+    fn fetch_more(&mut self, c_int, usize) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> String;
@@ -361,6 +377,7 @@ pub trait TestTreeTrait {
 #[no_mangle]
 pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
         path_changed: fn(*const TestTreeQObject),
+        new_data_ready: fn(*const TestTreeQObject, row: c_int, parent: usize),
         begin_reset_model: fn(*const TestTreeQObject),
         end_reset_model: fn(*const TestTreeQObject),
         begin_insert_rows: fn(*const TestTreeQObject,row: c_int, parent: usize,
@@ -375,6 +392,7 @@ pub extern "C" fn test_tree_new(qobject: *const TestTreeQObject,
     let emit = TestTreeEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
         path_changed: path_changed,
+        new_data_ready: new_data_ready,
     };
     let model = TestTreeUniformTree {
         qobject: qobject,

@@ -270,19 +270,20 @@ QString baseType(const Object& o) {
     return "QObject";
 }
 
-void writeHeaderItemModel(QTextStream& h, const Object&) {
+void writeHeaderItemModel(QTextStream& h) {
     h << QString(R"(
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex parent(const QModelIndex &index) const;
-    bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    bool canFetchMore(const QModelIndex &parent) const;
-    void fetchMore(const QModelIndex &parent);
-    QHash<int, QByteArray> roleNames() const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
+    bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    bool canFetchMore(const QModelIndex &parent) const override;
+    void fetchMore(const QModelIndex &parent) override;
+    QHash<int, QByteArray> roleNames() const override;
 signals:
-    void newDataReady();
+    // new data is ready to be made available to the model with fetchMore()
+    void newDataReady(const QModelIndex &parent) const;
 )");
 }
 
@@ -382,8 +383,11 @@ QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
     if (row < 0 || column < 0 || column >= %3) {
         return QModelIndex();
     }
+    if (parent.isValid() && parent.column() != 0) {
+        return QModelIndex();
+    }
     const quintptr id = %2_index(d, parent.row(), parent.internalId());
-    return id ?createIndex(row, column, id) :QModelIndex();
+    return createIndex(row, column, id);
 }
 
 QModelIndex %1::parent(const QModelIndex &index) const
@@ -397,6 +401,9 @@ QModelIndex %1::parent(const QModelIndex &index) const
 
 bool %1::canFetchMore(const QModelIndex &parent) const
 {
+    if (parent.isValid() && parent.column() != 0) {
+        return false;
+    }
     return %2_can_fetch_more(d, parent.row(), parent.internalId());
 }
 
@@ -473,7 +480,7 @@ class %1 : public %3
         }
     }
     if (baseType(o) == "QAbstractItemModel") {
-        writeHeaderItemModel(h, o);
+        writeHeaderItemModel(h);
     }
     h << "signals:" << endl;
     for (auto p: o.properties) {
@@ -494,6 +501,7 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
+        void (*)(const %1*),
         void (*)(%1*),
         void (*)(%1*),
         void (*)(%1*, int, int),
@@ -503,6 +511,7 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
+        void (*)(const %1*, int, quintptr),
         void (*)(%1*),
         void (*)(%1*),
         void (*)(%1*, int, quintptr, int, int),
@@ -540,49 +549,68 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
-        [](%1* o) {
-            emit o->beginResetModel();
+        [](const %1* o) {
+            emit o->newDataReady(QModelIndex());
         },
         [](%1* o) {
-            emit o->endResetModel();
+            o->beginResetModel();
+        },
+        [](%1* o) {
+            o->endResetModel();
         },
         [](%1* o, int first, int last) {
-            emit o->beginInsertRows(QModelIndex(), first, last);
+            o->beginInsertRows(QModelIndex(), first, last);
         },
         [](%1* o) {
-            emit o->endInsertRows();
+            o->endInsertRows();
         },
         [](%1* o, int first, int last) {
-            emit o->beginRemoveRows(QModelIndex(), first, last);
+            o->beginRemoveRows(QModelIndex(), first, last);
         },
         [](%1* o) {
-            emit o->endRemoveRows();
+            o->endRemoveRows();
         }
+    )) {
+    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
 )").arg(o.name);
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
-        [](%1* o) {
-            emit o->beginResetModel();
+        [](const %1* o, int row, quintptr id) {
+            emit o->newDataReady(o->createIndex(row, 0, id));
         },
         [](%1* o) {
-            emit o->endResetModel();
+            o->beginResetModel();
+        },
+        [](%1* o) {
+            o->endResetModel();
         },
         [](%1* o, int row, quintptr id, int first, int last) {
-            emit o->beginInsertRows(o->createIndex(row, 0, id), first, last);
+            o->beginInsertRows(o->createIndex(row, 0, id), first, last);
         },
         [](%1* o) {
-            emit o->endInsertRows();
+            o->endInsertRows();
         },
         [](%1* o, int row, quintptr id, int first, int last) {
-            emit o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
+            o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
         },
         [](%1* o) {
-            emit o->endRemoveRows();
+            o->endRemoveRows();
         }
+    )) {
+    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
 )").arg(o.name);
     }
-    cpp << QString(R"()) {}
+    if (o.type == ObjectType::Object) {
+        cpp << QString(")) {}");
+    }
+    cpp << QString(R"(
 
 %1::~%1() {
     %2_free(d);
@@ -739,6 +767,13 @@ pub struct %1Emitter {
         r << QString("    %2_changed: fn(*const %1QObject),\n")
             .arg(o.name, snakeCase(p.name));
     }
+    if (o.type == ObjectType::List) {
+        r << QString("    new_data_ready: fn(*const %1QObject),\n")
+            .arg(o.name);
+    } else if (o.type == ObjectType::UniformTree) {
+        r << QString("    new_data_ready: fn(*const %1QObject, row: c_int, parent: usize),\n")
+            .arg(o.name);
+    }
     r << QString(R"(}
 
 unsafe impl Send for %1Emitter {}
@@ -756,6 +791,23 @@ impl %1Emitter {
         }
     }
 )").arg(snakeCase(p.name));
+    }
+    if (o.type == ObjectType::List) {
+        r << R"(    pub fn new_data_ready(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr);
+        }
+    }
+)";
+    } else if (o.type == ObjectType::UniformTree) {
+        r << R"(    pub fn new_data_ready(&self, row: c_int, parent: usize) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr, row, parent);
+        }
+    }
+)";
     }
 
     QString modelStruct = "";
@@ -820,12 +872,17 @@ pub trait %1Trait {
         if (o.type == ObjectType::UniformTree) {
             index = ", row: c_int, parent: usize";
         }
-        r << QString(R"(    fn row_count(&self%1) -> c_int;
-    fn can_fetch_more(&self%1) -> bool { false }
+        r << QString("    fn row_count(&self%1) -> c_int;\n").arg(index);
+        if (o.type == ObjectType::UniformTree) {
+            index = ", c_int, usize";
+        }
+        r << QString(R"(    fn can_fetch_more(&self%1) -> bool { false }
     fn fetch_more(&mut self%1) {}
 )").arg(index);
         if (o.type == ObjectType::List) {
             index = ", row: c_int";
+        } else if (o.type == ObjectType::UniformTree) {
+            index = ", row: c_int, parent: usize";
         }
         for (auto role: o.allRoles) {
             r << QString("    fn %1(&self%3) -> %2;\n")
@@ -844,6 +901,13 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
     for (const Property& p: o.properties) {
         r << QString(",\n        %2_changed: fn(*const %1QObject)")
             .arg(o.name, snakeCase(p.name));
+    }
+    if (o.type == ObjectType::List) {
+        r << QString(",\n        new_data_ready: fn(*const %1QObject)")
+            .arg(o.name);
+    } else if (o.type == ObjectType::UniformTree) {
+        r << QString(",\n        new_data_ready: fn(*const %1QObject, row: c_int, parent: usize)")
+            .arg(o.name);
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl;
@@ -869,6 +933,9 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
 )").arg(o.name);
     for (const Property& p: o.properties) {
         r << QString("        %1_changed: %1_changed,\n").arg(snakeCase(p.name));
+    }
+    if (o.type != ObjectType::Object) {
+        r << QString("        new_data_ready: new_data_ready,\n");
     }
     QString model = "";
     if (o.type != ObjectType::Object) {
