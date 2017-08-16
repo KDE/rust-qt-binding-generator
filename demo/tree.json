@@ -42,7 +42,7 @@
             }, {
                 "name": "fileSize",
                 "value": "Qt::UserRole + 5",
-                "type": "ulonglong"
+                "type": "uint64_t"
             }],
             [{
                 "name": "filePath",
@@ -62,7 +62,7 @@
             [{
                 "name": "fileSize",
                 "value": "Qt::DisplayRole",
-                "type": "ulonglong"
+                "type": "uint64_t"
             }]
         ]
     }]

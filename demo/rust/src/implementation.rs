@@ -1,7 +1,7 @@
 use interface::*;
 use types::*;
 use std::fs::*;
-use libc::{c_int, c_ulonglong};
+use libc::{c_int};
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::ffi::OsString;
@@ -246,7 +246,7 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> {
             .map(|entry| entry.data.file_type())
             .unwrap_or_default()
     }
-    fn file_size(&self, row: c_int, parent: usize) -> c_ulonglong {
+    fn file_size(&self, row: c_int, parent: usize) -> u64 {
         self.get(row, parent)
             .map(|entry| entry.data.file_size())
             .unwrap_or_default()

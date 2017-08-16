@@ -5,37 +5,27 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-class Person : public QObject
+class Fibonacci : public QObject
 {
     Q_OBJECT
 public:
     class Private;
 private:
     Private * const d;
-    Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
-    Q_PROPERTY(int age READ age NOTIFY ageChanged FINAL)
-    Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged FINAL)
-    Q_PROPERTY(QByteArray icon READ icon WRITE setIcon NOTIFY iconChanged FINAL)
+    Q_PROPERTY(uint input READ input WRITE setInput NOTIFY inputChanged FINAL)
+    Q_PROPERTY(uint64_t result READ result NOTIFY resultChanged FINAL)
 public:
-    explicit Person(QObject *parent = nullptr);
-    ~Person();
-    QString userName() const;
-    void setUserName(const QString& v);
-    int age() const;
-    bool active() const;
-    void setActive(bool v);
-    QByteArray icon() const;
-    void setIcon(const QByteArray& v);
+    explicit Fibonacci(QObject *parent = nullptr);
+    ~Fibonacci();
+    uint input() const;
+    void setInput(uint v);
+    uint64_t result() const;
 signals:
-    void userNameChanged();
-    void ageChanged();
-    void activeChanged();
-    void iconChanged();
+    void inputChanged();
+    void resultChanged();
 private:
-    QString m_userName;
-    int m_age;
-    bool m_active;
-    QByteArray m_icon;
+    uint m_input;
+    uint64_t m_result;
 };
 
 class Directory : public QAbstractItemModel

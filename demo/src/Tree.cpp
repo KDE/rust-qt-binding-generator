@@ -105,7 +105,7 @@ extern "C" {
     void tree_data_file_path(const Tree::Private*, int, quintptr, QString*, qstring_set);
     int tree_data_file_permissions(const Tree::Private*, int, quintptr);
     int tree_data_file_type(const Tree::Private*, int, quintptr);
-    qulonglong tree_data_file_size(const Tree::Private*, int, quintptr);
+    uint64_t tree_data_file_size(const Tree::Private*, int, quintptr);
     void tree_sort(Tree::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int tree_row_count(const Tree::Private*, int, quintptr);
@@ -201,7 +201,7 @@ QVariant Tree::data(const QModelIndex &index, int role) const
             v.setValue<int>(tree_data_file_type(d, index.row(), index.internalId()));
             break;
         case Qt::UserRole + 5:
-            v.setValue<qulonglong>(tree_data_file_size(d, index.row(), index.internalId()));
+            v.setValue<uint64_t>(tree_data_file_size(d, index.row(), index.internalId()));
             break;
         }
         break;
@@ -230,7 +230,7 @@ QVariant Tree::data(const QModelIndex &index, int role) const
     case 4:
         switch (role) {
         case Qt::DisplayRole:
-            v.setValue<qulonglong>(tree_data_file_size(d, index.row(), index.internalId()));
+            v.setValue<uint64_t>(tree_data_file_size(d, index.row(), index.internalId()));
             break;
         }
         break;

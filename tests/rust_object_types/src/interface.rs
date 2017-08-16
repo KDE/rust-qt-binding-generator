@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_ulonglong, c_void};
+use libc::{c_int, c_uint, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -17,6 +17,7 @@ pub struct ObjectEmitter {
     boolean_changed: fn(*const ObjectQObject),
     integer_changed: fn(*const ObjectQObject),
     uinteger_changed: fn(*const ObjectQObject),
+    u64_changed: fn(*const ObjectQObject),
     string_changed: fn(*const ObjectQObject),
     bytearray_changed: fn(*const ObjectQObject),
 }
@@ -45,6 +46,12 @@ impl ObjectEmitter {
             (self.uinteger_changed)(ptr);
         }
     }
+    pub fn u64_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.u64_changed)(ptr);
+        }
+    }
     pub fn string_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
@@ -68,6 +75,8 @@ pub trait ObjectTrait {
     fn set_integer(&mut self, value: c_int);
     fn get_uinteger(&self) -> c_uint;
     fn set_uinteger(&mut self, value: c_uint);
+    fn get_u64(&self) -> u64;
+    fn set_u64(&mut self, value: u64);
     fn get_string(&self) -> String;
     fn set_string(&mut self, value: String);
     fn get_bytearray(&self) -> Vec<u8>;
@@ -79,6 +88,7 @@ pub extern "C" fn object_new(qobject: *const ObjectQObject,
         boolean_changed: fn(*const ObjectQObject),
         integer_changed: fn(*const ObjectQObject),
         uinteger_changed: fn(*const ObjectQObject),
+        u64_changed: fn(*const ObjectQObject),
         string_changed: fn(*const ObjectQObject),
         bytearray_changed: fn(*const ObjectQObject))
         -> *mut Object {
@@ -87,6 +97,7 @@ pub extern "C" fn object_new(qobject: *const ObjectQObject,
         boolean_changed: boolean_changed,
         integer_changed: integer_changed,
         uinteger_changed: uinteger_changed,
+        u64_changed: u64_changed,
         string_changed: string_changed,
         bytearray_changed: bytearray_changed,
     };
@@ -127,6 +138,16 @@ pub unsafe extern "C" fn object_uinteger_get(ptr: *const Object) -> c_uint {
 #[no_mangle]
 pub unsafe extern "C" fn object_uinteger_set(ptr: *mut Object, v: c_uint) {
     (&mut *ptr).set_uinteger(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_u64_get(ptr: *const Object) -> u64 {
+    (&*ptr).get_u64()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_u64_set(ptr: *mut Object, v: u64) {
+    (&mut *ptr).set_u64(v);
 }
 
 #[no_mangle]

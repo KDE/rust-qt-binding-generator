@@ -6,50 +6,32 @@ use libc::c_uint;
 use types::*;
 use testinterface::*;
 
-pub struct Person {
-    emit: PersonEmitter,
-    user_name: String,
-    age: c_int,
-    active: bool,
-    icon: Vec<u8>,
+pub struct Fibonacci {
+    emit: FibonacciEmitter,
+    input: c_uint,
+    result: u64,
 }
 
-impl PersonTrait for Person {
-    fn create(emit: PersonEmitter) -> Person {
-        Person {
+impl FibonacciTrait for Fibonacci {
+    fn create(emit: FibonacciEmitter) -> Fibonacci {
+        Fibonacci {
             emit: emit,
-            user_name: String::new(),
-            age: 0,
-            active: true,
-            icon: Vec::new(),
+            input: 0,
+            result: 0,
         }
     }
-    fn emit(&self) -> &PersonEmitter {
+    fn emit(&self) -> &FibonacciEmitter {
         &self.emit
     }
-    fn get_user_name(&self) -> String {
-        self.user_name.clone()
+    fn get_input(&self) -> c_uint {
+        self.input
     }
-    fn set_user_name(&mut self, value: String) {
-        self.user_name = value;
-        self.emit.user_name_changed();
+    fn set_input(&mut self, value: c_uint) {
+        self.input = value;
+        self.emit.input_changed();
     }
-    fn get_age(&self) -> c_int {
-        self.age
-    }
-    fn get_active(&self) -> bool {
-        self.active
-    }
-    fn set_active(&mut self, value: bool) {
-        self.active = value;
-        self.emit.active_changed();
-    }
-    fn get_icon(&self) -> Vec<u8> {
-        self.icon.clone()
-    }
-    fn set_icon(&mut self, value: Vec<u8>) {
-        self.icon = value;
-        self.emit.icon_changed();
+    fn get_result(&self) -> u64 {
+        self.result
     }
 }
 pub struct Directory {

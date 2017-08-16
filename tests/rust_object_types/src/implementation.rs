@@ -11,6 +11,7 @@ pub struct Object {
     boolean: bool,
     integer: c_int,
     uinteger: c_uint,
+    u64: u64,
     string: String,
     bytearray: Vec<u8>,
 }
@@ -22,6 +23,7 @@ impl ObjectTrait for Object {
             boolean: true,
             integer: 0,
             uinteger: 0,
+            u64: 0,
             string: String::new(),
             bytearray: Vec::new(),
         }
@@ -49,6 +51,13 @@ impl ObjectTrait for Object {
     fn set_uinteger(&mut self, value: c_uint) {
         self.uinteger = value;
         self.emit.uinteger_changed();
+    }
+    fn get_u64(&self) -> u64 {
+        self.u64
+    }
+    fn set_u64(&mut self, value: u64) {
+        self.u64 = value;
+        self.emit.u64_changed();
     }
     fn get_string(&self) -> String {
         self.string.clone()

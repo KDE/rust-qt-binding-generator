@@ -52,7 +52,7 @@ int main (int argc, char *argv[])
     aboutData.processCommandLine(&parser);
 
     qmlRegisterType<Directory>("rust", 1, 0, "Directory");
-    qmlRegisterType<Person>("rust", 1, 0, "Person");
+    qmlRegisterType<Fibonacci>("rust", 1, 0, "Fibonacci");
 
     Tree model;
     model.setPath("/");

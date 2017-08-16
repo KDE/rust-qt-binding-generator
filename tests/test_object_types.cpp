@@ -13,6 +13,7 @@ private slots:
     void testBool();
     void testInteger();
     void testUinteger();
+    void testUint64();
     void testString();
     void testByteArray();
 };
@@ -63,6 +64,18 @@ void TestRustObjectTypes::testUinteger()
         &Object::uinteger, &Object::uintegerChanged);
     testSetter(std::numeric_limits<uint>::max(), &Object::setUinteger,
         &Object::uinteger, &Object::uintegerChanged);
+}
+
+void TestRustObjectTypes::testUint64()
+{
+    testSetter(0, &Object::setU64,
+        &Object::u64, &Object::u64Changed);
+    testSetter(1, &Object::setU64,
+        &Object::u64, &Object::u64Changed);
+    testSetter(std::numeric_limits<uint>::min(), &Object::setU64,
+        &Object::u64, &Object::u64Changed);
+    testSetter(std::numeric_limits<uint>::max(), &Object::setU64,
+        &Object::u64, &Object::u64Changed);
 }
 
 void TestRustObjectTypes::testString()

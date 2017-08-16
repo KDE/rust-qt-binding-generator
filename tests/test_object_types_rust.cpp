@@ -43,7 +43,7 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
+    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(Object::Private*);
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
@@ -51,6 +51,8 @@ extern "C" {
     void object_integer_set(Object::Private*, int);
     uint object_uinteger_get(const Object::Private*);
     void object_uinteger_set(Object::Private*, uint);
+    uint64_t object_u64_get(const Object::Private*);
+    void object_u64_set(Object::Private*, uint64_t);
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, qstring_t);
     void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
@@ -62,6 +64,7 @@ Object::Object(QObject *parent):
         [](Object* o) { emit o->booleanChanged(); },
         [](Object* o) { emit o->integerChanged(); },
         [](Object* o) { emit o->uintegerChanged(); },
+        [](Object* o) { emit o->u64Changed(); },
         [](Object* o) { emit o->stringChanged(); },
         [](Object* o) { emit o->bytearrayChanged(); })) {}
 
@@ -88,6 +91,13 @@ uint Object::uinteger() const
 }
 void Object::setUinteger(uint v) {
     object_uinteger_set(d, v);
+}
+uint64_t Object::u64() const
+{
+    return object_u64_get(d);
+}
+void Object::setU64(uint64_t v) {
+    object_u64_set(d, v);
 }
 QString Object::string() const
 {

@@ -2,130 +2,82 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_ulonglong, c_void};
+use libc::{c_int, c_uint, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
 
 use testimplementation::*;
 
-pub struct PersonQObject {}
+pub struct FibonacciQObject {}
 
 #[derive (Clone)]
-pub struct PersonEmitter {
-    qobject: Arc<Mutex<*const PersonQObject>>,
-    user_name_changed: fn(*const PersonQObject),
-    age_changed: fn(*const PersonQObject),
-    active_changed: fn(*const PersonQObject),
-    icon_changed: fn(*const PersonQObject),
+pub struct FibonacciEmitter {
+    qobject: Arc<Mutex<*const FibonacciQObject>>,
+    input_changed: fn(*const FibonacciQObject),
+    result_changed: fn(*const FibonacciQObject),
 }
 
-unsafe impl Send for PersonEmitter {}
+unsafe impl Send for FibonacciEmitter {}
 
-impl PersonEmitter {
+impl FibonacciEmitter {
     fn clear(&self) {
         *self.qobject.lock().unwrap() = null();
     }
-    pub fn user_name_changed(&self) {
+    pub fn input_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.user_name_changed)(ptr);
+            (self.input_changed)(ptr);
         }
     }
-    pub fn age_changed(&self) {
+    pub fn result_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.age_changed)(ptr);
-        }
-    }
-    pub fn active_changed(&self) {
-        let ptr = *self.qobject.lock().unwrap();
-        if !ptr.is_null() {
-            (self.active_changed)(ptr);
-        }
-    }
-    pub fn icon_changed(&self) {
-        let ptr = *self.qobject.lock().unwrap();
-        if !ptr.is_null() {
-            (self.icon_changed)(ptr);
+            (self.result_changed)(ptr);
         }
     }
 }
 
-pub trait PersonTrait {
-    fn create(emit: PersonEmitter) -> Self;
-    fn emit(&self) -> &PersonEmitter;
-    fn get_user_name(&self) -> String;
-    fn set_user_name(&mut self, value: String);
-    fn get_age(&self) -> c_int;
-    fn get_active(&self) -> bool;
-    fn set_active(&mut self, value: bool);
-    fn get_icon(&self) -> Vec<u8>;
-    fn set_icon(&mut self, value: Vec<u8>);
+pub trait FibonacciTrait {
+    fn create(emit: FibonacciEmitter) -> Self;
+    fn emit(&self) -> &FibonacciEmitter;
+    fn get_input(&self) -> c_uint;
+    fn set_input(&mut self, value: c_uint);
+    fn get_result(&self) -> u64;
 }
 
 #[no_mangle]
-pub extern "C" fn person_new(qobject: *const PersonQObject,
-        user_name_changed: fn(*const PersonQObject),
-        age_changed: fn(*const PersonQObject),
-        active_changed: fn(*const PersonQObject),
-        icon_changed: fn(*const PersonQObject))
-        -> *mut Person {
-    let emit = PersonEmitter {
+pub extern "C" fn fibonacci_new(qobject: *const FibonacciQObject,
+        input_changed: fn(*const FibonacciQObject),
+        result_changed: fn(*const FibonacciQObject))
+        -> *mut Fibonacci {
+    let emit = FibonacciEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
-        user_name_changed: user_name_changed,
-        age_changed: age_changed,
-        active_changed: active_changed,
-        icon_changed: icon_changed,
+        input_changed: input_changed,
+        result_changed: result_changed,
     };
-    let d = Person::create(emit);
+    let d = Fibonacci::create(emit);
     Box::into_raw(Box::new(d))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_free(ptr: *mut Person) {
+pub unsafe extern "C" fn fibonacci_free(ptr: *mut Fibonacci) {
     Box::from_raw(ptr).emit().clear();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_user_name_get(ptr: *const Person,
-        p: *mut c_void,
-        set: fn(*mut c_void, QString)) {
-    let data = (&*ptr).get_user_name();
-    set(p, QString::from(&data));
+pub unsafe extern "C" fn fibonacci_input_get(ptr: *const Fibonacci) -> c_uint {
+    (&*ptr).get_input()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_user_name_set(ptr: *mut Person, v: QStringIn) {
-    (&mut *ptr).set_user_name(v.convert());
+pub unsafe extern "C" fn fibonacci_input_set(ptr: *mut Fibonacci, v: c_uint) {
+    (&mut *ptr).set_input(v);
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_age_get(ptr: *const Person) -> c_int {
-    (&*ptr).get_age()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn person_active_get(ptr: *const Person) -> bool {
-    (&*ptr).get_active()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn person_active_set(ptr: *mut Person, v: bool) {
-    (&mut *ptr).set_active(v);
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn person_icon_get(ptr: *const Person,
-        p: *mut c_void,
-        set: fn(*mut c_void, QByteArray)) {
-    let data = (&*ptr).get_icon();
-    set(p, QByteArray::from(&data));
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn person_icon_set(ptr: *mut Person, v: QByteArray) {
-    (&mut *ptr).set_icon(v.convert());
+pub unsafe extern "C" fn fibonacci_result_get(ptr: *const Fibonacci) -> u64 {
+    (&*ptr).get_result()
 }
 
 pub struct DirectoryQObject {}

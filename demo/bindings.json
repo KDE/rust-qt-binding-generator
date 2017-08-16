@@ -7,23 +7,15 @@
         "typesModule": "types"
     },
     "objects": [{
-        "name": "Person",
+        "name": "Fibonacci",
         "type": "Object",
         "properties": [{
-            "name": "userName",
-            "type": "QString",
+            "name": "input",
+            "type": "uint",
             "write": true
         }, {
-            "name": "age",
-            "type": "int"
-        }, {
-            "name": "active",
-            "type": "bool",
-            "write": true
-        }, {
-            "name": "icon",
-            "type": "QByteArray",
-            "write": true
+            "name": "result",
+            "type": "uint64_t"
         }]
     }, {
         "name": "Directory",

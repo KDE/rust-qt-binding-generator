@@ -43,15 +43,11 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    Person::Private* person_new(Person*, void (*)(Person*), void (*)(Person*), void (*)(Person*), void (*)(Person*));
-    void person_free(Person::Private*);
-    void person_user_name_get(const Person::Private*, QString*, qstring_set);
-    void person_user_name_set(Person::Private*, qstring_t);
-    int person_age_get(const Person::Private*);
-    bool person_active_get(const Person::Private*);
-    void person_active_set(Person::Private*, bool);
-    void person_icon_get(const Person::Private*, QByteArray*, qbytearray_set);
-    void person_icon_set(Person::Private*, qbytearray_t);
+    Fibonacci::Private* fibonacci_new(Fibonacci*, void (*)(Fibonacci*), void (*)(Fibonacci*));
+    void fibonacci_free(Fibonacci::Private*);
+    uint fibonacci_input_get(const Fibonacci::Private*);
+    void fibonacci_input_set(Fibonacci::Private*, uint);
+    uint64_t fibonacci_result_get(const Fibonacci::Private*);
     Directory::Private* directory_new(Directory*, void (*)(Directory*),
         void (*)(const Directory*),
         void (*)(Directory*),
@@ -75,45 +71,25 @@ extern "C" {
     void test_tree_path_get(const TestTree::Private*, QString*, qstring_set);
     void test_tree_path_set(TestTree::Private*, qstring_t);
 };
-Person::Person(QObject *parent):
+Fibonacci::Fibonacci(QObject *parent):
     QObject(parent),
-    d(person_new(this,
-        [](Person* o) { emit o->userNameChanged(); },
-        [](Person* o) { emit o->ageChanged(); },
-        [](Person* o) { emit o->activeChanged(); },
-        [](Person* o) { emit o->iconChanged(); })) {}
+    d(fibonacci_new(this,
+        [](Fibonacci* o) { emit o->inputChanged(); },
+        [](Fibonacci* o) { emit o->resultChanged(); })) {}
 
-Person::~Person() {
-    person_free(d);
+Fibonacci::~Fibonacci() {
+    fibonacci_free(d);
 }
-QString Person::userName() const
+uint Fibonacci::input() const
 {
-    QString v;
-    person_user_name_get(d, &v, set_qstring);
-    return v;
+    return fibonacci_input_get(d);
 }
-void Person::setUserName(const QString& v) {
-    person_user_name_set(d, v);
+void Fibonacci::setInput(uint v) {
+    fibonacci_input_set(d, v);
 }
-int Person::age() const
+uint64_t Fibonacci::result() const
 {
-    return person_age_get(d);
-}
-bool Person::active() const
-{
-    return person_active_get(d);
-}
-void Person::setActive(bool v) {
-    person_active_set(d, v);
-}
-QByteArray Person::icon() const
-{
-    QByteArray v;
-    person_icon_get(d, &v, set_qbytearray);
-    return v;
-}
-void Person::setIcon(const QByteArray& v) {
-    person_icon_set(d, v);
+    return fibonacci_result_get(d);
 }
 Directory::Directory(QObject *parent):
     QAbstractItemModel(parent),

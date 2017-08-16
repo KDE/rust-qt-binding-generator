@@ -22,6 +22,10 @@
             "type": "uint",
             "write": true
         }, {
+            "name": "u64",
+            "type": "uint64_t",
+            "write": true
+        }, {
             "name": "string",
             "type": "QString",
             "write": true

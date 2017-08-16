@@ -67,10 +67,10 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::ULongLong, {
-                     .name = "ulonglong",
-                     .cppSetType = "qulonglong",
-                     .cSetType = "qulonglong",
-                     .rustType = "c_ulonglong",
+                     .name = "uint64_t",
+                     .cppSetType = "uint64_t",
+                     .cSetType = "uint64_t",
+                     .rustType = "u64",
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::QString, {
@@ -132,7 +132,10 @@ BindingTypeProperties parseBindingType(const QString& value) {
         }
     }
     err << QCoreApplication::translate("main",
-        "'%1' is not a supported type.\n").arg(value);
+        "'%1' is not a supported type. Try one of\n").arg(value);
+    for (auto i: bindingTypeProperties()) {
+        err << "     " << i.name << "\n";
+    }
     err.flush();
     exit(1);
 }
@@ -1089,7 +1092,7 @@ void writeRustInterface(const Configuration& conf) {
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_ulonglong, c_void};
+use libc::{c_int, c_uint, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
