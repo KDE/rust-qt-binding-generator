@@ -7,11 +7,16 @@ use std::path::PathBuf;
 use std::ffi::OsString;
 use std::default::Default;
 use std::thread;
+use std::sync::{Arc, Mutex};
+use std::marker::Sync;
+use std::collections::HashMap;
 
 pub struct DirEntry {
     name: OsString,
     metadata: Option<Metadata>,
 }
+
+type Incoming<T> = Arc<Mutex<HashMap<usize, Vec<T>>>>;
 
 impl Item for DirEntry {
     fn create(name: &str) -> DirEntry {
@@ -35,20 +40,28 @@ impl Item for DirEntry {
     fn file_size(&self) -> u64 {
         self.metadata.as_ref().map_or(0, |m|m.len())
     }
-    fn retrieve(&self, parents: Vec<&DirEntry>) -> Vec<DirEntry> {
+    fn retrieve(id: usize, parents: Vec<&DirEntry>,
+            q: Incoming<Self>,
+            emit: TreeEmitter) {
         let mut v = Vec::new();
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
-        if let Ok(it) = read_dir(path) {
-            for i in it.filter_map(|v| v.ok()) {
-                let de = DirEntry {
-                    name: i.file_name(),
-                    metadata: i.metadata().ok()
-                };
-                v.push(de);
+        thread::spawn(move || {
+            if let Ok(it) = read_dir(path) {
+                for i in it.filter_map(|v| v.ok()) {
+                    let de = DirEntry {
+                        name: i.file_name(),
+                        metadata: i.metadata().ok()
+                    };
+                    v.push(de);
+                }
             }
-        }
-        v.sort_by(|a, b| a.name.cmp(&b.name));
-        v
+            v.sort_by(|a, b| a.name.cmp(&b.name));
+            let mut map = q.lock().unwrap();
+            if !map.contains_key(&id) {
+                map.insert(id, v);
+                emit.new_data_ready(0, 0);
+            }
+        });
     }
 }
 
@@ -64,7 +77,7 @@ impl Default for DirEntry {
 pub trait Item: Default {
     fn create(name: &str) -> Self;
     fn can_fetch_more(&self) -> bool;
-    fn retrieve(&self, parents: Vec<&Self>) -> Vec<Self>;
+    fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: TreeEmitter);
     fn file_name(&self) -> String;
     fn file_permissions(&self) -> c_int;
     fn file_type(&self) -> c_int;
@@ -85,9 +98,10 @@ pub struct RGeneralItemModel<T: Item> {
     model: TreeUniformTree,
     entries: Vec<Entry<T>>,
     path: String,
+    incoming: Incoming<T>,
 }
 
-impl<T: Item> RGeneralItemModel<T> {
+impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
     fn reset(&mut self) {
         self.model.begin_reset_model();
         self.entries.clear();
@@ -130,31 +144,40 @@ impl<T: Item> RGeneralItemModel<T> {
     }
     fn retrieve(&mut self, row: c_int, parent: usize) {
         let id = self.get_index(row, parent).unwrap();
-        let mut new_entries = Vec::new();
-        let mut children = Vec::new();
-        {
-            let parents = self.get_parents(id);
-            let entry = &self.entries[id];
-            let entries = entry.data.retrieve(parents);
-            for (r, d) in entries.into_iter().enumerate() {
-                let e = Entry {
-                    parent: id,
-                    row: r,
-                    children: None,
-                    data: d,
-                };
-                children.push(self.entries.len() + r);
-                new_entries.push(e);
+        let parents = self.get_parents(id);
+        let incoming = self.incoming.clone();
+        T::retrieve(id, parents, incoming, self.emit.clone());
+    }
+    fn process_incoming(&mut self) {
+        let mut incoming = self.incoming.lock().unwrap();
+        for (id, entries) in incoming.drain() {
+            if self.entries[id].children.is_some() {
+                continue;
             }
+            let mut new_entries = Vec::new();
+            let mut children = Vec::new();
+            {
+                for (r, d) in entries.into_iter().enumerate() {
+                    let e = Entry {
+                        parent: id,
+                        row: r,
+                        children: None,
+                        data: d,
+                    };
+                    children.push(self.entries.len() + r);
+                    new_entries.push(e);
+                }
+                if new_entries.len() > 0 {
+                    let ref e = self.entries[id];
+                    self.model.begin_insert_rows(e.row as c_int, e.parent, 0,
+                        (new_entries.len() - 1) as c_int);
+                }
+            }
+            self.entries[id].children = Some(children);
             if new_entries.len() > 0 {
-                self.model.begin_insert_rows(row, parent, 0,
-                    (new_entries.len() - 1) as c_int);
+                self.entries.append(&mut new_entries);
+                self.model.end_insert_rows();
             }
-        }
-        self.entries[id].children = Some(children);
-        if new_entries.len() > 0 {
-            self.entries.append(&mut new_entries);
-            self.model.end_insert_rows();
         }
     }
     fn get_parents(&self, id: usize) -> Vec<&T> {
@@ -168,13 +191,14 @@ impl<T: Item> RGeneralItemModel<T> {
     }
 }
 
-impl<T: Item> TreeTrait for RGeneralItemModel<T> {
+impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
     fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self {
         let mut tree = RGeneralItemModel {
             emit: emit,
             model: model,
             entries: Vec::new(),
-            path: String::new()
+            path: String::new(),
+            incoming: Arc::new(Mutex::new(HashMap::new()))
         };
         tree.reset();
         tree
@@ -199,6 +223,7 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> {
             .unwrap_or(false)
     }
     fn fetch_more(&mut self, row: c_int, parent: usize) {
+        self.process_incoming();
         if !self.can_fetch_more(row, parent) {
             return;
         }
