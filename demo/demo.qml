@@ -1,49 +1,70 @@
 import QtQuick 2.6
 import QtQml.Models 2.2
 import QtQuick.Controls 1.5
+import QtQuick.Layouts 1.3
 import rust 1.0
 
 ApplicationWindow {
-    width: 300
+    width: 500
     height: 480
     visible: true
-    Directory {
-        id: directory
-        path: "/"
-    }
     ItemSelectionModel {
         id: selectionModel
         model: fsModel
     }
-    SplitView {
+    FibonacciList {
+        id: fibonacciList
+    }
+    TabView {
         anchors.fill: parent
-        orientation: Qt.Horizontal
-/*
-        TreeView {
-            model: directory
-            TableViewColumn {
-                title: "Name"
-                role: "fileName"
-            }
-            TableViewColumn {
-                title: "Permissions"
-                role: "filePermissions"
+        Tab {
+            title: "object"
+            RowLayout {
+                TextField {
+                    id: fibonacciInput
+                    placeholderText: "Your number"
+                    validator: IntValidator {bottom: 0; top: 100;}
+                }
+                Text {
+                    text: "The Fibonacci number: " + fibonacci.result
+                }
+                Fibonacci {
+                    id: fibonacci
+                    input: parseInt(fibonacciInput.text, 10)
+                }
             }
         }
-*/
-        TreeView {
-            model: sortedFsModel
-            selection: selectionModel
-            //selectionMode: SelectionMode.SingleSelection
-            TableViewColumn {
-                title: "Name"
-                role: "fileName"
-                width: 200
+        Tab {
+            title: "list"
+            TableView {
+                id: listView
+                model: fibonacciList
+                TableViewColumn {
+                    role: "display"
+                    title: "Row"
+                    width: 100
+                }
             }
-            TableViewColumn {
-                title: "Size"
-                role: "fileSize"
-                width: 100
+        }
+        Tab {
+            title: "tree"
+            TreeView {
+                id: treeView
+                model: sortedFsModel
+                selection: selectionModel
+                TableViewColumn {
+                    title: "Name"
+                    role: "fileName"
+                }
+                TableViewColumn {
+                    title: "Size"
+                    role: "fileSize"
+                }
+                Component.onCompleted: {
+                    var root = treeView.rootIndex;
+                    var first = sortedFsModel.index(0, 0, root);
+                    treeView.expand(first);
+                }
             }
         }
     }

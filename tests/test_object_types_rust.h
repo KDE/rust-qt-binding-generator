@@ -13,9 +13,9 @@ public:
 private:
     Private * const d;
     Q_PROPERTY(bool boolean READ boolean WRITE setBoolean NOTIFY booleanChanged FINAL)
-    Q_PROPERTY(int integer READ integer WRITE setInteger NOTIFY integerChanged FINAL)
-    Q_PROPERTY(uint uinteger READ uinteger WRITE setUinteger NOTIFY uintegerChanged FINAL)
-    Q_PROPERTY(uint64_t u64 READ u64 WRITE setU64 NOTIFY u64Changed FINAL)
+    Q_PROPERTY(qint32 integer READ integer WRITE setInteger NOTIFY integerChanged FINAL)
+    Q_PROPERTY(quint32 uinteger READ uinteger WRITE setUinteger NOTIFY uintegerChanged FINAL)
+    Q_PROPERTY(quint64 u64 READ u64 WRITE setU64 NOTIFY u64Changed FINAL)
     Q_PROPERTY(QString string READ string WRITE setString NOTIFY stringChanged FINAL)
     Q_PROPERTY(QByteArray bytearray READ bytearray WRITE setBytearray NOTIFY bytearrayChanged FINAL)
 public:
@@ -23,12 +23,12 @@ public:
     ~Object();
     bool boolean() const;
     void setBoolean(bool v);
-    int integer() const;
-    void setInteger(int v);
-    uint uinteger() const;
+    qint32 integer() const;
+    void setInteger(qint32 v);
+    quint32 uinteger() const;
     void setUinteger(uint v);
-    uint64_t u64() const;
-    void setU64(uint64_t v);
+    quint64 u64() const;
+    void setU64(quint64 v);
     QString string() const;
     void setString(const QString& v);
     QByteArray bytearray() const;
@@ -42,9 +42,9 @@ signals:
     void bytearrayChanged();
 private:
     bool m_boolean;
-    int m_integer;
-    uint m_uinteger;
-    uint64_t m_u64;
+    qint32 m_integer;
+    quint32 m_uinteger;
+    quint64 m_u64;
     QString m_string;
     QByteArray m_bytearray;
 };

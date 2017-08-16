@@ -53,23 +53,23 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
         QMap<BindingType, BindingTypeProperties> f;
         f.insert(BindingType::Bool, simpleType("bool", "true"));
         f.insert(BindingType::Int, {
-                     .name = "int",
-                     .cppSetType = "int",
-                     .cSetType = "int",
-                     .rustType = "c_int",
+                     .name = "qint32",
+                     .cppSetType = "qint32",
+                     .cSetType = "qint32",
+                     .rustType = "i32",
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::UInt, {
-                     .name = "uint",
+                     .name = "quint32",
                      .cppSetType = "uint",
                      .cSetType = "uint",
-                     .rustType = "c_uint",
+                     .rustType = "u32",
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::ULongLong, {
-                     .name = "uint64_t",
-                     .cppSetType = "uint64_t",
-                     .cSetType = "uint64_t",
+                     .name = "quint64",
+                     .cppSetType = "quint64",
+                     .cSetType = "quint64",
                      .rustType = "u64",
                      .rustTypeInit = "0"
                  });

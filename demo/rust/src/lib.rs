@@ -1,7 +1,9 @@
 extern crate libc;
 
+mod fibonacci_types;
+mod fibonacci_implementation;
+pub mod fibonacci_interface;
+
 mod types;
-pub mod testinterface;
-mod testimplementation;
-pub mod interface;
 mod implementation;
+pub mod interface;

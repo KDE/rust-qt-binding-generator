@@ -1,5 +1,5 @@
 #include "Tree.h"
-#include "Bindings.h"
+#include "Fibonacci.h"
 #include <cstdlib>
 
 #include <KAboutData>
@@ -51,8 +51,9 @@ int main (int argc, char *argv[])
     parser.process(app);
     aboutData.processCommandLine(&parser);
 
-    qmlRegisterType<Directory>("rust", 1, 0, "Directory");
+    qmlRegisterType<QSortFilterProxyModel>("org.qtproject.example", 1, 0, "SortFilterProxyModel");
     qmlRegisterType<Fibonacci>("rust", 1, 0, "Fibonacci");
+    qmlRegisterType<FibonacciList>("rust", 1, 0, "FibonacciList");
 
     Tree model;
     model.setPath("/");
@@ -66,7 +67,7 @@ int main (int argc, char *argv[])
     auto root = sortedModel.index(0, 0);
     view.expand(root);
     view.sortByColumn(0, Qt::AscendingOrder);
-    view.show();
+//    view.show();
     view.header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     QQmlApplicationEngine engine;

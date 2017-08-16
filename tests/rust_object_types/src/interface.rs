@@ -71,10 +71,10 @@ pub trait ObjectTrait {
     fn emit(&self) -> &ObjectEmitter;
     fn get_boolean(&self) -> bool;
     fn set_boolean(&mut self, value: bool);
-    fn get_integer(&self) -> c_int;
-    fn set_integer(&mut self, value: c_int);
-    fn get_uinteger(&self) -> c_uint;
-    fn set_uinteger(&mut self, value: c_uint);
+    fn get_integer(&self) -> i32;
+    fn set_integer(&mut self, value: i32);
+    fn get_uinteger(&self) -> u32;
+    fn set_uinteger(&mut self, value: u32);
     fn get_u64(&self) -> u64;
     fn set_u64(&mut self, value: u64);
     fn get_string(&self) -> String;
@@ -121,22 +121,22 @@ pub unsafe extern "C" fn object_boolean_set(ptr: *mut Object, v: bool) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_integer_get(ptr: *const Object) -> c_int {
+pub unsafe extern "C" fn object_integer_get(ptr: *const Object) -> i32 {
     (&*ptr).get_integer()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_integer_set(ptr: *mut Object, v: c_int) {
+pub unsafe extern "C" fn object_integer_set(ptr: *mut Object, v: i32) {
     (&mut *ptr).set_integer(v);
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_uinteger_get(ptr: *const Object) -> c_uint {
+pub unsafe extern "C" fn object_uinteger_get(ptr: *const Object) -> u32 {
     (&*ptr).get_uinteger()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_uinteger_set(ptr: *mut Object, v: c_uint) {
+pub unsafe extern "C" fn object_uinteger_set(ptr: *mut Object, v: u32) {
     (&mut *ptr).set_uinteger(v);
 }
 

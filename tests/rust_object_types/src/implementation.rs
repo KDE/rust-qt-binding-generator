@@ -9,8 +9,8 @@ use interface::*;
 pub struct Object {
     emit: ObjectEmitter,
     boolean: bool,
-    integer: c_int,
-    uinteger: c_uint,
+    integer: i32,
+    uinteger: u32,
     u64: u64,
     string: String,
     bytearray: Vec<u8>,
@@ -38,17 +38,17 @@ impl ObjectTrait for Object {
         self.boolean = value;
         self.emit.boolean_changed();
     }
-    fn get_integer(&self) -> c_int {
+    fn get_integer(&self) -> i32 {
         self.integer
     }
-    fn set_integer(&mut self, value: c_int) {
+    fn set_integer(&mut self, value: i32) {
         self.integer = value;
         self.emit.integer_changed();
     }
-    fn get_uinteger(&self) -> c_uint {
+    fn get_uinteger(&self) -> u32 {
         self.uinteger
     }
-    fn set_uinteger(&mut self, value: c_uint) {
+    fn set_uinteger(&mut self, value: u32) {
         self.uinteger = value;
         self.emit.uinteger_changed();
     }

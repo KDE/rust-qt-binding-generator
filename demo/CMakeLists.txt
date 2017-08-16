@@ -1,18 +1,18 @@
 set(CMAKE_AUTORCC ON)
 
 add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/testinterface.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/testimplementation.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/types.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/src/Bindings.h"
+  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/fibonacci_interface.rs"
+         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/fibonacci_types.rs"
+         "${CMAKE_CURRENT_SOURCE_DIR}/src/Fibonacci.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/tmp.cpp"
-  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator --overwrite-implementation "${CMAKE_CURRENT_SOURCE_DIR}/bindings.json"
-  DEPENDS rust_qt_binding_generator bindings.json
+  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/fibonacci.json"
+  DEPENDS rust_qt_binding_generator fibonacci.json
 )
 
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/interface.rs"
+         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/types.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Tree.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/tmp.cpp"
@@ -24,8 +24,9 @@ add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a"
   COMMAND cargo build ${RUST_BUILD_FLAG}
   DEPENDS rust/src/lib.rs
-          rust/src/testimplementation.rs
-          rust/src/testinterface.rs
+          rust/src/fibonacci_interface.rs
+          rust/src/fibonacci_implementation.rs
+          rust/src/fibonacci_types.rs
           rust/src/implementation.rs
           rust/src/interface.rs
           rust/src/types.rs
@@ -33,7 +34,7 @@ add_custom_command(
 )
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
 
-set(Demo_SRCS src/main.cpp src/Tree.cpp src/Bindings.cpp
+set(Demo_SRCS src/main.cpp src/Tree.cpp src/Fibonacci.cpp
     resource_file.qrc)
 
 add_executable(Demo ${Demo_SRCS})

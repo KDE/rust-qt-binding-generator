@@ -7,17 +7,6 @@
         "typesModule": "types"
     },
     "objects": [{
-        "name": "Fibonacci",
-        "type": "Object",
-        "properties": [{
-            "name": "input",
-            "type": "uint",
-            "write": true
-        }, {
-            "name": "result",
-            "type": "uint64_t"
-        }]
-    }, {
         "name": "Directory",
         "type": "List",
         "properties": [{
@@ -45,7 +34,7 @@
             }, {
                 "name": "filePermissions",
                 "value": "Qt::UserRole + 3",
-                "type": "int"
+                "type": "qint32"
             }],
             [{
                 "name": "filePath",
@@ -55,7 +44,7 @@
             [{
                 "name": "filePermissions",
                 "value": "Qt::DisplayRole",
-                "type": "int"
+                "type": "qint32"
             }]
         ]
     }, {
@@ -86,7 +75,7 @@
             }, {
                 "name": "filePermissions",
                 "value": "Qt::UserRole + 3",
-                "type": "int"
+                "type": "qint32"
             }],
             [{
                 "name": "filePath",
@@ -96,7 +85,7 @@
             [{
                 "name": "filePermissions",
                 "value": "Qt::DisplayRole",
-                "type": "int"
+                "type": "qint32"
             }]
         ]
     }]

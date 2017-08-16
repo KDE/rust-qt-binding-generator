@@ -15,15 +15,15 @@
             "write": true
         }, {
             "name": "integer",
-            "type": "int",
+            "type": "qint32",
             "write": true
         }, {
             "name": "uinteger",
-            "type": "uint",
+            "type": "quint32",
             "write": true
         }, {
             "name": "u64",
-            "type": "uint64_t",
+            "type": "quint64",
             "write": true
         }, {
             "name": "string",

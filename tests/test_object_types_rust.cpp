@@ -47,12 +47,12 @@ extern "C" {
     void object_free(Object::Private*);
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
-    int object_integer_get(const Object::Private*);
-    void object_integer_set(Object::Private*, int);
-    uint object_uinteger_get(const Object::Private*);
+    qint32 object_integer_get(const Object::Private*);
+    void object_integer_set(Object::Private*, qint32);
+    quint32 object_uinteger_get(const Object::Private*);
     void object_uinteger_set(Object::Private*, uint);
-    uint64_t object_u64_get(const Object::Private*);
-    void object_u64_set(Object::Private*, uint64_t);
+    quint64 object_u64_get(const Object::Private*);
+    void object_u64_set(Object::Private*, quint64);
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, qstring_t);
     void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
@@ -78,25 +78,25 @@ bool Object::boolean() const
 void Object::setBoolean(bool v) {
     object_boolean_set(d, v);
 }
-int Object::integer() const
+qint32 Object::integer() const
 {
     return object_integer_get(d);
 }
-void Object::setInteger(int v) {
+void Object::setInteger(qint32 v) {
     object_integer_set(d, v);
 }
-uint Object::uinteger() const
+quint32 Object::uinteger() const
 {
     return object_uinteger_get(d);
 }
 void Object::setUinteger(uint v) {
     object_uinteger_set(d, v);
 }
-uint64_t Object::u64() const
+quint64 Object::u64() const
 {
     return object_u64_get(d);
 }
-void Object::setU64(uint64_t v) {
+void Object::setU64(quint64 v) {
     object_u64_set(d, v);
 }
 QString Object::string() const
