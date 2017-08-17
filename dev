@@ -1,3 +1,17 @@
 #!/usr/bin/bash
+set -o errexit
+set -o nounset
+set -o pipefail
+
 rm -rf __nix_qt5__/
-nix-shell -p qtcreator cmake ninja gcc rustc cargo qt5.full extra-cmake-modules kdeFrameworks.kwidgetsaddons kdeFrameworks.kcoreaddons kdeFrameworks.ki18n appstream cmakeCurses kdeFrameworks.ktexteditor
+
+if [ -z "${1-}" ]; then
+  charts=
+else
+  # run with NixPkgs master that has Qt5.9 and QtCharts
+  export NIX_PATH=nixpkgs=$HOME/nixpkgs
+  export QML2_IMPORT_PATH=$QML2_IMPORT_PATH:/nix/store/cmnbj3s42vfwfkibr9ksv28g44iqbq1y-qtquickcontrols2-5.9.1-bin/lib/qt-5.9/qml/:/nix/store/cv2ayyx56jsqifb1b65ksm0n522ji733-kirigami2-2.1.0/lib/qt-5.9/qml
+  charts="qt5.qtcharts libsForQt5.kirigami_2"
+fi
+
+nix-shell -p qtcreator cmake ninja gcc rustc cargo qt5.full extra-cmake-modules kdeFrameworks.kwidgetsaddons kdeFrameworks.kcoreaddons kdeFrameworks.ki18n appstream cmakeCurses kdeFrameworks.ktexteditor qt5.qtquickcontrols2 $charts
