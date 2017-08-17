@@ -170,6 +170,10 @@ void Tree::sort(int column, Qt::SortOrder order)
 {
     tree_sort(d, column, order);
 }
+Qt::ItemFlags Tree::flags(const QModelIndex &i) const
+{
+    return QAbstractItemModel::flags(i);
+}
 QVariant Tree::data(const QModelIndex &index, int role) const
 {
     QVariant v;

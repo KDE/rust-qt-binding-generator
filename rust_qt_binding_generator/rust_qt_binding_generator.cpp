@@ -283,6 +283,7 @@ void writeHeaderItemModel(QTextStream& h) {
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     bool canFetchMore(const QModelIndex &parent) const override;
     void fetchMore(const QModelIndex &parent) override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     QHash<int, QByteArray> roleNames() const override;
 signals:
@@ -423,6 +424,10 @@ void %1::fetchMore(const QModelIndex &parent)
 void %1::sort(int column, Qt::SortOrder order)
 {
     %2_sort(d, column, order);
+}
+Qt::ItemFlags %1::flags(const QModelIndex &i) const
+{
+    return QAbstractItemModel::flags(i);
 }
 QVariant %1::data(const QModelIndex &index, int role) const
 {

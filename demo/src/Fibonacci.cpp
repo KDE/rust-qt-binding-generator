@@ -164,6 +164,10 @@ void FibonacciList::sort(int column, Qt::SortOrder order)
 {
     fibonacci_list_sort(d, column, order);
 }
+Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
+{
+    return QAbstractItemModel::flags(i);
+}
 QVariant FibonacciList::data(const QModelIndex &index, int role) const
 {
     QVariant v;
