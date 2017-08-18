@@ -140,6 +140,10 @@ pub unsafe extern "C" fn tree_path_get(ptr: *const Tree,
 pub unsafe extern "C" fn tree_path_set(ptr: *mut Tree, v: QStringIn) {
     (&mut *ptr).set_path(Some(v.convert()));
 }
+#[no_mangle]
+pub unsafe extern "C" fn tree_path_set_none(ptr: *mut Tree) {
+    (&mut *ptr).set_path(None);
+}
 
 #[no_mangle]
 pub unsafe extern "C" fn tree_row_count(ptr: *const Tree, row: c_int, parent: usize) -> c_int {

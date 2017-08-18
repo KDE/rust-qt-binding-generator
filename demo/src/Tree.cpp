@@ -54,6 +54,7 @@ extern "C" {
     void tree_free(Tree::Private*);
     void tree_path_get(const Tree::Private*, QString*, qstring_set);
     void tree_path_set(Tree::Private*, qstring_t);
+    void tree_path_set_none(Tree::Private*);
 };
 Tree::Tree(QObject *parent):
     QAbstractItemModel(parent),
@@ -97,7 +98,11 @@ QString Tree::path() const
     return v;
 }
 void Tree::setPath(const QString& v) {
-    tree_path_set(d, v);
+    if (v.isNull()) {
+        tree_path_set_none(d);
+    } else {
+        tree_path_set(d, v);
+    }
 }
 extern "C" {
     void tree_data_file_name(const Tree::Private*, int, quintptr, QString*, qstring_set);

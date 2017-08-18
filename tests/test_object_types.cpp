@@ -117,7 +117,6 @@ void TestRustObjectTypes::testOptionalByteArray()
     testSetter(QByteArray(), &Object::setOptionalBytearray,
         &Object::optionalBytearray, &Object::optionalBytearrayChanged);
     const char data[10] = {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9};
-qDebug() << (QByteArray().data() == 0);
     testSetter(QByteArray(data, 0), &Object::setOptionalBytearray,
         &Object::optionalBytearray, &Object::optionalBytearrayChanged);
     testSetter(QByteArray(data, 10), &Object::setOptionalBytearray,

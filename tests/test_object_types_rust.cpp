@@ -57,10 +57,12 @@ extern "C" {
     void object_string_set(Object::Private*, qstring_t);
     void object_optional_string_get(const Object::Private*, QString*, qstring_set);
     void object_optional_string_set(Object::Private*, qstring_t);
+    void object_optional_string_set_none(Object::Private*);
     void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
     void object_bytearray_set(Object::Private*, qbytearray_t);
     void object_optional_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
     void object_optional_bytearray_set(Object::Private*, qbytearray_t);
+    void object_optional_bytearray_set_none(Object::Private*);
 };
 Object::Object(QObject *parent):
     QObject(parent),
@@ -121,7 +123,11 @@ QString Object::optionalString() const
     return v;
 }
 void Object::setOptionalString(const QString& v) {
-    object_optional_string_set(d, v);
+    if (v.isNull()) {
+        object_optional_string_set_none(d);
+    } else {
+        object_optional_string_set(d, v);
+    }
 }
 QByteArray Object::bytearray() const
 {
@@ -139,5 +145,9 @@ QByteArray Object::optionalBytearray() const
     return v;
 }
 void Object::setOptionalBytearray(const QByteArray& v) {
-    object_optional_bytearray_set(d, v);
+    if (v.isNull()) {
+        object_optional_bytearray_set_none(d);
+    } else {
+        object_optional_bytearray_set(d, v);
+    }
 }

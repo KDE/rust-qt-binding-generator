@@ -572,6 +572,10 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
         if (p.write) {
             cpp << QString("    void %2_set(%1::Private*, %3);")
                 .arg(o.name, base, p.type.cSetType) << endl;
+            if (p.optional) {
+                cpp << QString("    void %2_set_none(%1::Private*);")
+                    .arg(o.name, base) << endl;
+            }
         }
     }
 }
@@ -668,7 +672,15 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         }
         if (p.write) {
             cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v) {" << endl;
-            cpp << QString("    %1_set(d, v);").arg(base) << endl;
+            if (p.optional) {
+                cpp << QString("    if (v.isNull()) {") << endl;
+                cpp << QString("        %1_set_none(d);").arg(base) << endl;
+                cpp << QString("    } else {") << endl;
+                cpp << QString("        %1_set(d, v);").arg(base) << endl;
+                cpp << QString("    }") << endl;
+            } else {
+                cpp << QString("    %1_set(d, v);").arg(base) << endl;
+            }
             cpp << "}" << endl;
         }
     }
@@ -1041,6 +1053,10 @@ pub unsafe extern "C" fn %2_get(ptr: *const %1,
 #[no_mangle]
 pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
     (&mut *ptr).set_%3(Some(v.convert()));
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_set_none(ptr: *mut %1) {
+    (&mut *ptr).set_%3(None);
 }
 )").arg(o.name, base, snakeCase(p.name), type);
             }

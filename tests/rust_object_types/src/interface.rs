@@ -199,6 +199,10 @@ pub unsafe extern "C" fn object_optional_string_get(ptr: *const Object,
 pub unsafe extern "C" fn object_optional_string_set(ptr: *mut Object, v: QStringIn) {
     (&mut *ptr).set_optional_string(Some(v.convert()));
 }
+#[no_mangle]
+pub unsafe extern "C" fn object_optional_string_set_none(ptr: *mut Object) {
+    (&mut *ptr).set_optional_string(None);
+}
 
 #[no_mangle]
 pub unsafe extern "C" fn object_bytearray_get(ptr: *const Object,
@@ -226,4 +230,8 @@ pub unsafe extern "C" fn object_optional_bytearray_get(ptr: *const Object,
 #[no_mangle]
 pub unsafe extern "C" fn object_optional_bytearray_set(ptr: *mut Object, v: QByteArray) {
     (&mut *ptr).set_optional_bytearray(Some(v.convert()));
+}
+#[no_mangle]
+pub unsafe extern "C" fn object_optional_bytearray_set_none(ptr: *mut Object) {
+    (&mut *ptr).set_optional_bytearray(None);
 }
