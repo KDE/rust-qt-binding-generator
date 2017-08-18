@@ -19,7 +19,13 @@
             [{
                 "name": "fileName",
                 "value": "Qt::DisplayRole",
-                "type": "QString"
+                "type": "QString",
+                "write": true
+            }, {
+                "name": "fileName",
+                "value": "Qt::EditRole",
+                "type": "QString",
+                "write": true
             }, {
                 "name": "fileIcon",
                 "value": "Qt::DecorationRole",
@@ -28,6 +34,7 @@
                 "name": "filePath",
                 "value": "Qt::UserRole + 1",
                 "type": "QString",
+                "write": true,
                 "optional": true
             }, {
                 "name": "fileName",
@@ -51,6 +58,13 @@
                 "name": "filePath",
                 "value": "Qt::DisplayRole",
                 "type": "QString",
+                "write": true,
+                "optional": true
+            }, {
+                "name": "filePath",
+                "value": "Qt::EditRole",
+                "type": "QString",
+                "write": true,
                 "optional": true
             }],
             [{

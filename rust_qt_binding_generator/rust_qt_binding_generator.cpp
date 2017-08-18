@@ -335,6 +335,14 @@ signals:
 )");
 }
 
+bool isWrite(const QList<Role>& roles) {
+    bool write = false;
+    for (auto role: roles) {
+        write = write | role.write;
+    }
+    return write;
+}
+
 void writeCppModel(QTextStream& cpp, const Object& o) {
     const QString lcname(snakeCase(o.name));
     QString indexDecl = ", int";
@@ -352,6 +360,14 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
         } else {
             cpp << QString("    %4 %2_data_%3(const %1::Private*%5);\n")
                 .arg(o.name, lcname, snakeCase(role.name), cppSetType(role), indexDecl);
+        }
+        if (role.write) {
+//            cpp << QString("    void %2_data_%3_set(%1::Private*, %3);")
+//                .arg(o.name, base, p.type.cSetType) << endl;
+            if (role.optional) {
+                cpp << QString("    bool %2_set_data_%3_none(%1::Private*%4);")
+                    .arg(o.name, lcname, snakeCase(role.name), indexDecl) << endl;
+            }
         }
     }
     cpp << QString("    void %2_sort(%1::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);\n").arg(o.name, lcname);
@@ -470,7 +486,15 @@ void %1::sort(int column, Qt::SortOrder order)
 }
 Qt::ItemFlags %1::flags(const QModelIndex &i) const
 {
-    return QAbstractItemModel::flags(i);
+    auto flags = QAbstractItemModel::flags(i);
+)").arg(o.name, lcname);
+    for (int col = 0; col < o.columnRoles.size(); ++col) {
+        if (isWrite(o.columnRoles[col])) {
+            cpp << "    if (i.column() == " << col << ") {\n";
+            cpp << "        flags |= Qt::ItemIsEditable;\n    }\n";
+        }
+    }
+    cpp << QString(R"(    return flags;
 }
 QVariant %1::data(const QModelIndex &index, int role) const
 {
@@ -478,7 +502,7 @@ QVariant %1::data(const QModelIndex &index, int role) const
     QString s;
     QByteArray b;
     switch (index.column()) {
-)").arg(o.name, lcname);
+)").arg(o.name);
 
     for (int col = 0; col < o.columnRoles.size(); ++col) {
         auto roles = o.columnRoles[col];
@@ -513,9 +537,36 @@ QVariant %1::data(const QModelIndex &index, int role) const
     cpp << QString(R"(}
 bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    return false;
-}
 )").arg(o.name);
+    for (int col = 0; col < o.columnRoles.size(); ++col) {
+        if (!isWrite(o.columnRoles[col])) {
+            continue;
+        }
+        cpp << "    if (index.column() == " << col << ") {\n";
+        auto roles = o.columnRoles[col];
+        for (auto role: roles) {
+            if (!role.write) {
+                continue;
+            }
+            cpp << "        if (role == (" << role.value << ")) {\n";
+            if (role.optional) {
+                QString test = "!value.isValid()";
+                if (role.type.isComplex()) {
+                    test += " || value.isNull()";
+                }
+                cpp << "            if (" << test << ") {\n";
+                cpp << QString("                return %1_set_data_%2_none(d%3);")
+                        .arg(lcname, snakeCase(role.name), index) << endl;
+                cpp << "            }\n";
+            }
+            cpp << "            return true;\n";
+            cpp << "        }\n";
+        }
+        cpp << "    }\n";
+    }
+    cpp << R"(    return false;
+}
+)";
 }
 
 void writeHeaderObject(QTextStream& h, const Object& o) {
@@ -977,6 +1028,10 @@ pub trait %1Trait {
         for (auto role: o.allRoles) {
             r << QString("    fn %1(&self%3) -> %2;\n")
                     .arg(snakeCase(role.name), rustType(role), index);
+            if (role.write) {
+                r << QString("    fn set_%1(&mut self%3, %2) -> bool;\n")
+                    .arg(snakeCase(role.name), rustType(role), index);
+            }
         }
     }
     if (o.type == ObjectType::UniformTree) {
@@ -1177,6 +1232,14 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
     (&*ptr).%3(row%6).into()
 }
 )").arg(o.name, lcname, snakeCase(role.name), rustCType(role), indexDecl, index);
+            }
+            if (role.write && role.optional) {
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_set_data_%3_none(ptr: *mut %1, row: c_int%4) -> bool {
+    (&mut *ptr).set_%3(row%5, None)
+}
+)").arg(o.name, lcname, snakeCase(role.name), indexDecl, index);
             }
         }
     }    

@@ -67,7 +67,7 @@ int main (int argc, char *argv[])
     auto root = sortedModel.index(0, 0);
     view.expand(root);
     view.sortByColumn(0, Qt::AscendingOrder);
-//    view.show();
+    view.show();
     view.header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     QQmlApplicationEngine engine;

@@ -121,6 +121,7 @@ extern "C" {
     void tree_data_file_name(const Tree::Private*, int, quintptr, QString*, qstring_set);
     void tree_data_file_icon(const Tree::Private*, int, quintptr, QByteArray*, qbytearray_set);
     void tree_data_file_path(const Tree::Private*, int, quintptr, QString*, qstring_set);
+    bool tree_set_data_file_path_none(Tree::Private*, int, quintptr);
     qint32 tree_data_file_permissions(const Tree::Private*, int, quintptr);
     qint32 tree_data_file_type(const Tree::Private*, int, quintptr);
     option<quint64> tree_data_file_size(const Tree::Private*, int, quintptr);
@@ -190,7 +191,14 @@ void Tree::sort(int column, Qt::SortOrder order)
 }
 Qt::ItemFlags Tree::flags(const QModelIndex &i) const
 {
-    return QAbstractItemModel::flags(i);
+    auto flags = QAbstractItemModel::flags(i);
+    if (i.column() == 0) {
+        flags |= Qt::ItemIsEditable;
+    }
+    if (i.column() == 1) {
+        flags |= Qt::ItemIsEditable;
+    }
+    return flags;
 }
 QVariant Tree::data(const QModelIndex &index, int role) const
 {
@@ -201,6 +209,10 @@ QVariant Tree::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::DisplayRole:
+            tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
+            if (!s.isNull()) v.setValue<QString>(s);
+            break;
+        case Qt::EditRole:
             tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
@@ -230,6 +242,10 @@ QVariant Tree::data(const QModelIndex &index, int role) const
     case 1:
         switch (role) {
         case Qt::DisplayRole:
+            tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
+            if (!s.isNull()) v.setValue<QString>(s);
+            break;
+        case Qt::EditRole:
             tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
@@ -271,5 +287,33 @@ QHash<int, QByteArray> Tree::roleNames() const {
 }
 bool Tree::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    if (index.column() == 0) {
+        if (role == (Qt::DisplayRole)) {
+            return true;
+        }
+        if (role == (Qt::EditRole)) {
+            return true;
+        }
+        if (role == (Qt::UserRole + 1)) {
+            if (!value.isValid() || value.isNull()) {
+                return tree_set_data_file_path_none(d, index.row(), index.internalId());
+            }
+            return true;
+        }
+    }
+    if (index.column() == 1) {
+        if (role == (Qt::DisplayRole)) {
+            if (!value.isValid() || value.isNull()) {
+                return tree_set_data_file_path_none(d, index.row(), index.internalId());
+            }
+            return true;
+        }
+        if (role == (Qt::EditRole)) {
+            if (!value.isValid() || value.isNull()) {
+                return tree_set_data_file_path_none(d, index.row(), index.internalId());
+            }
+            return true;
+        }
+    }
     return false;
 }

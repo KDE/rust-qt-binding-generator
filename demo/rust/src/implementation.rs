@@ -14,6 +14,7 @@ use std::collections::HashMap;
 pub struct DirEntry {
     name: OsString,
     metadata: Option<Metadata>,
+    path: Option<PathBuf>
 }
 
 type Incoming<T> = Arc<Mutex<HashMap<usize, Vec<T>>>>;
@@ -23,6 +24,7 @@ impl Item for DirEntry {
         DirEntry {
             name: OsString::from(name),
             metadata: metadata(name).ok(),
+            path: None
         }
     }
     fn can_fetch_more(&self) -> bool {
@@ -30,6 +32,17 @@ impl Item for DirEntry {
     }
     fn file_name(&self) -> String {
         self.name.to_string_lossy().to_string()
+    }
+    fn file_path(&self) -> Option<String> {
+        self.path.as_ref().map(|p| p.to_string_lossy().into())
+    }
+    fn set_file_name(&mut self, file_name: String) -> bool {
+        self.name = file_name.into();
+        true
+    }
+    fn set_file_path(&mut self, file_path: Option<String>) -> bool {
+        self.path = file_path.map(|f| f.into());
+        true
     }
     fn file_permissions(&self) -> c_int {
         42
@@ -46,11 +59,12 @@ impl Item for DirEntry {
         let mut v = Vec::new();
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         thread::spawn(move || {
-            if let Ok(it) = read_dir(path) {
+            if let Ok(it) = read_dir(&path) {
                 for i in it.filter_map(|v| v.ok()) {
                     let de = DirEntry {
                         name: i.file_name(),
-                        metadata: i.metadata().ok()
+                        metadata: i.metadata().ok(),
+                        path: Some(i.path())
                     };
                     v.push(de);
                 }
@@ -70,6 +84,7 @@ impl Default for DirEntry {
         DirEntry {
             name: OsString::new(),
             metadata: None,
+            path: None
         }
     }
 }
@@ -79,9 +94,12 @@ pub trait Item: Default {
     fn can_fetch_more(&self) -> bool;
     fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: TreeEmitter);
     fn file_name(&self) -> String;
+    fn file_path(&self) -> Option<String>;
+    fn set_file_name(&mut self, file_name: String) -> bool;
     fn file_permissions(&self) -> c_int;
     fn file_type(&self) -> c_int;
     fn file_size(&self) -> Option<u64>;
+    fn set_file_path(&mut self, file_path: Option<String>) -> bool;
 }
 
 pub type Tree = RGeneralItemModel<DirEntry>;
@@ -144,6 +162,10 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
     fn get(&self, row: c_int, parent: usize) -> Option<&Entry<T>> {
         self.get_index(row, parent)
             .map(|i| &self.entries[i])
+    }
+    fn get_mut(&mut self, row: c_int, parent: usize) -> Option<&mut Entry<T>> {
+        self.get_index(row, parent)
+            .map(move |i| &mut self.entries[i])
     }
     fn retrieve(&mut self, row: c_int, parent: usize) {
         let id = self.get_index(row, parent).unwrap();
@@ -258,6 +280,11 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             .map(|entry| entry.data.file_name())
             .unwrap_or_default()
     }
+    fn set_file_name(&mut self, row: c_int, parent: usize, v: String) -> bool {
+        self.get_mut(row, parent)
+            .map(|mut entry| entry.data.set_file_name(v))
+            .unwrap_or(false)
+    }
     fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
         self.get(row, parent)
             .map(|entry| entry.data.file_permissions())
@@ -267,7 +294,9 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
         Vec::new()
     }
     fn file_path(&self, row: c_int, parent: usize) -> Option<String> {
-        None
+        self.get(row, parent)
+            .map(|entry| entry.data.file_path())
+            .unwrap_or_default()
     }
     fn file_type(&self, row: c_int, parent: usize) -> c_int {
         self.get(row, parent)
@@ -278,5 +307,10 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
         self.get(row, parent)
             .map(|entry| entry.data.file_size())
             .unwrap_or(None)
+    }
+    fn set_file_path(&mut self, row: c_int, parent: usize, v: Option<String>) -> bool {
+        self.get_mut(row, parent)
+            .map(|mut entry| entry.data.set_file_path(v))
+            .unwrap_or(false)
     }
 }

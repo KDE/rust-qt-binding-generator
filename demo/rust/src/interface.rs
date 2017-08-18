@@ -79,8 +79,10 @@ pub trait TreeTrait {
     fn fetch_more(&mut self, c_int, usize) {}
     fn sort(&mut self, c_int, SortOrder) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
+    fn set_file_name(&mut self, row: c_int, parent: usize, String) -> bool;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
     fn file_path(&self, row: c_int, parent: usize) -> Option<String>;
+    fn set_file_path(&mut self, row: c_int, parent: usize, Option<String>) -> bool;
     fn file_permissions(&self, row: c_int, parent: usize) -> i32;
     fn file_type(&self, row: c_int, parent: usize) -> i32;
     fn file_size(&self, row: c_int, parent: usize) -> Option<u64>;
@@ -189,6 +191,11 @@ pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree,
     if let Some(data) = data {
         set(d, QString::from(&data));
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tree_set_data_file_path_none(ptr: *mut Tree, row: c_int, parent: usize) -> bool {
+    (&mut *ptr).set_file_path(row, parent, None)
 }
 
 #[no_mangle]
