@@ -17,7 +17,9 @@ private:
     Q_PROPERTY(quint32 uinteger READ uinteger WRITE setUinteger NOTIFY uintegerChanged FINAL)
     Q_PROPERTY(quint64 u64 READ u64 WRITE setU64 NOTIFY u64Changed FINAL)
     Q_PROPERTY(QString string READ string WRITE setString NOTIFY stringChanged FINAL)
+    Q_PROPERTY(QString optionalString READ optionalString WRITE setOptionalString NOTIFY optionalStringChanged FINAL)
     Q_PROPERTY(QByteArray bytearray READ bytearray WRITE setBytearray NOTIFY bytearrayChanged FINAL)
+    Q_PROPERTY(QByteArray optionalBytearray READ optionalBytearray WRITE setOptionalBytearray NOTIFY optionalBytearrayChanged FINAL)
 public:
     explicit Object(QObject *parent = nullptr);
     ~Object();
@@ -31,21 +33,29 @@ public:
     void setU64(quint64 v);
     QString string() const;
     void setString(const QString& v);
+    QString optionalString() const;
+    void setOptionalString(const QString& v);
     QByteArray bytearray() const;
     void setBytearray(const QByteArray& v);
+    QByteArray optionalBytearray() const;
+    void setOptionalBytearray(const QByteArray& v);
 signals:
     void booleanChanged();
     void integerChanged();
     void uintegerChanged();
     void u64Changed();
     void stringChanged();
+    void optionalStringChanged();
     void bytearrayChanged();
+    void optionalBytearrayChanged();
 private:
     bool m_boolean;
     qint32 m_integer;
     quint32 m_uinteger;
     quint64 m_u64;
     QString m_string;
+    QString m_optionalString;
     QByteArray m_bytearray;
+    QByteArray m_optionalBytearray;
 };
 #endif // TEST_OBJECT_TYPES_RUST_H

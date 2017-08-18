@@ -12,7 +12,8 @@
         "properties": [{
             "name": "path",
             "type": "QString",
-            "write": true
+            "write": true,
+            "optional": true
         }],
         "roles": [
             [{
@@ -26,7 +27,8 @@
             }, {
                 "name": "filePath",
                 "value": "Qt::UserRole + 1",
-                "type": "QString"
+                "type": "QString",
+                "optional": true
             }, {
                 "name": "fileName",
                 "value": "Qt::UserRole + 2",
@@ -47,7 +49,8 @@
             [{
                 "name": "filePath",
                 "value": "Qt::DisplayRole",
-                "type": "QString"
+                "type": "QString",
+                "optional": true
             }],
             [{
                 "name": "filePermissions",

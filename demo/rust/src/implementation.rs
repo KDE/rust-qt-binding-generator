@@ -97,7 +97,7 @@ pub struct RGeneralItemModel<T: Item> {
     emit: TreeEmitter,
     model: TreeUniformTree,
     entries: Vec<Entry<T>>,
-    path: String,
+    path: Option<String>,
     incoming: Incoming<T>,
 }
 
@@ -115,17 +115,20 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         let none1 = Entry {
             parent: 0,
             row: 0,
-            children: Some(vec![2]),
+            children: None,
             data: T::default(),
         };
         self.entries.push(none1);
-        let root = Entry {
-            parent: 1,
-            row: 0,
-            children: None,
-            data: T::create(&self.path),
-        };
-        self.entries.push(root);
+        if let Some(ref path) = self.path {
+            self.entries[1].children = Some(vec![2]);
+            let root = Entry {
+                parent: 1,
+                row: 0,
+                children: None,
+                data: T::create(&path),
+            };
+            self.entries.push(root);
+        }
         self.model.end_reset_model();
     }
     fn get_index(&self, row: c_int, parent: usize) -> Option<usize> {
@@ -197,7 +200,7 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             emit: emit,
             model: model,
             entries: Vec::new(),
-            path: String::new(),
+            path: None,
             incoming: Arc::new(Mutex::new(HashMap::new()))
         };
         tree.reset();
@@ -206,10 +209,10 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
     fn emit(&self) -> &TreeEmitter {
         &self.emit
     }
-    fn get_path(&self) -> String {
+    fn get_path(&self) -> Option<String> {
         self.path.clone()
     }
-    fn set_path(&mut self, value: String) {
+    fn set_path(&mut self, value: Option<String>) {
         if self.path != value {
             self.path = value;
             self.emit.path_changed();
@@ -263,8 +266,8 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8> {
         Vec::new()
     }
-    fn file_path(&self, row: c_int, parent: usize) -> String {
-        String::new()
+    fn file_path(&self, row: c_int, parent: usize) -> Option<String> {
+        None
     }
     fn file_type(&self, row: c_int, parent: usize) -> c_int {
         self.get(row, parent)

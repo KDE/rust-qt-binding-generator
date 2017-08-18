@@ -43,7 +43,7 @@ BindingTypeProperties simpleType(const char* name, const char* init) {
         .cppSetType = name,
         .cSetType = name,
         .rustType = name,
-        .rustTypeInit = init
+        .rustTypeInit = init,
     };
 }
 
@@ -57,7 +57,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .cppSetType = "qint32",
                      .cSetType = "qint32",
                      .rustType = "i32",
-                     .rustTypeInit = "0"
+                     .rustTypeInit = "0",
                  });
         f.insert(BindingType::UInt, {
                      .name = "quint32",
@@ -96,12 +96,14 @@ struct Property {
     QString name;
     BindingTypeProperties type;
     bool write;
+    bool optional;
 };
 
 struct Role {
     QString name;
     QString value;
     BindingTypeProperties type;
+    bool optional;
 };
 
 struct Object {
@@ -140,12 +142,31 @@ BindingTypeProperties parseBindingType(const QString& value) {
     exit(1);
 }
 
+template <typename T>
+QString rustType(const T& p)
+{
+    if (p.optional) {
+        return "Option<" + p.type.rustType + ">";
+    }
+    return p.type.rustType;
+}
+
+template <typename T>
+QString rustTypeInit(const T& p)
+{
+    if (p.optional) {
+        return "None";
+    }
+    return p.type.rustTypeInit;
+}
+
 Property
 parseProperty(const QJsonObject& json) {
     Property p;
     p.name = json.value("name").toString();
     p.type = parseBindingType(json.value("type").toString());
     p.write = json.value("write").toBool();
+    p.optional = json.value("optional").toBool();
     return p;
 }
 
@@ -155,6 +176,7 @@ parseRole(const QJsonObject& json) {
     r.name = json.value("name").toString();
     r.value = json.value("value").toString();
     r.type = parseBindingType(json.value("type").toString());
+    r.optional = json.value("optional").toBool();
     return r;
 }
 
@@ -878,9 +900,9 @@ pub trait %1Trait {
 )").arg(o.name, modelStruct);
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, p.type.rustType);
+        r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
         if (p.write) {
-            r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, p.type.rustType);
+            r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
         }
     }
     if (o.type != ObjectType::Object) {
@@ -903,7 +925,7 @@ pub trait %1Trait {
         }
         for (auto role: o.allRoles) {
             r << QString("    fn %1(&self%3) -> %2;\n")
-                    .arg(snakeCase(role.name), role.type.rustType, index);
+                    .arg(snakeCase(role.name), rustType(role), index);
         }
     }
     if (o.type == ObjectType::UniformTree) {
@@ -981,8 +1003,8 @@ pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
 )").arg(o.name, lcname, model);
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
-        QString ret = ") -> " + p.type.rustType;
-        if (p.type.isComplex()) {
+        QString ret = ") -> " + rustType(p);
+        if (p.type.isComplex() && !p.optional) {
             r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1,
@@ -1001,20 +1023,41 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 }
 )").arg(o.name, base, snakeCase(p.name), type);
             }
+        } else if (p.type.isComplex()) {
+            r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_get(ptr: *const %1,
+        p: *mut c_void,
+        set: fn(*mut c_void, %4)) {
+    let data = (&*ptr).get_%3();
+    if let Some(data) = data {
+        set(p, %4::from(&data));
+    }
+}
+)").arg(o.name, base, snakeCase(p.name), p.type.name);
+            if (p.write) {
+                const QString type = p.type.name == "QString" ? "QStringIn" : p.type.name;
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
+    (&mut *ptr).set_%3(Some(v.convert()));
+}
+)").arg(o.name, base, snakeCase(p.name), type);
+            }
         } else {
             r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1) -> %4 {
     (&*ptr).get_%3()
 }
-)").arg(o.name, base, snakeCase(p.name), p.type.rustType);
+)").arg(o.name, base, snakeCase(p.name), rustType(p));
             if (p.write) {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
     (&mut *ptr).set_%3(v);
 }
-)").arg(o.name, base, snakeCase(p.name), p.type.rustType);
+)").arg(o.name, base, snakeCase(p.name), rustType(p));
             }
         }
     }
@@ -1048,7 +1091,7 @@ pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: c_int, order: SortOrder) 
             index = ", parent";
         }
         for (auto role: o.allRoles) {
-            if (role.type.isComplex()) {
+            if (role.type.isComplex() && !role.optional) {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
@@ -1059,13 +1102,26 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
     set(d, %4::from(&data));
 }
 )").arg(o.name, lcname, snakeCase(role.name), role.type.name, indexDecl, index);
+            } else if (role.type.isComplex()) {
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
+                                    row: c_int%5,
+        d: *mut c_void,
+        set: fn(*mut c_void, %4)) {
+    let data = (&*ptr).%3(row%6);
+    if let Some(data) = data {
+        set(d, %4::from(&data));
+    }
+}
+)").arg(o.name, lcname, snakeCase(role.name), role.type.name, indexDecl, index);
             } else {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
     (&*ptr).%3(row%6)
 }
-)").arg(o.name, lcname, snakeCase(role.name), role.type.rustType, indexDecl, index);
+)").arg(o.name, lcname, snakeCase(role.name), rustType(role), indexDecl, index);
             }
         }
     }    
@@ -1123,7 +1179,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    %1: %2,\n").arg(lc, p.type.rustType);
+        r << QString("    %1: %2,\n").arg(lc, rustType(p));
     }
     r << "}\n\n";
     r << QString(R"(impl %1Trait for %1 {
@@ -1136,7 +1192,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("            %1: %2,\n").arg(lc, p.type.rustTypeInit);
+        r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
     }
     r << QString(R"(        }
     }
@@ -1146,7 +1202,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
 )").arg(o.name);
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, p.type.rustType);
+        r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustType(p));
         if (p.type.isComplex()) {
             r << QString("        self.%1.clone()\n").arg(lc);
         } else {
@@ -1158,7 +1214,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         self.%1 = value;
         self.emit.%1_changed();
     }
-)").arg(lc, p.type.rustType);
+)").arg(lc, rustType(p));
         }
     }
     if (o.type != ObjectType::Object) {
@@ -1172,8 +1228,8 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         }
         for (auto role: o.allRoles) {
             r << QString("    fn %1(&self, row: c_int%3) -> %2 {\n")
-                    .arg(snakeCase(role.name), role.type.rustType, index);
-            r << "        " << role.type.rustTypeInit << "\n";
+                    .arg(snakeCase(role.name), rustType(role), index);
+            r << "        " << rustTypeInit(role) << "\n";
             r << "    }\n";
         }
     }

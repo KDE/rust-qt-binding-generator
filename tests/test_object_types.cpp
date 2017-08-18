@@ -7,19 +7,18 @@ class TestRustObjectTypes : public QObject
 {
     Q_OBJECT
 private slots:
-// no support for QVariant: it's too hard to implement all of it
-//    void testSetter();
-//    void testSetter_data();
     void testBool();
     void testInteger();
     void testUinteger();
     void testUint64();
     void testString();
+    void testOptionalString();
     void testByteArray();
+    void testOptionalByteArray();
 };
 
 template <typename V, typename Set, typename Get, typename Changed>
-void testSetter(V v, Set set, Get get, Changed changed)
+void testSetter(const V v, Set set, Get get, Changed changed)
 {
     // GIVEN
     Object object;
@@ -82,10 +81,24 @@ void TestRustObjectTypes::testString()
 {
     testSetter(QString(), &Object::setString,
         &Object::string, &Object::stringChanged);
+    testSetter(QString(""), &Object::setString,
+        &Object::string, &Object::stringChanged);
     testSetter(QString("Konqi"), &Object::setString,
         &Object::string, &Object::stringChanged);
     testSetter(QString("$𐐷𤭢"), &Object::setString,
         &Object::string, &Object::stringChanged);
+}
+
+void TestRustObjectTypes::testOptionalString()
+{
+    testSetter(QString(), &Object::setOptionalString,
+        &Object::optionalString, &Object::optionalStringChanged);
+    testSetter(QString(""), &Object::setOptionalString,
+        &Object::optionalString, &Object::optionalStringChanged);
+    testSetter(QString("Konqi"), &Object::setOptionalString,
+        &Object::optionalString, &Object::optionalStringChanged);
+    testSetter(QString("$𐐷𤭢"), &Object::setOptionalString,
+        &Object::optionalString, &Object::optionalStringChanged);
 }
 
 void TestRustObjectTypes::testByteArray()
@@ -93,8 +106,22 @@ void TestRustObjectTypes::testByteArray()
     testSetter(QByteArray(), &Object::setBytearray,
         &Object::bytearray, &Object::bytearrayChanged);
     const char data[10] = {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9};
+    testSetter(QByteArray(data, 0), &Object::setBytearray,
+        &Object::bytearray, &Object::bytearrayChanged);
     testSetter(QByteArray(data, 10), &Object::setBytearray,
         &Object::bytearray, &Object::bytearrayChanged);
+}
+
+void TestRustObjectTypes::testOptionalByteArray()
+{
+    testSetter(QByteArray(), &Object::setOptionalBytearray,
+        &Object::optionalBytearray, &Object::optionalBytearrayChanged);
+    const char data[10] = {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9};
+qDebug() << (QByteArray().data() == 0);
+    testSetter(QByteArray(data, 0), &Object::setOptionalBytearray,
+        &Object::optionalBytearray, &Object::optionalBytearrayChanged);
+    testSetter(QByteArray(data, 10), &Object::setOptionalBytearray,
+        &Object::optionalBytearray, &Object::optionalBytearrayChanged);
 }
 
 QTEST_MAIN(TestRustObjectTypes)

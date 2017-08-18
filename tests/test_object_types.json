@@ -28,11 +28,22 @@
         }, {
             "name": "string",
             "type": "QString",
-            "write": true
+            "write": true,
+            "nullable": true
+        }, {
+            "name": "optionalString",
+            "type": "QString",
+            "write": true,
+            "optional": true
         }, {
             "name": "bytearray",
             "type": "QByteArray",
             "write": true
+        }, {
+            "name": "optionalBytearray",
+            "type": "QByteArray",
+            "write": true,
+            "optional": true
         }]
     }]
 }

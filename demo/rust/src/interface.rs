@@ -72,15 +72,15 @@ impl TreeUniformTree {
 pub trait TreeTrait {
     fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self;
     fn emit(&self) -> &TreeEmitter;
-    fn get_path(&self) -> String;
-    fn set_path(&mut self, value: String);
+    fn get_path(&self) -> Option<String>;
+    fn set_path(&mut self, value: Option<String>);
     fn row_count(&self, row: c_int, parent: usize) -> c_int;
     fn can_fetch_more(&self, c_int, usize) -> bool { false }
     fn fetch_more(&mut self, c_int, usize) {}
     fn sort(&mut self, c_int, SortOrder) {}
     fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
-    fn file_path(&self, row: c_int, parent: usize) -> String;
+    fn file_path(&self, row: c_int, parent: usize) -> Option<String>;
     fn file_permissions(&self, row: c_int, parent: usize) -> i32;
     fn file_type(&self, row: c_int, parent: usize) -> i32;
     fn file_size(&self, row: c_int, parent: usize) -> u64;
@@ -131,12 +131,14 @@ pub unsafe extern "C" fn tree_path_get(ptr: *const Tree,
         p: *mut c_void,
         set: fn(*mut c_void, QString)) {
     let data = (&*ptr).get_path();
-    set(p, QString::from(&data));
+    if let Some(data) = data {
+        set(p, QString::from(&data));
+    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn tree_path_set(ptr: *mut Tree, v: QStringIn) {
-    (&mut *ptr).set_path(v.convert());
+    (&mut *ptr).set_path(Some(v.convert()));
 }
 
 #[no_mangle]
@@ -180,7 +182,9 @@ pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree,
         d: *mut c_void,
         set: fn(*mut c_void, QString)) {
     let data = (&*ptr).file_path(row, parent);
-    set(d, QString::from(&data));
+    if let Some(data) = data {
+        set(d, QString::from(&data));
+    }
 }
 
 #[no_mangle]

@@ -13,7 +13,9 @@ pub struct Object {
     uinteger: u32,
     u64: u64,
     string: String,
+    optional_string: Option<String>,
     bytearray: Vec<u8>,
+    optional_bytearray: Option<Vec<u8>>,
 }
 
 impl ObjectTrait for Object {
@@ -25,7 +27,9 @@ impl ObjectTrait for Object {
             uinteger: 0,
             u64: 0,
             string: String::new(),
+            optional_string: None,
             bytearray: Vec::new(),
+            optional_bytearray: None,
         }
     }
     fn emit(&self) -> &ObjectEmitter {
@@ -66,11 +70,25 @@ impl ObjectTrait for Object {
         self.string = value;
         self.emit.string_changed();
     }
+    fn get_optional_string(&self) -> Option<String> {
+        self.optional_string.clone()
+    }
+    fn set_optional_string(&mut self, value: Option<String>) {
+        self.optional_string = value;
+        self.emit.optional_string_changed();
+    }
     fn get_bytearray(&self) -> Vec<u8> {
         self.bytearray.clone()
     }
     fn set_bytearray(&mut self, value: Vec<u8>) {
         self.bytearray = value;
         self.emit.bytearray_changed();
+    }
+    fn get_optional_bytearray(&self) -> Option<Vec<u8>> {
+        self.optional_bytearray.clone()
+    }
+    fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>) {
+        self.optional_bytearray = value;
+        self.emit.optional_bytearray_changed();
     }
 }

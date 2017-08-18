@@ -43,7 +43,7 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
+    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(Object::Private*);
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
@@ -55,8 +55,12 @@ extern "C" {
     void object_u64_set(Object::Private*, quint64);
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, qstring_t);
+    void object_optional_string_get(const Object::Private*, QString*, qstring_set);
+    void object_optional_string_set(Object::Private*, qstring_t);
     void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
     void object_bytearray_set(Object::Private*, qbytearray_t);
+    void object_optional_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
+    void object_optional_bytearray_set(Object::Private*, qbytearray_t);
 };
 Object::Object(QObject *parent):
     QObject(parent),
@@ -66,7 +70,9 @@ Object::Object(QObject *parent):
         [](Object* o) { emit o->uintegerChanged(); },
         [](Object* o) { emit o->u64Changed(); },
         [](Object* o) { emit o->stringChanged(); },
-        [](Object* o) { emit o->bytearrayChanged(); })) {}
+        [](Object* o) { emit o->optionalStringChanged(); },
+        [](Object* o) { emit o->bytearrayChanged(); },
+        [](Object* o) { emit o->optionalBytearrayChanged(); })) {}
 
 Object::~Object() {
     object_free(d);
@@ -108,6 +114,15 @@ QString Object::string() const
 void Object::setString(const QString& v) {
     object_string_set(d, v);
 }
+QString Object::optionalString() const
+{
+    QString v;
+    object_optional_string_get(d, &v, set_qstring);
+    return v;
+}
+void Object::setOptionalString(const QString& v) {
+    object_optional_string_set(d, v);
+}
 QByteArray Object::bytearray() const
 {
     QByteArray v;
@@ -116,4 +131,13 @@ QByteArray Object::bytearray() const
 }
 void Object::setBytearray(const QByteArray& v) {
     object_bytearray_set(d, v);
+}
+QByteArray Object::optionalBytearray() const
+{
+    QByteArray v;
+    object_optional_bytearray_get(d, &v, set_qbytearray);
+    return v;
+}
+void Object::setOptionalBytearray(const QByteArray& v) {
+    object_optional_bytearray_set(d, v);
 }

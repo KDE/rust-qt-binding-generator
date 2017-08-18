@@ -19,7 +19,9 @@ pub struct ObjectEmitter {
     uinteger_changed: fn(*const ObjectQObject),
     u64_changed: fn(*const ObjectQObject),
     string_changed: fn(*const ObjectQObject),
+    optional_string_changed: fn(*const ObjectQObject),
     bytearray_changed: fn(*const ObjectQObject),
+    optional_bytearray_changed: fn(*const ObjectQObject),
 }
 
 unsafe impl Send for ObjectEmitter {}
@@ -58,10 +60,22 @@ impl ObjectEmitter {
             (self.string_changed)(ptr);
         }
     }
+    pub fn optional_string_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.optional_string_changed)(ptr);
+        }
+    }
     pub fn bytearray_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
             (self.bytearray_changed)(ptr);
+        }
+    }
+    pub fn optional_bytearray_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.optional_bytearray_changed)(ptr);
         }
     }
 }
@@ -79,8 +93,12 @@ pub trait ObjectTrait {
     fn set_u64(&mut self, value: u64);
     fn get_string(&self) -> String;
     fn set_string(&mut self, value: String);
+    fn get_optional_string(&self) -> Option<String>;
+    fn set_optional_string(&mut self, value: Option<String>);
     fn get_bytearray(&self) -> Vec<u8>;
     fn set_bytearray(&mut self, value: Vec<u8>);
+    fn get_optional_bytearray(&self) -> Option<Vec<u8>>;
+    fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>);
 }
 
 #[no_mangle]
@@ -90,7 +108,9 @@ pub extern "C" fn object_new(qobject: *const ObjectQObject,
         uinteger_changed: fn(*const ObjectQObject),
         u64_changed: fn(*const ObjectQObject),
         string_changed: fn(*const ObjectQObject),
-        bytearray_changed: fn(*const ObjectQObject))
+        optional_string_changed: fn(*const ObjectQObject),
+        bytearray_changed: fn(*const ObjectQObject),
+        optional_bytearray_changed: fn(*const ObjectQObject))
         -> *mut Object {
     let emit = ObjectEmitter {
         qobject: Arc::new(Mutex::new(qobject)),
@@ -99,7 +119,9 @@ pub extern "C" fn object_new(qobject: *const ObjectQObject,
         uinteger_changed: uinteger_changed,
         u64_changed: u64_changed,
         string_changed: string_changed,
+        optional_string_changed: optional_string_changed,
         bytearray_changed: bytearray_changed,
+        optional_bytearray_changed: optional_bytearray_changed,
     };
     let d = Object::create(emit);
     Box::into_raw(Box::new(d))
@@ -164,6 +186,21 @@ pub unsafe extern "C" fn object_string_set(ptr: *mut Object, v: QStringIn) {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn object_optional_string_get(ptr: *const Object,
+        p: *mut c_void,
+        set: fn(*mut c_void, QString)) {
+    let data = (&*ptr).get_optional_string();
+    if let Some(data) = data {
+        set(p, QString::from(&data));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_optional_string_set(ptr: *mut Object, v: QStringIn) {
+    (&mut *ptr).set_optional_string(Some(v.convert()));
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn object_bytearray_get(ptr: *const Object,
         p: *mut c_void,
         set: fn(*mut c_void, QByteArray)) {
@@ -174,4 +211,19 @@ pub unsafe extern "C" fn object_bytearray_get(ptr: *const Object,
 #[no_mangle]
 pub unsafe extern "C" fn object_bytearray_set(ptr: *mut Object, v: QByteArray) {
     (&mut *ptr).set_bytearray(v.convert());
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_optional_bytearray_get(ptr: *const Object,
+        p: *mut c_void,
+        set: fn(*mut c_void, QByteArray)) {
+    let data = (&*ptr).get_optional_bytearray();
+    if let Some(data) = data {
+        set(p, QByteArray::from(&data));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_optional_bytearray_set(ptr: *mut Object, v: QByteArray) {
+    (&mut *ptr).set_optional_bytearray(Some(v.convert()));
 }
