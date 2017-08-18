@@ -198,5 +198,5 @@ pub unsafe extern "C" fn fibonacci_list_sort(ptr: *mut FibonacciList, column: c_
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_data_result(ptr: *const FibonacciList, row: c_int) -> u64 {
-    (&*ptr).result(row)
+    (&*ptr).result(row).into()
 }

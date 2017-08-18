@@ -44,7 +44,8 @@
             }, {
                 "name": "fileSize",
                 "value": "Qt::UserRole + 5",
-                "type": "quint64"
+                "type": "quint64",
+                "optional": true
             }],
             [{
                 "name": "filePath",
@@ -65,7 +66,8 @@
             [{
                 "name": "fileSize",
                 "value": "Qt::DisplayRole",
-                "type": "quint64"
+                "type": "quint64",
+                "optional": true
             }]
         ]
     }]

@@ -83,7 +83,7 @@ pub trait TreeTrait {
     fn file_path(&self, row: c_int, parent: usize) -> Option<String>;
     fn file_permissions(&self, row: c_int, parent: usize) -> i32;
     fn file_type(&self, row: c_int, parent: usize) -> i32;
-    fn file_size(&self, row: c_int, parent: usize) -> u64;
+    fn file_size(&self, row: c_int, parent: usize) -> Option<u64>;
     fn index(&self, row: c_int, parent: usize) -> usize;
     fn parent(&self, parent: usize) -> QModelIndex;
 }
@@ -193,17 +193,17 @@ pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree,
 
 #[no_mangle]
 pub unsafe extern "C" fn tree_data_file_permissions(ptr: *const Tree, row: c_int, parent: usize) -> i32 {
-    (&*ptr).file_permissions(row, parent)
+    (&*ptr).file_permissions(row, parent).into()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn tree_data_file_type(ptr: *const Tree, row: c_int, parent: usize) -> i32 {
-    (&*ptr).file_type(row, parent)
+    (&*ptr).file_type(row, parent).into()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_size(ptr: *const Tree, row: c_int, parent: usize) -> u64 {
-    (&*ptr).file_size(row, parent)
+pub unsafe extern "C" fn tree_data_file_size(ptr: *const Tree, row: c_int, parent: usize) -> COption<u64> {
+    (&*ptr).file_size(row, parent).into()
 }
 
 #[no_mangle]

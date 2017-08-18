@@ -2,6 +2,19 @@
 #include "test_object_rust.h"
 
 namespace {
+    template <typename T>
+    struct option {
+    private:
+        T value;
+        bool some;
+    public:
+        operator QVariant() const {
+            if (some) {
+                return QVariant(value);
+            }
+            return QVariant();
+        }
+    };
     struct qbytearray_t {
     private:
         const char* data;

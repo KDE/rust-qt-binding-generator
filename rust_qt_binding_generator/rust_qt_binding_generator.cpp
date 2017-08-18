@@ -103,6 +103,7 @@ struct Role {
     QString name;
     QString value;
     BindingTypeProperties type;
+    bool write;
     bool optional;
 };
 
@@ -143,10 +144,28 @@ BindingTypeProperties parseBindingType(const QString& value) {
 }
 
 template <typename T>
+QString cppSetType(const T& p)
+{
+    if (p.optional) {
+        return "option<" + p.type.cppSetType + ">";
+    }
+    return p.type.cppSetType;
+}
+
+template <typename T>
 QString rustType(const T& p)
 {
     if (p.optional) {
         return "Option<" + p.type.rustType + ">";
+    }
+    return p.type.rustType;
+}
+
+template <typename T>
+QString rustCType(const T& p)
+{
+    if (p.optional) {
+        return "COption<" + p.type.rustType + ">";
     }
     return p.type.rustType;
 }
@@ -176,6 +195,7 @@ parseRole(const QJsonObject& json) {
     r.name = json.value("name").toString();
     r.value = json.value("value").toString();
     r.type = parseBindingType(json.value("type").toString());
+    r.write = json.value("write").toBool();
     r.optional = json.value("optional").toBool();
     return r;
 }
@@ -299,6 +319,7 @@ void writeHeaderItemModel(QTextStream& h) {
     h << QString(R"(
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
     bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
@@ -330,7 +351,7 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
                 .arg(o.name, lcname, snakeCase(role.name), cGetType(role.type), indexDecl);
         } else {
             cpp << QString("    %4 %2_data_%3(const %1::Private*%5);\n")
-                .arg(o.name, lcname, snakeCase(role.name), role.type.cppSetType, indexDecl);
+                .arg(o.name, lcname, snakeCase(role.name), cppSetType(role), indexDecl);
         }
     }
     cpp << QString("    void %2_sort(%1::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);\n").arg(o.name, lcname);
@@ -468,14 +489,14 @@ QVariant %1::data(const QModelIndex &index, int role) const
             if (role.type.name == "QString") {
                 cpp << QString("            %1_data_%2(d%4, &s, set_%3);\n")
                        .arg(lcname, snakeCase(role.name), role.type.name.toLower(), index);
-                cpp << "            v.setValue<QString>(s);\n";
+                cpp << "            if (!s.isNull()) v.setValue<QString>(s);\n";
             } else if (role.type.name == "QByteArray") {
                 cpp << QString("            %1_data_%2(d%4, &b, set_%3);\n")
                        .arg(lcname, snakeCase(role.name), role.type.name.toLower(), index);
-                cpp << "            v.setValue<QByteArray>(b);\n";
+                cpp << "            if (!b.isNull()) v.setValue<QByteArray>(b);\n";
             } else {
-                cpp << QString("            v.setValue<%3>(%1_data_%2(d%5));\n")
-                       .arg(lcname, snakeCase(role.name), role.type.cppSetType, index);
+                cpp << QString("            v = %1_data_%2(d%3);\n")
+                       .arg(lcname, snakeCase(role.name), index);
             }
             cpp << "            break;\n";
         }
@@ -489,7 +510,12 @@ QVariant %1::data(const QModelIndex &index, int role) const
         cpp << "    names.insert(" << role.value << ", \"" << role.name << "\");\n";
     }
     cpp << "    return names;\n";
-    cpp << "}\n\n";
+    cpp << QString(R"(}
+bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    return false;
+}
+)").arg(o.name);
 }
 
 void writeHeaderObject(QTextStream& h, const Object& o) {
@@ -751,6 +777,19 @@ void writeCpp(const Configuration& conf) {
 #include "%1"
 
 namespace {
+    template <typename T>
+    struct option {
+    private:
+        T value;
+        bool some;
+    public:
+        operator QVariant() const {
+            if (some) {
+                return QVariant(value);
+            }
+            return QVariant();
+        }
+    };
     struct qbytearray_t {
     private:
         const char* data;
@@ -1135,9 +1174,9 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
-    (&*ptr).%3(row%6)
+    (&*ptr).%3(row%6).into()
 }
-)").arg(o.name, lcname, snakeCase(role.name), rustType(role), indexDecl, index);
+)").arg(o.name, lcname, snakeCase(role.name), rustCType(role), indexDecl, index);
             }
         }
     }    
@@ -1287,6 +1326,28 @@ void writeRustTypes(const Configuration& conf) {
 #![allow(dead_code)]
 use std::slice;
 use libc::{c_int, uint8_t, uint16_t};
+
+#[repr(C)]
+pub struct COption<T> {
+    data: T,
+    some: bool,
+}
+
+impl<T> From<Option<T>> for COption<T> where T: Default {
+    fn from(t: Option<T>) -> COption <T> {
+        if let Some(v) = t {
+            COption {
+                data: v,
+                some: true
+            }
+        } else {
+            COption {
+                data: T::default(),
+                some: false
+            }
+        }
+    }
+}
 
 #[repr(C)]
 pub struct QString {

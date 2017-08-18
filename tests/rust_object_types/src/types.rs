@@ -4,6 +4,28 @@ use std::slice;
 use libc::{c_int, uint8_t, uint16_t};
 
 #[repr(C)]
+pub struct COption<T> {
+    data: T,
+    some: bool,
+}
+
+impl<T> From<Option<T>> for COption<T> where T: Default {
+    fn from(t: Option<T>) -> COption <T> {
+        if let Some(v) = t {
+            COption {
+                data: v,
+                some: true
+            }
+        } else {
+            COption {
+                data: T::default(),
+                some: false
+            }
+        }
+    }
+}
+
+#[repr(C)]
 pub struct QString {
     data: *const uint8_t,
     len: c_int,

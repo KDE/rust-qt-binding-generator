@@ -2,6 +2,19 @@
 #include "Tree.h"
 
 namespace {
+    template <typename T>
+    struct option {
+    private:
+        T value;
+        bool some;
+    public:
+        operator QVariant() const {
+            if (some) {
+                return QVariant(value);
+            }
+            return QVariant();
+        }
+    };
     struct qbytearray_t {
     private:
         const char* data;
@@ -110,7 +123,7 @@ extern "C" {
     void tree_data_file_path(const Tree::Private*, int, quintptr, QString*, qstring_set);
     qint32 tree_data_file_permissions(const Tree::Private*, int, quintptr);
     qint32 tree_data_file_type(const Tree::Private*, int, quintptr);
-    quint64 tree_data_file_size(const Tree::Private*, int, quintptr);
+    option<quint64> tree_data_file_size(const Tree::Private*, int, quintptr);
     void tree_sort(Tree::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int tree_row_count(const Tree::Private*, int, quintptr);
@@ -189,28 +202,28 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
             tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
-            v.setValue<QString>(s);
+            if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::DecorationRole:
             tree_data_file_icon(d, index.row(), index.internalId(), &b, set_qbytearray);
-            v.setValue<QByteArray>(b);
+            if (!b.isNull()) v.setValue<QByteArray>(b);
             break;
         case Qt::UserRole + 1:
             tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
-            v.setValue<QString>(s);
+            if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::UserRole + 2:
             tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
-            v.setValue<QString>(s);
+            if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::UserRole + 3:
-            v.setValue<qint32>(tree_data_file_permissions(d, index.row(), index.internalId()));
+            v = tree_data_file_permissions(d, index.row(), index.internalId());
             break;
         case Qt::UserRole + 4:
-            v.setValue<qint32>(tree_data_file_type(d, index.row(), index.internalId()));
+            v = tree_data_file_type(d, index.row(), index.internalId());
             break;
         case Qt::UserRole + 5:
-            v.setValue<quint64>(tree_data_file_size(d, index.row(), index.internalId()));
+            v = tree_data_file_size(d, index.row(), index.internalId());
             break;
         }
         break;
@@ -218,28 +231,28 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
             tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
-            v.setValue<QString>(s);
+            if (!s.isNull()) v.setValue<QString>(s);
             break;
         }
         break;
     case 2:
         switch (role) {
         case Qt::DisplayRole:
-            v.setValue<qint32>(tree_data_file_permissions(d, index.row(), index.internalId()));
+            v = tree_data_file_permissions(d, index.row(), index.internalId());
             break;
         }
         break;
     case 3:
         switch (role) {
         case Qt::DisplayRole:
-            v.setValue<qint32>(tree_data_file_type(d, index.row(), index.internalId()));
+            v = tree_data_file_type(d, index.row(), index.internalId());
             break;
         }
         break;
     case 4:
         switch (role) {
         case Qt::DisplayRole:
-            v.setValue<quint64>(tree_data_file_size(d, index.row(), index.internalId()));
+            v = tree_data_file_size(d, index.row(), index.internalId());
             break;
         }
         break;
@@ -256,4 +269,7 @@ QHash<int, QByteArray> Tree::roleNames() const {
     names.insert(Qt::UserRole + 5, "fileSize");
     return names;
 }
-
+bool Tree::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    return false;
+}

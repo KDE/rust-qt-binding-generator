@@ -2,6 +2,19 @@
 #include "Fibonacci.h"
 
 namespace {
+    template <typename T>
+    struct option {
+    private:
+        T value;
+        bool some;
+    public:
+        operator QVariant() const {
+            if (some) {
+                return QVariant(value);
+            }
+            return QVariant();
+        }
+    };
     struct qbytearray_t {
     private:
         const char* data;
@@ -177,7 +190,7 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::DisplayRole:
-            v.setValue<quint64>(fibonacci_list_data_result(d, index.row()));
+            v = fibonacci_list_data_result(d, index.row());
             break;
         }
         break;
@@ -189,4 +202,7 @@ QHash<int, QByteArray> FibonacciList::roleNames() const {
     names.insert(Qt::DisplayRole, "result");
     return names;
 }
-
+bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    return false;
+}

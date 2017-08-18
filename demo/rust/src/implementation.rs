@@ -37,8 +37,8 @@ impl Item for DirEntry {
     fn file_type(&self) -> c_int {
         0
     }
-    fn file_size(&self) -> u64 {
-        self.metadata.as_ref().map_or(0, |m|m.len())
+    fn file_size(&self) -> Option<u64> {
+        self.metadata.as_ref().map(|m|m.len())
     }
     fn retrieve(id: usize, parents: Vec<&DirEntry>,
             q: Incoming<Self>,
@@ -81,7 +81,7 @@ pub trait Item: Default {
     fn file_name(&self) -> String;
     fn file_permissions(&self) -> c_int;
     fn file_type(&self) -> c_int;
-    fn file_size(&self) -> u64;
+    fn file_size(&self) -> Option<u64>;
 }
 
 pub type Tree = RGeneralItemModel<DirEntry>;
@@ -274,9 +274,9 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             .map(|entry| entry.data.file_type())
             .unwrap_or_default()
     }
-    fn file_size(&self, row: c_int, parent: usize) -> u64 {
+    fn file_size(&self, row: c_int, parent: usize) -> Option<u64> {
         self.get(row, parent)
             .map(|entry| entry.data.file_size())
-            .unwrap_or_default()
+            .unwrap_or(None)
     }
 }
