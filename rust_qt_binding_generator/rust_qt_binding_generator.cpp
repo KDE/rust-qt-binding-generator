@@ -206,9 +206,10 @@ QList<Role> parseRoles(const QJsonArray& roles, QList<Role>& all) {
         const Role role = parseRole(val.toObject());
         r.append(role);
         bool found = false;
-        for (auto ar: all) {
+        for (Role& ar: all) {
             if (ar.name == role.name) {
                 found = true;
+                ar.write |= role.write;
                 if (ar.type.name != role.type.name) {
                     err << QCoreApplication::translate("main",
                         "Role %1 has two different types: %2 and %3.\n")
@@ -362,8 +363,8 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
                 .arg(o.name, lcname, snakeCase(role.name), cppSetType(role), indexDecl);
         }
         if (role.write) {
-//            cpp << QString("    void %2_data_%3_set(%1::Private*, %3);")
-//                .arg(o.name, base, p.type.cSetType) << endl;
+            cpp << QString("    bool %2_set_data_%3(%1::Private*%5, %4);")
+                .arg(o.name, lcname, snakeCase(role.name), role.type.cSetType, indexDecl) << endl;
             if (role.optional) {
                 cpp << QString("    bool %2_set_data_%3_none(%1::Private*%4);")
                     .arg(o.name, lcname, snakeCase(role.name), indexDecl) << endl;
@@ -548,7 +549,7 @@ bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
             if (!role.write) {
                 continue;
             }
-            cpp << "        if (role == (" << role.value << ")) {\n";
+            cpp << "        if (role == " << role.value << ") {\n";
             if (role.optional) {
                 QString test = "!value.isValid()";
                 if (role.type.isComplex()) {
@@ -559,7 +560,13 @@ bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
                         .arg(lcname, snakeCase(role.name), index) << endl;
                 cpp << "            }\n";
             }
-            cpp << "            return true;\n";
+            QString val = QString("value.value<%1>()").arg(role.type.name);
+            if (role.type.isComplex()) {
+                val = "val";
+                cpp << QString("            const %1 val(value.value<%1>());\n").arg(role.type.name);
+            }
+            cpp << QString("            return %1_set_data_%2(d%3, %4);")
+                .arg(lcname, snakeCase(role.name), index, val) << endl;
             cpp << "        }\n";
         }
         cpp << "    }\n";
@@ -1232,6 +1239,23 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
     (&*ptr).%3(row%6).into()
 }
 )").arg(o.name, lcname, snakeCase(role.name), rustCType(role), indexDecl, index);
+            }
+            if (role.write) {
+                QString val = "v";
+                QString type = role.type.rustType;
+                if (role.type.isComplex()) {
+                    val = val + ".convert()";
+                    type = role.type.name == "QString" ? "QStringIn" : role.type.name;
+                }
+                if (role.optional) {
+                    val = "Some(" + val + ")";
+                }
+                r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_set_data_%3(ptr: *mut %1, row: c_int%4, v: %6) -> bool {
+    (&mut *ptr).set_%3(row%5, %7)
+}
+)").arg(o.name, lcname, snakeCase(role.name), indexDecl, index, type, val);
             }
             if (role.write && role.optional) {
                 r << QString(R"(

@@ -119,12 +119,16 @@ void Tree::setPath(const QString& v) {
 }
 extern "C" {
     void tree_data_file_name(const Tree::Private*, int, quintptr, QString*, qstring_set);
+    bool tree_set_data_file_name(Tree::Private*, int, quintptr, qstring_t);
     void tree_data_file_icon(const Tree::Private*, int, quintptr, QByteArray*, qbytearray_set);
     void tree_data_file_path(const Tree::Private*, int, quintptr, QString*, qstring_set);
+    bool tree_set_data_file_path(Tree::Private*, int, quintptr, qstring_t);
     bool tree_set_data_file_path_none(Tree::Private*, int, quintptr);
     qint32 tree_data_file_permissions(const Tree::Private*, int, quintptr);
     qint32 tree_data_file_type(const Tree::Private*, int, quintptr);
     option<quint64> tree_data_file_size(const Tree::Private*, int, quintptr);
+    bool tree_set_data_file_size(Tree::Private*, int, quintptr, quint64);
+    bool tree_set_data_file_size_none(Tree::Private*, int, quintptr);
     void tree_sort(Tree::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int tree_row_count(const Tree::Private*, int, quintptr);
@@ -196,6 +200,9 @@ Qt::ItemFlags Tree::flags(const QModelIndex &i) const
         flags |= Qt::ItemIsEditable;
     }
     if (i.column() == 1) {
+        flags |= Qt::ItemIsEditable;
+    }
+    if (i.column() == 4) {
         flags |= Qt::ItemIsEditable;
     }
     return flags;
@@ -288,31 +295,44 @@ QHash<int, QByteArray> Tree::roleNames() const {
 bool Tree::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.column() == 0) {
-        if (role == (Qt::DisplayRole)) {
-            return true;
+        if (role == Qt::DisplayRole) {
+            const QString val(value.value<QString>());
+            return tree_set_data_file_name(d, index.row(), index.internalId(), val);
         }
-        if (role == (Qt::EditRole)) {
-            return true;
+        if (role == Qt::EditRole) {
+            const QString val(value.value<QString>());
+            return tree_set_data_file_name(d, index.row(), index.internalId(), val);
         }
-        if (role == (Qt::UserRole + 1)) {
+        if (role == Qt::UserRole + 1) {
             if (!value.isValid() || value.isNull()) {
                 return tree_set_data_file_path_none(d, index.row(), index.internalId());
             }
-            return true;
+            const QString val(value.value<QString>());
+            return tree_set_data_file_path(d, index.row(), index.internalId(), val);
         }
     }
     if (index.column() == 1) {
-        if (role == (Qt::DisplayRole)) {
+        if (role == Qt::DisplayRole) {
             if (!value.isValid() || value.isNull()) {
                 return tree_set_data_file_path_none(d, index.row(), index.internalId());
             }
-            return true;
+            const QString val(value.value<QString>());
+            return tree_set_data_file_path(d, index.row(), index.internalId(), val);
         }
-        if (role == (Qt::EditRole)) {
+        if (role == Qt::EditRole) {
             if (!value.isValid() || value.isNull()) {
                 return tree_set_data_file_path_none(d, index.row(), index.internalId());
             }
-            return true;
+            const QString val(value.value<QString>());
+            return tree_set_data_file_path(d, index.row(), index.internalId(), val);
+        }
+    }
+    if (index.column() == 4) {
+        if (role == Qt::DisplayRole) {
+            if (!value.isValid()) {
+                return tree_set_data_file_size_none(d, index.row(), index.internalId());
+            }
+            return tree_set_data_file_size(d, index.row(), index.internalId(), value.value<quint64>());
         }
     }
     return false;

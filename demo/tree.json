@@ -81,6 +81,7 @@
                 "name": "fileSize",
                 "value": "Qt::DisplayRole",
                 "type": "quint64",
+                "write": true,
                 "optional": true
             }]
         ]

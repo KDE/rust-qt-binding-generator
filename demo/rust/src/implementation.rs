@@ -53,6 +53,9 @@ impl Item for DirEntry {
     fn file_size(&self) -> Option<u64> {
         self.metadata.as_ref().map(|m|m.len())
     }
+    fn set_file_size(&mut self, file_size: Option<u64>) -> bool {
+        true
+    }
     fn retrieve(id: usize, parents: Vec<&DirEntry>,
             q: Incoming<Self>,
             emit: TreeEmitter) {
@@ -100,6 +103,7 @@ pub trait Item: Default {
     fn file_type(&self) -> c_int;
     fn file_size(&self) -> Option<u64>;
     fn set_file_path(&mut self, file_path: Option<String>) -> bool;
+    fn set_file_size(&mut self, file_size: Option<u64>) -> bool;
 }
 
 pub type Tree = RGeneralItemModel<DirEntry>;
@@ -298,6 +302,11 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             .map(|entry| entry.data.file_path())
             .unwrap_or_default()
     }
+    fn set_file_path(&mut self, row: c_int, parent: usize, v: Option<String>) -> bool {
+        self.get_mut(row, parent)
+            .map(|mut entry| entry.data.set_file_path(v))
+            .unwrap_or(false)
+    }
     fn file_type(&self, row: c_int, parent: usize) -> c_int {
         self.get(row, parent)
             .map(|entry| entry.data.file_type())
@@ -308,9 +317,9 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             .map(|entry| entry.data.file_size())
             .unwrap_or(None)
     }
-    fn set_file_path(&mut self, row: c_int, parent: usize, v: Option<String>) -> bool {
+    fn set_file_size(&mut self, row: c_int, parent: usize, v: Option<u64>) -> bool {
         self.get_mut(row, parent)
-            .map(|mut entry| entry.data.set_file_path(v))
+            .map(|mut entry| entry.data.set_file_size(v))
             .unwrap_or(false)
     }
 }
