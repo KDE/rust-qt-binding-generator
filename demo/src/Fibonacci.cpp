@@ -205,5 +205,9 @@ QHash<int, QByteArray> FibonacciList::roleNames() const {
 }
 bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    return false;
+    bool set = false;
+    if (set) {
+        emit dataChanged(index, index, QVector<int>() << role);
+    }
+    return set;
 }

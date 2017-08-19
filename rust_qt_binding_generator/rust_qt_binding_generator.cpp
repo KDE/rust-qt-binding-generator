@@ -539,6 +539,7 @@ QVariant %1::data(const QModelIndex &index, int role) const
 bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 )").arg(o.name);
+    cpp << "    bool set = false;\n";
     for (int col = 0; col < o.columnRoles.size(); ++col) {
         if (!isWrite(o.columnRoles[col])) {
             continue;
@@ -556,22 +557,21 @@ bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
                     test += " || value.isNull()";
                 }
                 cpp << "            if (" << test << ") {\n";
-                cpp << QString("                return %1_set_data_%2_none(d%3);")
+                cpp << QString("                set = %1_set_data_%2_none(d%3);")
                         .arg(lcname, snakeCase(role.name), index) << endl;
-                cpp << "            }\n";
+                cpp << "            } else\n";
             }
             QString val = QString("value.value<%1>()").arg(role.type.name);
-            if (role.type.isComplex()) {
-                val = "val";
-                cpp << QString("            const %1 val(value.value<%1>());\n").arg(role.type.name);
-            }
-            cpp << QString("            return %1_set_data_%2(d%3, %4);")
+            cpp << QString("            set = %1_set_data_%2(d%3, %4);")
                 .arg(lcname, snakeCase(role.name), index, val) << endl;
             cpp << "        }\n";
         }
         cpp << "    }\n";
     }
-    cpp << R"(    return false;
+    cpp << R"(    if (set) {
+        emit dataChanged(index, index, QVector<int>() << role);
+    }
+    return set;
 }
 )";
 }
