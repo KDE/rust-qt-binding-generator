@@ -61,4 +61,4 @@ endfunction(rust_test)
 
 rust_test(test_object rust_object)
 rust_test(test_object_types rust_object_types)
-
+rust_test(test_list rust_list)

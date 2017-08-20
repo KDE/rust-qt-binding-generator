@@ -1,1 +1,4 @@
-/common-rust/Cargo.lock
+/demo/rust/Cargo.lock
+/demo/rust/target/
+/tests/rust_*/Cargo.lock
+/tests/rust_*/target/

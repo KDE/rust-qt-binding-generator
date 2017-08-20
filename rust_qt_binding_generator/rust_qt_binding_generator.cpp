@@ -1310,6 +1310,15 @@ use %1::*;
 
 void writeRustImplementationObject(QTextStream& r, const Object& o) {
     const QString lcname(snakeCase(o.name));
+    if (o.type != ObjectType::Object) {
+        r << "#[derive (Default, Clone)]\n";
+        r << QString("struct %1Item {\n").arg(o.name);
+        for (auto role: o.allRoles) {
+            const QString lc(snakeCase(role.name));
+            r << QString("    %1: %2,\n").arg(lc, role.type.rustType);
+        }
+        r << "}\n\n";
+    }
     QString modelStruct = "";
     r << QString("pub struct %1 {\n    emit: %1Emitter,\n").arg((o.name));
     if (o.type == ObjectType::List) {
@@ -1323,6 +1332,9 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         const QString lc(snakeCase(p.name));
         r << QString("    %1: %2,\n").arg(lc, rustType(p));
     }
+    if (o.type == ObjectType::List) {
+        r << QString("    list: Vec<%1Item>,\n").arg(o.name);
+    }
     r << "}\n\n";
     r << QString(R"(impl %1Trait for %1 {
     fn create(emit: %1Emitter%2) -> %1 {
@@ -1335,6 +1347,10 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
         r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
+    }
+    if (o.type == ObjectType::List) {
+        r << QString("            list: vec![%1Item::default(); 10],\n")
+            .arg(o.name);
     }
     r << QString(R"(        }
     }
@@ -1364,15 +1380,23 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         if (o.type == ObjectType::UniformTree) {
             index = ", row: c_int, parent: usize";
         }
-        r << "    fn row_count(&self" << index << ") -> c_int {\n        10\n    }\n";
+        r << "    fn row_count(&self" << index << ") -> c_int {\n        self.list.len() as c_int\n    }\n";
         if (o.type == ObjectType::UniformTree) {
             index = ", parent: usize";
         }
         for (auto role: o.allRoles) {
+            const QString lc(snakeCase(role.name));
             r << QString("    fn %1(&self, row: c_int%3) -> %2 {\n")
-                    .arg(snakeCase(role.name), rustType(role), index);
-            r << "        " << rustTypeInit(role) << "\n";
+                    .arg(lc, rustType(role), index);
+            r << "        self.list[row as usize]." << lc << ".clone()\n";
             r << "    }\n";
+            if (role.write) {
+                r << QString("    fn set_%1(&mut self, row: c_int%3, v: %2) -> bool {\n")
+                        .arg(snakeCase(role.name), rustType(role), index);
+                r << "        self.list[row as usize]." << lc << " = v;\n";
+                r << "        true\n";
+                r << "    }\n";
+            }
         }
     }
     if (o.type == ObjectType::UniformTree) {

@@ -1,0 +1,23 @@
+{
+    "cppFile": "test_list_rust.cpp",
+    "rust": {
+        "dir": "rust_list",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation",
+        "typesModule": "types"
+    },
+    "objects": [{
+        "name": "Persons",
+        "type": "List",
+        "roles": [{
+            "name": "userName",
+            "value": "Qt::DisplayRole",
+            "type": "QString"
+        }, {
+            "name": "userName",
+            "value": "Qt::EditRole",
+            "type": "QString",
+            "write": true
+        }]
+    }]
+}
