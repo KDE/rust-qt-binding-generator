@@ -66,7 +66,7 @@ void copyWindowGeometry(QWidget* w, QQmlContext* c) {
     }
 }
 
-void createQtQuick(Models* models, QWidget* widgets) {
+void createQtQuick(const QString& name, const QString& qml, Models* models, QWidget* widgets) {
     QQmlApplicationEngine* engine = new QQmlApplicationEngine();
     QQmlContext* c = engine->rootContext();
     c->setContextProperty("fsModel", &models->tree);
@@ -76,9 +76,9 @@ void createQtQuick(Models* models, QWidget* widgets) {
     c->setContextProperty("styles", &models->styles);
     c->setContextProperty("widgets", widgets);
     c->setContextProperty("qtquickIndex",
-        QVariant(models->styles.stringList().indexOf("QtQuick")));
+        QVariant(models->styles.stringList().indexOf(name)));
     copyWindowGeometry(widgets, engine->rootContext());
-    engine->load(QUrl(QStringLiteral("qrc:///demo.qml")));
+    engine->load(QUrl(qml));
 }
 
 #endif
@@ -96,6 +96,9 @@ QComboBox* createStyleComboBox(Models* models) {
     }
 #ifdef QTQUICK
     box->addItem("QtQuick");
+#endif
+#ifdef QTQUICKCONTROLS2
+    box->addItem("QtQuick Controls 2");
 #endif
     return box;
 }
@@ -124,7 +127,13 @@ QWidget* createStyleTab(Models* models, QWidget* tabs) {
                 windowRect.setHeight(window->height());
             }
             tabs->setVisible(false);
-            createQtQuick(models, box);
+#ifdef QTQUICKCONTROLS2
+            if (text == "QtQuick Controls 2") {
+                createQtQuick("QtQuick Controls 2", "qrc:///demo-qtquick2.qml",
+                    models, box);
+            } else
+#endif
+            createQtQuick("QtQuick", "qrc:///demo.qml", models, box);
 #endif
         }
     });

@@ -2,7 +2,6 @@ import QtQuick 2.6
 import QtQml.Models 2.2
 import QtQuick.Controls 1.5
 import QtQuick.Layouts 1.3
-import rust 1.0
 
 ApplicationWindow {
     id: application
