@@ -27,8 +27,8 @@ ApplicationWindow {
             model: styles
             textRole: "display"
             onCurrentIndexChanged: {
-                if (currentText && currentText != "QtQuick Controls 2") {
-                    widgets.currentText = currentText;
+                if (currentIndex != qtquickIndex) {
+                    widgets.currentIndex = currentIndex;
                     application.close();
                 }
             }

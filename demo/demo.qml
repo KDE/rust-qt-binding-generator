@@ -23,8 +23,8 @@ ApplicationWindow {
                 model: styles
                 textRole: "display"
                 onCurrentIndexChanged: {
-                    if (currentText && currentText != "QtQuick") {
-                        widgets.currentText = currentText;
+                    if (currentIndex != qtquickIndex) {
+                        widgets.currentIndex = currentIndex;
                         application.close();
                     }
                 }
