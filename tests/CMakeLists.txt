@@ -1,6 +1,6 @@
-enable_testing()
 
 SET(GENERATOR "${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_custom_target("clean-rust")
 
@@ -33,6 +33,10 @@ function(rust_test NAME DIRECTORY)
         DEPENDS "${DIR}/${RUST_TARGET_DIR}/librust.a")
 
     add_executable("${NAME}" "${NAME}.cpp" "${NAME}_rust.cpp" "${NAME}_rust.h")
+    set_target_properties("${NAME}" PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED ON
+    )
     add_dependencies("${NAME}" "test_${DIRECTORY}")
     target_link_libraries("${NAME}"
         Qt5::Core

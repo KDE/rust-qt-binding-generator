@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>demo.qml</file>
+        <file>demo-qtquick2.qml</file>
     </qresource>
 </RCC>

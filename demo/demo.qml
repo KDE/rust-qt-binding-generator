@@ -5,18 +5,32 @@ import QtQuick.Layouts 1.3
 import rust 1.0
 
 ApplicationWindow {
-    width: 500
-    height: 480
+    id: application
+    x: windowX
+    y: windowY
+    width: windowWidth
+    height: windowHeight
     visible: true
     ItemSelectionModel {
         id: selectionModel
         model: fsModel
     }
-    FibonacciList {
-        id: fibonacciList
-    }
     TabView {
         anchors.fill: parent
+        Tab {
+            title: "style"
+            ComboBox {
+                currentIndex: qtquickIndex
+                model: styles
+                textRole: "display"
+                onCurrentIndexChanged: {
+                    if (currentText && currentText != "QtQuick") {
+                        widgets.currentText = currentText;
+                        application.close();
+                    }
+                }
+            }
+        }
         Tab {
             title: "object"
             RowLayout {
@@ -24,13 +38,11 @@ ApplicationWindow {
                     id: fibonacciInput
                     placeholderText: "Your number"
                     validator: IntValidator {bottom: 0; top: 100;}
+                    Component.onCompleted: { text = fibonacci.input }
+                    onTextChanged: { fibonacci.input = parseInt(text, 10) }
                 }
                 Text {
                     text: "The Fibonacci number: " + fibonacci.result
-                }
-                Fibonacci {
-                    id: fibonacci
-                    input: parseInt(fibonacciInput.text, 10)
                 }
             }
         }

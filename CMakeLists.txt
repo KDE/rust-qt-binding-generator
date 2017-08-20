@@ -3,34 +3,18 @@ project (rust_qt_binding_generator)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 cmake_policy(SET CMP0046 NEW)
 cmake_policy(SET CMP0063 NEW)
-set(QT_MIN_VERSION "5.3.0")
-set(KF5_MIN_VERSION "5.2.0")
+set(QT_MIN_VERSION "5.6.0")
 
-find_package(ECM 1.0.0 REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-include(ExternalProject)
-include(KDEInstallDirs)
-include(KDECMakeSettings)
-include(KDECompilerSettings)
 include(FeatureSummary)
-
-set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/Rust)
 
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS 
-    Core    # QCommandLineParser, QStringLiteral
-    Quick
+    Core
     Test
-    Widgets # QApplication 
 )
-
-# Find KDE modules
-find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
-    CoreAddons      # KAboutData
-    I18n            # KLocalizedString
-    WidgetsAddons   # KMessageBox
-)
+find_package(Qt5Widgets ${QT_MIN_VERSION} CONFIG)
+find_package(Qt5Quick ${QT_MIN_VERSION} CONFIG)
+set(CMAKE_AUTOMOC ON)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -44,6 +28,10 @@ else()
 endif()
 
 add_subdirectory(rust_qt_binding_generator)
+enable_testing()
 add_subdirectory(tests)
-add_subdirectory(demo)
+
+if(Qt5Widgets_FOUND)
+  add_subdirectory(demo)
+endif()
 

@@ -1,5 +1,6 @@
 set(CMAKE_AUTORCC ON)
 
+# generate c++ and rust code from fibonacci.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/fibonacci_interface.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/fibonacci_types.rs"
@@ -10,6 +11,7 @@ add_custom_command(
   DEPENDS rust_qt_binding_generator fibonacci.json
 )
 
+# generate c++ and rust code from tree.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/interface.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/types.rs"
@@ -20,6 +22,7 @@ add_custom_command(
   DEPENDS rust_qt_binding_generator tree.json
 )
 
+# compile the rust code into a static library
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a"
   COMMAND cargo build ${RUST_BUILD_FLAG}
@@ -34,6 +37,11 @@ add_custom_command(
 )
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
 
+if(Qt5Quick_FOUND)
+    add_definitions(-DQTQUICK)
+    set(Qt5Quick_LIBS Qt5::Quick)
+endif()
+
 set(Demo_SRCS src/main.cpp src/Tree.cpp src/Fibonacci.cpp
     resource_file.qrc)
 
@@ -41,11 +49,8 @@ add_executable(Demo ${Demo_SRCS})
 add_dependencies(Demo rust_target)
 
 target_link_libraries(Demo
-    Qt5::Quick
+    "${Qt5Quick_LIBS}"
     Qt5::Widgets
-    KF5::CoreAddons
-    KF5::I18n
-    KF5::WidgetsAddons
     "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a"
 )
 
