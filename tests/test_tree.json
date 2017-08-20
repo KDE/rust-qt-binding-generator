@@ -1,0 +1,23 @@
+{
+    "cppFile": "test_tree_rust.cpp",
+    "rust": {
+        "dir": "rust_tree",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation",
+        "typesModule": "types"
+    },
+    "objects": [{
+        "name": "Persons",
+        "type": "UniformTree",
+        "roles": [{
+            "name": "userName",
+            "value": "Qt::DisplayRole",
+            "type": "QString"
+        }, {
+            "name": "userName",
+            "value": "Qt::EditRole",
+            "type": "QString",
+            "write": true
+        }]
+    }]
+}

@@ -1332,7 +1332,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         const QString lc(snakeCase(p.name));
         r << QString("    %1: %2,\n").arg(lc, rustType(p));
     }
-    if (o.type == ObjectType::List) {
+    if (o.type != ObjectType::Object) {
         r << QString("    list: Vec<%1Item>,\n").arg(o.name);
     }
     r << "}\n\n";
@@ -1348,7 +1348,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         const QString lc(snakeCase(p.name));
         r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
     }
-    if (o.type == ObjectType::List) {
+    if (o.type != ObjectType::Object) {
         r << QString("            list: vec![%1Item::default(); 10],\n")
             .arg(o.name);
     }
