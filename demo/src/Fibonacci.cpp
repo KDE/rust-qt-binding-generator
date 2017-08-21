@@ -150,8 +150,8 @@ int FibonacciList::rowCount(const QModelIndex &parent) const
 
 QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!parent.isValid() && column == 0) {
-        return createIndex(row, 0, (quintptr)0);
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
+        return createIndex(row, column, (quintptr)0);
     }
     return QModelIndex();
 }
@@ -190,7 +190,8 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
-        case Qt::DisplayRole:
+        case 256:
+        case 0:
             v = fibonacci_list_data_result(d, index.row());
             break;
         }
@@ -199,8 +200,8 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     return v;
 }
 QHash<int, QByteArray> FibonacciList::roleNames() const {
-    QHash<int, QByteArray> names;
-    names.insert(Qt::DisplayRole, "result");
+    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
+    names.insert(256, "result");
     return names;
 }
 bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)

@@ -6,26 +6,27 @@
         "implementationModule": "fibonacci_implementation",
         "typesModule": "fibonacci_types"
     },
-    "objects": [{
-        "name": "Fibonacci",
-        "type": "Object",
-        "properties": [{
-            "name": "input",
-            "type": "quint32",
-            "write": true
-        }, {
-            "name": "result",
-            "type": "quint64"
-        }]
-    }, {
-        "name": "FibonacciList",
-        "type": "List",
-        "roles": [
-            [{
-                "name": "result",
-                "value": "Qt::DisplayRole",
-                "type": "quint64"
-            }]
-        ]
-    }]
+    "objects": {
+        "Fibonacci": {
+            "type": "Object",
+            "properties": {
+                "input": {
+                    "type": "quint32",
+                    "write": true
+                },
+                "result": {
+                    "type": "quint64"
+                }
+            }
+        },
+        "FibonacciList": {
+            "type": "List",
+            "itemProperties": {
+                "result": {
+                    "type": "quint64",
+                    "roles": [ [ "display" ] ]
+                }
+            }
+        }
+    }
 }

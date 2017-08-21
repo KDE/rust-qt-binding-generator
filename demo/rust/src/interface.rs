@@ -78,15 +78,12 @@ pub trait TreeTrait {
     fn can_fetch_more(&self, c_int, usize) -> bool { false }
     fn fetch_more(&mut self, c_int, usize) {}
     fn sort(&mut self, c_int, SortOrder) {}
-    fn file_name(&self, row: c_int, parent: usize) -> String;
-    fn set_file_name(&mut self, row: c_int, parent: usize, String) -> bool;
     fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8>;
+    fn file_name(&self, row: c_int, parent: usize) -> String;
     fn file_path(&self, row: c_int, parent: usize) -> Option<String>;
-    fn set_file_path(&mut self, row: c_int, parent: usize, Option<String>) -> bool;
     fn file_permissions(&self, row: c_int, parent: usize) -> i32;
-    fn file_type(&self, row: c_int, parent: usize) -> i32;
     fn file_size(&self, row: c_int, parent: usize) -> Option<u64>;
-    fn set_file_size(&mut self, row: c_int, parent: usize, Option<u64>) -> bool;
+    fn file_type(&self, row: c_int, parent: usize) -> i32;
     fn index(&self, row: c_int, parent: usize) -> usize;
     fn parent(&self, parent: usize) -> QModelIndex;
 }
@@ -166,26 +163,21 @@ pub unsafe extern "C" fn tree_sort(ptr: *mut Tree, column: c_int, order: SortOrd
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_name(ptr: *const Tree,
-                                    row: c_int, parent: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
-    let data = (&*ptr).file_name(row, parent);
-    set(d, QString::from(&data));
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn tree_set_data_file_name(ptr: *mut Tree, row: c_int, parent: usize, v: QStringIn) -> bool {
-    (&mut *ptr).set_file_name(row, parent, v.convert())
-}
-
-#[no_mangle]
 pub unsafe extern "C" fn tree_data_file_icon(ptr: *const Tree,
                                     row: c_int, parent: usize,
         d: *mut c_void,
         set: fn(*mut c_void, QByteArray)) {
     let data = (&*ptr).file_icon(row, parent);
     set(d, QByteArray::from(&data));
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tree_data_file_name(ptr: *const Tree,
+                                    row: c_int, parent: usize,
+        d: *mut c_void,
+        set: fn(*mut c_void, QString)) {
+    let data = (&*ptr).file_name(row, parent);
+    set(d, QString::from(&data));
 }
 
 #[no_mangle]
@@ -200,23 +192,8 @@ pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree,
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_set_data_file_path(ptr: *mut Tree, row: c_int, parent: usize, v: QStringIn) -> bool {
-    (&mut *ptr).set_file_path(row, parent, Some(v.convert()))
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn tree_set_data_file_path_none(ptr: *mut Tree, row: c_int, parent: usize) -> bool {
-    (&mut *ptr).set_file_path(row, parent, None)
-}
-
-#[no_mangle]
 pub unsafe extern "C" fn tree_data_file_permissions(ptr: *const Tree, row: c_int, parent: usize) -> i32 {
     (&*ptr).file_permissions(row, parent).into()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn tree_data_file_type(ptr: *const Tree, row: c_int, parent: usize) -> i32 {
-    (&*ptr).file_type(row, parent).into()
 }
 
 #[no_mangle]
@@ -225,13 +202,8 @@ pub unsafe extern "C" fn tree_data_file_size(ptr: *const Tree, row: c_int, paren
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_set_data_file_size(ptr: *mut Tree, row: c_int, parent: usize, v: u64) -> bool {
-    (&mut *ptr).set_file_size(row, parent, Some(v))
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn tree_set_data_file_size_none(ptr: *mut Tree, row: c_int, parent: usize) -> bool {
-    (&mut *ptr).set_file_size(row, parent, None)
+pub unsafe extern "C" fn tree_data_file_type(ptr: *const Tree, row: c_int, parent: usize) -> i32 {
+    (&*ptr).file_type(row, parent).into()
 }
 
 #[no_mangle]

@@ -1,7 +1,12 @@
 #include "Tree.h"
 #include "Fibonacci.h"
+#include "TimeSeries.h"
 
-#ifdef QTQUICK
+#ifdef QT_CHARTS_LIB
+#include <QtCharts>
+#endif
+
+#ifdef QT_QUICK_LIB
 #include <QQmlApplicationEngine>
 #include <QtQml/qqml.h>
 #include <QQmlContext>
@@ -19,21 +24,24 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QTableView>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QStyleFactory>
 #include <QTabWidget>
 #include <QTreeView>
+#include <QVBoxLayout>
 #include <QWindow>
 
 #include <cstdlib>
 
 struct Models {
-    Tree tree;
-    QSortFilterProxyModel sortedTree;
+    QStringListModel styles;
     Fibonacci fibonacci;
     FibonacciList fibonacciList;
-    QStringListModel styles;
+    Tree tree;
+    QSortFilterProxyModel sortedTree;
+    TimeSeries timeSeries;
 };
 
 void setStyle(QWidget* w, QStyle* style) {
@@ -54,7 +62,7 @@ QWindow* getWindow(QWidget* w) {
     return top->windowHandle();
 }
 
-#ifdef QTQUICK
+#ifdef QT_QUICK_LIB
 
 void copyWindowGeometry(QWidget* w, QQmlContext* c) {
     QWindow* window = getWindow(w);
@@ -94,7 +102,7 @@ QComboBox* createStyleComboBox(Models* models) {
             box->setCurrentText(v);
         }
     }
-#ifdef QTQUICK
+#ifdef QT_QUICK_LIB
     box->addItem("QtQuick");
 #endif
 #ifdef QTQUICKCONTROLS2
@@ -118,7 +126,7 @@ QWidget* createStyleTab(Models* models, QWidget* tabs) {
                 window->setHeight(windowRect.height());
             }
             setStyle(tabs, QStyleFactory::create(text.mid(9)));
-#ifdef QTQUICK
+#ifdef QT_QUICK_LIB
         } else {
             if (window) {
                 windowRect.setX(window->x());
@@ -188,6 +196,47 @@ QWidget* createTreeTab(Models* models) {
     return view;
 }
 
+#ifdef QT_CHARTS_LIB
+
+using namespace QtCharts;
+
+QWidget* createChartTab(Models* models) {
+    QLineSeries *series = new QLineSeries();
+    series->setName("Line 1");
+    QVXYModelMapper *mapper = new QVXYModelMapper(series);
+    mapper->setXColumn(0);
+    mapper->setYColumn(1);
+    mapper->setSeries(series);
+    mapper->setModel(&models->timeSeries);
+
+    QChart* chart = new QChart;
+    chart->addSeries(series);
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setTickCount(10);
+    axisX->setFormat("MMM yyyy");
+    axisX->setTitleText("Date");
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    QValueAxis *axisY = new QValueAxis;
+    axisY->setLabelFormat("%i");
+    axisY->setTitleText("Sunspots count");
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    QWidget* view = new QWidget;
+    QTableView* data = new QTableView;
+    data->setModel(&models->timeSeries);
+    QChartView *chartView = new QChartView(chart);
+
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->addWidget(data);
+    layout->addWidget(chartView);
+    view->setLayout(layout);
+    return view;
+}
+#endif
+
 void createWidgets(Models* models) {
     QTabWidget* tabs = new QTabWidget();
 
@@ -195,6 +244,9 @@ void createWidgets(Models* models) {
     tabs->addTab(createObjectTab(models), "object");
     tabs->addTab(createListTab(models), "list");
     tabs->addTab(createTreeTab(models), "tree");
+#ifdef QT_CHARTS_LIB
+    tabs->addTab(createChartTab(models), "chart");
+#endif
     tabs->setMinimumSize(QSize(500, 500));
     tabs->show();
 }
@@ -203,7 +255,7 @@ int main (int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-#ifdef QTQUICK
+#ifdef QT_QUICK_LIB
 
     qmlRegisterType<QSortFilterProxyModel>("org.qtproject.example", 1, 0, "SortFilterProxyModel");
     qmlRegisterType<Fibonacci>("rust", 1, 0, "Fibonacci");

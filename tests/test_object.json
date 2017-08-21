@@ -6,13 +6,15 @@
         "implementationModule": "implementation",
         "typesModule": "types"
     },
-    "objects": [{
-        "name": "Person",
-        "type": "Object",
-        "properties": [{
-            "name": "userName",
-            "type": "QString",
-            "write": true
-        }]
-    }]
+    "objects": {
+        "Person": {
+            "type": "Object",
+            "properties": {
+                "userName": {
+                    "type": "QString",
+                    "write": true
+                }
+            }
+        }
+    }
 }

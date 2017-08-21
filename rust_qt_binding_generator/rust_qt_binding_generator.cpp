@@ -1,6 +1,7 @@
 #include <QCommandLineParser>
 #include <QFile>
 #include <QDir>
+#include <QMetaEnum>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -99,20 +100,21 @@ struct Property {
     bool optional;
 };
 
-struct Role {
+struct ItemProperty {
     QString name;
-    QString value;
     BindingTypeProperties type;
     bool write;
     bool optional;
+    int userRole;
+    QList<QList<Qt::ItemDataRole>> roles;
 };
 
 struct Object {
     QString name;
     ObjectType type;
     QList<Property> properties;
-    QList<QList<Role>> columnRoles;
-    QList<Role> allRoles;
+    QList<ItemProperty> itemProperties;
+    int columnCount;
 };
 
 struct Configuration {
@@ -180,56 +182,51 @@ QString rustTypeInit(const T& p)
 }
 
 Property
-parseProperty(const QJsonObject& json) {
+parseProperty(const QString& name, const QJsonObject& json) {
     Property p;
-    p.name = json.value("name").toString();
+    p.name = name;
     p.type = parseBindingType(json.value("type").toString());
     p.write = json.value("write").toBool();
     p.optional = json.value("optional").toBool();
     return p;
 }
 
-Role
-parseRole(const QJsonObject& json) {
-    Role r;
-    r.name = json.value("name").toString();
-    r.value = json.value("value").toString();
-    r.type = parseBindingType(json.value("type").toString());
-    r.write = json.value("write").toBool();
-    r.optional = json.value("optional").toBool();
-    return r;
+Qt::ItemDataRole parseItemDataRole(const QString& s) {
+    const QString name = s.left(1).toUpper() + s.mid(1) + "Role";
+    int v = QMetaEnum::fromType<Qt::ItemDataRole>()
+            .keyToValue(name.toUtf8());
+    if (v >= 0) {
+        return (Qt::ItemDataRole)v;
+    }
+    err << QCoreApplication::translate("main",
+        "%1 is not a valid role name.\n").arg(s);
+    err.flush();
+    exit(1);
 }
 
-QList<Role> parseRoles(const QJsonArray& roles, QList<Role>& all) {
-    QList<Role> r;
-    for (const QJsonValue& val: roles) {
-        const Role role = parseRole(val.toObject());
-        r.append(role);
-        bool found = false;
-        for (Role& ar: all) {
-            if (ar.name == role.name) {
-                found = true;
-                ar.write |= role.write;
-                if (ar.type.name != role.type.name) {
-                    err << QCoreApplication::translate("main",
-                        "Role %1 has two different types: %2 and %3.\n")
-                           .arg(ar.name, ar.type.name, role.type.name);
-                    err.flush();
-                    exit(1);
-                }
-            }
+ItemProperty
+parseItemProperty(const QString& name, const QJsonObject& json, int userRole) {
+    ItemProperty ip;
+    ip.name = name;
+    ip.type = parseBindingType(json.value("type").toString());
+    ip.write = json.value("write").toBool();
+    ip.optional = json.value("optional").toBool();
+    ip.userRole = userRole;
+    QJsonArray roles = json.value("roles").toArray();
+    for (auto r: roles) {
+        QList<Qt::ItemDataRole> l;
+        for (auto v: r.toArray()) {
+            l.append(parseItemDataRole(v.toString()));
         }
-        if (!found) {
-            all.append(role);
-        }
+        ip.roles.append(l);
     }
-    return r;
+    return ip;
 }
 
 Object
-parseObject(const QJsonObject& json) {
+parseObject(const QString& name, const QJsonObject& json) {
     Object o;
-    o.name = json.value("name").toString();
+    o.name = name;
     QString type = json.value("type").toString();
     if (type == "List") {
         o.type = ObjectType::List;
@@ -238,22 +235,28 @@ parseObject(const QJsonObject& json) {
     } else {
         o.type = ObjectType::Object;
     }
-    for (const QJsonValue& val: json.value("properties").toArray()) {
-        o.properties.append(parseProperty(val.toObject()));
+    const QJsonObject& properties = json.value("properties").toObject();
+    for (const QString& key: properties.keys()) {
+        o.properties.append(parseProperty(key, properties[key].toObject()));
     }
-    QJsonArray roles = json.value("roles").toArray();
-    if (o.type != ObjectType::Object && roles.size() == 0) {
+    const QJsonObject& itemProperties = json.value("itemProperties").toObject();
+    if (o.type != ObjectType::Object && itemProperties.size() == 0) {
         err << QCoreApplication::translate("main",
-            "No roles are defined for %1.\n").arg(o.name);
+            "No item properties are defined for %1.\n").arg(o.name);
+        err.flush();
+        exit(1);
+    } else if (o.type == ObjectType::Object && itemProperties.size() > 0) {
+        err << QCoreApplication::translate("main",
+            "%1 is an Object and should not have itemProperties.").arg(o.name);
         err.flush();
         exit(1);
     }
-    if (roles.at(0).isArray()) {
-        for (const QJsonValue& val: roles) {
-            o.columnRoles.append(parseRoles(val.toArray(), o.allRoles));
-        }
-    } else {
-        o.columnRoles.append(parseRoles(roles, o.allRoles));
+    o.columnCount = 0;
+    for (const QString& key: itemProperties.keys()) {
+        ItemProperty p = parseItemProperty(key, itemProperties[key].toObject(),
+                          Qt::UserRole + o.itemProperties.size());
+        o.columnCount = qMax(o.columnCount, p.roles.size());
+        o.itemProperties.append(p);
     }
     return o;
 }
@@ -281,8 +284,9 @@ parseConfiguration(const QString& path) {
     c.cppFile = QFileInfo(base, o.value("cppFile").toString());
     QDir(c.cppFile.dir()).mkpath(".");
     c.hFile = QFileInfo(c.cppFile.dir(), c.cppFile.completeBaseName() + ".h");
-    for (const QJsonValue& val: o.value("objects").toArray()) {
-        c.objects.append(parseObject(val.toObject()));
+    const QJsonObject& object = o.value("objects").toObject();
+    for (const QString& key: object.keys()) {
+        c.objects.append(parseObject(key, object[key].toObject()));
     }
     const QJsonObject rust = o.value("rust").toObject();
     c.rustdir = QDir(base.filePath(rust.value("dir").toString()));
@@ -336,12 +340,13 @@ signals:
 )");
 }
 
-bool isWrite(const QList<Role>& roles) {
-    bool write = false;
-    for (auto role: roles) {
-        write = write | role.write;
+bool isColumnWrite(const Object& o, int col) {
+    for (auto ip: o.itemProperties) {
+        if (ip.write && ip.roles.size() > col && ip.roles[col].size() > 0) {
+            return true;
+        }
     }
-    return write;
+    return false;
 }
 
 void writeCppModel(QTextStream& cpp, const Object& o) {
@@ -354,20 +359,20 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
     }
 
     cpp << "extern \"C\" {\n";
-    for (auto role: o.allRoles) {
-        if (role.type.isComplex()) {
+    for (auto ip: o.itemProperties) {
+        if (ip.type.isComplex()) {
             cpp << QString("    void %2_data_%3(const %1::Private*%5, %4);\n")
-                .arg(o.name, lcname, snakeCase(role.name), cGetType(role.type), indexDecl);
+                .arg(o.name, lcname, snakeCase(ip.name), cGetType(ip.type), indexDecl);
         } else {
             cpp << QString("    %4 %2_data_%3(const %1::Private*%5);\n")
-                .arg(o.name, lcname, snakeCase(role.name), cppSetType(role), indexDecl);
+                .arg(o.name, lcname, snakeCase(ip.name), cppSetType(ip), indexDecl);
         }
-        if (role.write) {
+        if (ip.write) {
             cpp << QString("    bool %2_set_data_%3(%1::Private*%5, %4);")
-                .arg(o.name, lcname, snakeCase(role.name), role.type.cSetType, indexDecl) << endl;
-            if (role.optional) {
+                .arg(o.name, lcname, snakeCase(ip.name), ip.type.cSetType, indexDecl) << endl;
+            if (ip.optional) {
                 cpp << QString("    bool %2_set_data_%3_none(%1::Private*%4);")
-                    .arg(o.name, lcname, snakeCase(role.name), indexDecl) << endl;
+                    .arg(o.name, lcname, snakeCase(ip.name), indexDecl) << endl;
             }
         }
     }
@@ -395,8 +400,8 @@ int %1::rowCount(const QModelIndex &parent) const
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!parent.isValid() && column == 0) {
-        return createIndex(row, 0, (quintptr)0);
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < %3) {
+        return createIndex(row, column, (quintptr)0);
     }
     return QModelIndex();
 }
@@ -417,7 +422,7 @@ void %1::fetchMore(const QModelIndex &parent)
         %2_fetch_more(d);
     }
 }
-)").arg(o.name, lcname, QString::number(o.columnRoles.size()));
+)").arg(o.name, lcname, QString::number(o.columnCount));
     } else {
         cpp << QString(R"(
     int %2_row_count(const %1::Private*, int, quintptr);
@@ -477,7 +482,7 @@ void %1::fetchMore(const QModelIndex &parent)
 {
     %2_fetch_more(d, parent.row(), parent.internalId());
 }
-)").arg(o.name, lcname, QString::number(o.columnRoles.size()));
+)").arg(o.name, lcname, QString::number(o.columnCount));
     }
 
     cpp << QString(R"(
@@ -489,8 +494,8 @@ Qt::ItemFlags %1::flags(const QModelIndex &i) const
 {
     auto flags = QAbstractItemModel::flags(i);
 )").arg(o.name, lcname);
-    for (int col = 0; col < o.columnRoles.size(); ++col) {
-        if (isWrite(o.columnRoles[col])) {
+    for (int col = 0; col < o.columnCount; ++col) {
+        if (isColumnWrite(o, col)) {
             cpp << "    if (i.column() == " << col << ") {\n";
             cpp << "        flags |= Qt::ItemIsEditable;\n    }\n";
         }
@@ -505,23 +510,25 @@ QVariant %1::data(const QModelIndex &index, int role) const
     switch (index.column()) {
 )").arg(o.name);
 
-    for (int col = 0; col < o.columnRoles.size(); ++col) {
-        auto roles = o.columnRoles[col];
+    for (int col = 0; col < o.columnCount; ++col) {
         cpp << QString("    case %1:\n").arg(col);
         cpp << QString("        switch (role) {\n");
-        for (auto role: roles) {
-            cpp << QString("        case %1:\n").arg(role.value);
-            if (role.type.name == "QString") {
+        for (auto ip: o.itemProperties) {
+            cpp << QString("        case %1:\n").arg(ip.userRole);
+            for (auto r: ip.roles.value(col)) {
+                cpp << QString("        case %1:\n").arg(r);
+            }
+            if (ip.type.name == "QString") {
                 cpp << QString("            %1_data_%2(d%4, &s, set_%3);\n")
-                       .arg(lcname, snakeCase(role.name), role.type.name.toLower(), index);
+                       .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), index);
                 cpp << "            if (!s.isNull()) v.setValue<QString>(s);\n";
-            } else if (role.type.name == "QByteArray") {
+            } else if (ip.type.name == "QByteArray") {
                 cpp << QString("            %1_data_%2(d%4, &b, set_%3);\n")
-                       .arg(lcname, snakeCase(role.name), role.type.name.toLower(), index);
+                       .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), index);
                 cpp << "            if (!b.isNull()) v.setValue<QByteArray>(b);\n";
             } else {
                 cpp << QString("            v = %1_data_%2(d%3);\n")
-                       .arg(lcname, snakeCase(role.name), index);
+                       .arg(lcname, snakeCase(ip.name), index);
             }
             cpp << "            break;\n";
         }
@@ -530,9 +537,9 @@ QVariant %1::data(const QModelIndex &index, int role) const
     }
     cpp << "    }\n    return v;\n}\n";
     cpp << "QHash<int, QByteArray> " << o.name << "::roleNames() const {\n";
-    cpp << "    QHash<int, QByteArray> names;\n";
-    for (auto role: o.allRoles) {
-        cpp << "    names.insert(" << role.value << ", \"" << role.name << "\");\n";
+    cpp << "    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();\n";
+    for (auto ip: o.itemProperties) {
+        cpp << "    names.insert(" << ip.userRole << ", \"" << ip.name << "\");\n";
     }
     cpp << "    return names;\n";
     cpp << QString(R"(}
@@ -540,30 +547,33 @@ bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 )").arg(o.name);
     cpp << "    bool set = false;\n";
-    for (int col = 0; col < o.columnRoles.size(); ++col) {
-        if (!isWrite(o.columnRoles[col])) {
+    for (int col = 0; col < o.columnCount; ++col) {
+        if (!isColumnWrite(o, col)) {
             continue;
         }
         cpp << "    if (index.column() == " << col << ") {\n";
-        auto roles = o.columnRoles[col];
-        for (auto role: roles) {
-            if (!role.write) {
+        for (auto ip: o.itemProperties) {
+            if (!ip.write) {
                 continue;
             }
-            cpp << "        if (role == " << role.value << ") {\n";
-            if (role.optional) {
+            cpp << "        if (role == " << ip.userRole;
+            for (auto r: ip.roles.value(col)) {
+                cpp << QString(" || role == %1").arg(r);
+            }
+            cpp << ") {\n";
+            if (ip.optional) {
                 QString test = "!value.isValid()";
-                if (role.type.isComplex()) {
+                if (ip.type.isComplex()) {
                     test += " || value.isNull()";
                 }
                 cpp << "            if (" << test << ") {\n";
                 cpp << QString("                set = %1_set_data_%2_none(d%3);")
-                        .arg(lcname, snakeCase(role.name), index) << endl;
+                        .arg(lcname, snakeCase(ip.name), index) << endl;
                 cpp << "            } else\n";
             }
-            QString val = QString("value.value<%1>()").arg(role.type.name);
+            QString val = QString("value.value<%1>()").arg(ip.type.name);
             cpp << QString("            set = %1_set_data_%2(d%3, %4);")
-                .arg(lcname, snakeCase(role.name), index, val) << endl;
+                .arg(lcname, snakeCase(ip.name), index, val) << endl;
             cpp << "        }\n";
         }
         cpp << "    }\n";
@@ -1032,12 +1042,12 @@ pub trait %1Trait {
         } else if (o.type == ObjectType::UniformTree) {
             index = ", row: c_int, parent: usize";
         }
-        for (auto role: o.allRoles) {
+        for (auto ip: o.itemProperties) {
             r << QString("    fn %1(&self%3) -> %2;\n")
-                    .arg(snakeCase(role.name), rustType(role), index);
-            if (role.write) {
+                    .arg(snakeCase(ip.name), rustType(ip), index);
+            if (ip.write) {
                 r << QString("    fn set_%1(&mut self%3, %2) -> bool;\n")
-                    .arg(snakeCase(role.name), rustType(role), index);
+                    .arg(snakeCase(ip.name), rustType(ip), index);
             }
         }
     }
@@ -1207,8 +1217,8 @@ pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: c_int, order: SortOrder) 
             indexDecl = ", parent: usize";
             index = ", parent";
         }
-        for (auto role: o.allRoles) {
-            if (role.type.isComplex() && !role.optional) {
+        for (auto ip: o.itemProperties) {
+            if (ip.type.isComplex() && !ip.optional) {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
@@ -1218,8 +1228,8 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
     let data = (&*ptr).%3(row%6);
     set(d, %4::from(&data));
 }
-)").arg(o.name, lcname, snakeCase(role.name), role.type.name, indexDecl, index);
-            } else if (role.type.isComplex()) {
+)").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index);
+            } else if (ip.type.isComplex()) {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
@@ -1231,23 +1241,23 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1,
         set(d, %4::from(&data));
     }
 }
-)").arg(o.name, lcname, snakeCase(role.name), role.type.name, indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index);
             } else {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
     (&*ptr).%3(row%6).into()
 }
-)").arg(o.name, lcname, snakeCase(role.name), rustCType(role), indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), rustCType(ip), indexDecl, index);
             }
-            if (role.write) {
+            if (ip.write) {
                 QString val = "v";
-                QString type = role.type.rustType;
-                if (role.type.isComplex()) {
+                QString type = ip.type.rustType;
+                if (ip.type.isComplex()) {
                     val = val + ".convert()";
-                    type = role.type.name == "QString" ? "QStringIn" : role.type.name;
+                    type = ip.type.name == "QString" ? "QStringIn" : ip.type.name;
                 }
-                if (role.optional) {
+                if (ip.optional) {
                     val = "Some(" + val + ")";
                 }
                 r << QString(R"(
@@ -1255,15 +1265,15 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1, row: c_int%5) -> %4 {
 pub unsafe extern "C" fn %2_set_data_%3(ptr: *mut %1, row: c_int%4, v: %6) -> bool {
     (&mut *ptr).set_%3(row%5, %7)
 }
-)").arg(o.name, lcname, snakeCase(role.name), indexDecl, index, type, val);
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, type, val);
             }
-            if (role.write && role.optional) {
+            if (ip.write && ip.optional) {
                 r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_set_data_%3_none(ptr: *mut %1, row: c_int%4) -> bool {
     (&mut *ptr).set_%3(row%5, None)
 }
-)").arg(o.name, lcname, snakeCase(role.name), indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
             }
         }
     }    
@@ -1313,9 +1323,9 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     if (o.type != ObjectType::Object) {
         r << "#[derive (Default, Clone)]\n";
         r << QString("struct %1Item {\n").arg(o.name);
-        for (auto role: o.allRoles) {
-            const QString lc(snakeCase(role.name));
-            r << QString("    %1: %2,\n").arg(lc, role.type.rustType);
+        for (auto ip: o.itemProperties) {
+            const QString lc(snakeCase(ip.name));
+            r << QString("    %1: %2,\n").arg(lc, ip.type.rustType);
         }
         r << "}\n\n";
     }
@@ -1384,15 +1394,15 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         if (o.type == ObjectType::UniformTree) {
             index = ", parent: usize";
         }
-        for (auto role: o.allRoles) {
-            const QString lc(snakeCase(role.name));
+        for (auto ip: o.itemProperties) {
+            const QString lc(snakeCase(ip.name));
             r << QString("    fn %1(&self, row: c_int%3) -> %2 {\n")
-                    .arg(lc, rustType(role), index);
+                    .arg(lc, rustType(ip), index);
             r << "        self.list[row as usize]." << lc << ".clone()\n";
             r << "    }\n";
-            if (role.write) {
+            if (ip.write) {
                 r << QString("    fn set_%1(&mut self, row: c_int%3, v: %2) -> bool {\n")
-                        .arg(snakeCase(role.name), rustType(role), index);
+                        .arg(snakeCase(ip.name), rustType(ip), index);
                 r << "        self.list[row as usize]." << lc << " = v;\n";
                 r << "        true\n";
                 r << "    }\n";

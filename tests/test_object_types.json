@@ -6,44 +6,45 @@
         "implementationModule": "implementation",
         "typesModule": "types"
     },
-    "objects": [{
-        "name": "Object",
-        "type": "Object",
-        "properties": [{
-            "name": "boolean",
-            "type": "bool",
-            "write": true
-        }, {
-            "name": "integer",
-            "type": "qint32",
-            "write": true
-        }, {
-            "name": "uinteger",
-            "type": "quint32",
-            "write": true
-        }, {
-            "name": "u64",
-            "type": "quint64",
-            "write": true
-        }, {
-            "name": "string",
-            "type": "QString",
-            "write": true,
-            "nullable": true
-        }, {
-            "name": "optionalString",
-            "type": "QString",
-            "write": true,
-            "optional": true
-        }, {
-            "name": "bytearray",
-            "type": "QByteArray",
-            "write": true
-        }, {
-            "name": "optionalBytearray",
-            "type": "QByteArray",
-            "write": true,
-            "optional": true
-        }]
-    }]
+    "objects": {
+        "Object": {
+            "type": "Object",
+            "properties": {
+                "boolean": {
+                    "type": "bool",
+                    "write": true
+                },
+                "integer": {
+                    "type": "qint32",
+                    "write": true
+                },
+                "uinteger": {
+                    "type": "quint32",
+                    "write": true
+                },
+                "u64": {
+                    "type": "quint64",
+                    "write": true
+                },
+                "string": {
+                    "type": "QString",
+                    "write": true
+                },
+                "optionalString": {
+                    "type": "QString",
+                    "write": true,
+                    "optional": true
+                },
+                "bytearray": {
+                    "type": "QByteArray",
+                    "write": true
+                },
+                "optionalBytearray": {
+                    "type": "QByteArray",
+                    "write": true,
+                    "optional": true
+                }
+            }
+        }
+    }
 }

@@ -6,84 +6,44 @@
         "implementationModule": "implementation",
         "typesModule": "types"
     },
-    "objects": [{
-        "name": "Tree",
-        "type": "UniformTree",
-        "properties": [{
-            "name": "path",
-            "type": "QString",
-            "write": true,
-            "optional": true
-        }],
-        "roles": [
-            [{
-                "name": "fileName",
-                "value": "Qt::DisplayRole",
-                "type": "QString",
-                "write": true
-            }, {
-                "name": "fileName",
-                "value": "Qt::EditRole",
-                "type": "QString",
-                "write": true
-            }, {
-                "name": "fileIcon",
-                "value": "Qt::DecorationRole",
-                "type": "QByteArray"
-            }, {
-                "name": "filePath",
-                "value": "Qt::UserRole + 1",
-                "type": "QString",
-                "write": true,
-                "optional": true
-            }, {
-                "name": "fileName",
-                "value": "Qt::UserRole + 2",
-                "type": "QString"
-            }, {
-                "name": "filePermissions",
-                "value": "Qt::UserRole + 3",
-                "type": "qint32"
-            }, {
-                "name": "fileType",
-                "value": "Qt::UserRole + 4",
-                "type": "qint32"
-            }, {
-                "name": "fileSize",
-                "value": "Qt::UserRole + 5",
-                "type": "quint64",
-                "optional": true
-            }],
-            [{
-                "name": "filePath",
-                "value": "Qt::DisplayRole",
-                "type": "QString",
-                "write": true,
-                "optional": true
-            }, {
-                "name": "filePath",
-                "value": "Qt::EditRole",
-                "type": "QString",
-                "write": true,
-                "optional": true
-            }],
-            [{
-                "name": "filePermissions",
-                "value": "Qt::DisplayRole",
-                "type": "qint32"
-            }],
-            [{
-                "name": "fileType",
-                "value": "Qt::DisplayRole",
-                "type": "qint32"
-            }],
-            [{
-                "name": "fileSize",
-                "value": "Qt::DisplayRole",
-                "type": "quint64",
-                "write": true,
-                "optional": true
-            }]
-        ]
-    }]
+    "objects": {
+        "Tree": {
+            "type": "UniformTree",
+            "properties": {
+                "path": {
+                    "type": "QString",
+                    "write": true,
+                    "optional": true
+                }
+            },
+            "itemProperties": {
+                "fileName": {
+                    "type": "QString",
+                    "roles": [ ["display"] ]
+                },
+                "fileIcon": {
+                    "type": "QByteArray",
+                    "roles": [ ["decoration"] ]
+                },
+                "fileSize": {
+                    "type": "quint64",
+                    "optional": true,
+                    "roles": [ [], ["display"] ]
+                },
+                "filePath": {
+                    "type": "QString",
+                    "optional": true,
+                    "roles": [ [], [], ["display"] ]
+                },
+                "filePermissions": {
+                    "type": "qint32",
+                    "roles": [ [], [], [], ["display"] ]
+                },
+                "fileType": {
+                    "type": "qint32",
+                    "roles": [ [], [], [], [],["display"] ]
+                }
+            }
+        }
+    }
 }

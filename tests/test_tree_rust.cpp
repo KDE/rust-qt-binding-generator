@@ -183,11 +183,9 @@ QVariant Persons::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
-        case Qt::DisplayRole:
-            persons_data_user_name(d, index.row(), index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
-        case Qt::EditRole:
+        case 256:
+        case 0:
+        case 2:
             persons_data_user_name(d, index.row(), index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
@@ -197,15 +195,15 @@ QVariant Persons::data(const QModelIndex &index, int role) const
     return v;
 }
 QHash<int, QByteArray> Persons::roleNames() const {
-    QHash<int, QByteArray> names;
-    names.insert(Qt::DisplayRole, "userName");
+    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
+    names.insert(256, "userName");
     return names;
 }
 bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     bool set = false;
     if (index.column() == 0) {
-        if (role == Qt::EditRole) {
+        if (role == 256 || role == 0 || role == 2) {
             set = persons_set_data_user_name(d, index.row(), index.internalId(), value.value<QString>());
         }
     }
