@@ -178,7 +178,7 @@ QModelIndex %1::parent(const QModelIndex &index) const
         return QModelIndex();
     }
     const qmodelindex_t parent = %2_parent(d, index.internalId());
-    return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
+    return parent.row >= 0 ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
 bool %1::canFetchMore(const QModelIndex &parent) const

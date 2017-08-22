@@ -106,7 +106,7 @@ QModelIndex Tree::parent(const QModelIndex &index) const
         return QModelIndex();
     }
     const qmodelindex_t parent = tree_parent(d, index.internalId());
-    return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
+    return parent.row >= 0 ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
 bool Tree::canFetchMore(const QModelIndex &parent) const

@@ -102,7 +102,7 @@ QModelIndex Persons::parent(const QModelIndex &index) const
         return QModelIndex();
     }
     const qmodelindex_t parent = persons_parent(d, index.internalId());
-    return parent.id ?createIndex(parent.row, 0, parent.id) :QModelIndex();
+    return parent.row >= 0 ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
 bool Persons::canFetchMore(const QModelIndex &parent) const

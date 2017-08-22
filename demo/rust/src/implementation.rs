@@ -94,7 +94,7 @@ pub trait Item: Default {
 pub type Tree = RGeneralItemModel<DirEntry>;
 
 struct Entry<T: Item> {
-    id: usize,
+    parent: usize,
     row: usize,
     children: Option<Vec<usize>>,
     data: T,
@@ -112,24 +112,16 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
     fn reset(&mut self) {
         self.model.begin_reset_model();
         self.entries.clear();
-        let none0 = Entry {
-            id: 0,
-            row: 0,
-            children: Some(vec![1]),
-            data: T::default(),
-        };
-        self.entries.push(none0);
-        let none1 = Entry {
-            id: 0,
+        self.entries.push(Entry {
+            parent: 0,
             row: 0,
             children: None,
             data: T::default(),
-        };
-        self.entries.push(none1);
+        });
         if let Some(ref path) = self.path {
-            self.entries[1].children = Some(vec![2]);
+            self.entries[0].children = Some(vec![1]);
             let root = Entry {
-                id: 1,
+                parent: 0,
                 row: 0,
                 children: None,
                 data: T::create(&path),
@@ -137,16 +129,6 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
             self.entries.push(root);
         }
         self.model.end_reset_model();
-    }
-    fn get_index(&self, item: usize, row: usize) -> Option<usize> {
-        // for an invalid index return the root
-        if item == 0 {
-            return Some(1);
-        }
-        self.entries.get(item)
-            .and_then(|i| i.children.as_ref())
-            .and_then(|i| i.get(row))
-            .map(|i| *i)
     }
     fn get(&self, item: usize) -> &Entry<T> {
         &self.entries[item]
@@ -157,33 +139,34 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         T::retrieve(item, parents, incoming, self.emit.clone());
     }
     fn process_incoming(&mut self) {
-        let mut incoming = self.incoming.lock().unwrap();
-        for (id, entries) in incoming.drain() {
-            if self.entries[id].children.is_some() {
-                continue;
-            }
-            let mut new_entries = Vec::new();
-            let mut children = Vec::new();
-            {
-                for (r, d) in entries.into_iter().enumerate() {
-                    let e = Entry {
-                        id: id,
-                        row: r,
-                        children: None,
-                        data: d,
-                    };
-                    children.push(self.entries.len() + r);
-                    new_entries.push(e);
+        if let Ok(ref mut incoming) = self.incoming.try_lock() {
+            for (id, entries) in incoming.drain() {
+                if self.entries[id].children.is_some() {
+                    continue;
                 }
+                let mut new_entries = Vec::new();
+                let mut children = Vec::new();
+                {
+                    for (r, d) in entries.into_iter().enumerate() {
+                        let e = Entry {
+                            parent: id,
+                            row: r,
+                            children: None,
+                            data: d,
+                        };
+                        children.push(self.entries.len() + r);
+                        new_entries.push(e);
+                    }
+                    if new_entries.len() > 0 {
+                        self.model.begin_insert_rows(id, 0,
+                            (new_entries.len() - 1));
+                    }
+                }
+                self.entries[id].children = Some(children);
                 if new_entries.len() > 0 {
-                    self.model.begin_insert_rows(id, 0,
-                        (new_entries.len() - 1));
+                    self.entries.append(&mut new_entries);
+                    self.model.end_insert_rows();
                 }
-            }
-            self.entries[id].children = Some(children);
-            if new_entries.len() > 0 {
-                self.entries.append(&mut new_entries);
-                self.model.end_insert_rows();
             }
         }
     }
@@ -192,7 +175,7 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         let mut e = Vec::new();
         while pos > 0 {
             e.push(pos);
-            pos = self.entries[pos].id;
+            pos = self.entries[pos].parent;
         }
         e.into_iter().rev().map(|i| &self.entries[i].data).collect()
     }
@@ -245,14 +228,18 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
         r
     }
     fn index(&self, item: usize, row: usize) -> usize {
-        self.get_index(item, row).unwrap_or(0)
+        self.entries.get(item)
+            .and_then(|i| i.children.as_ref())
+            .and_then(|i| i.get(row))
+            .map(|i| *i)
+            .unwrap_or(0)
     }
-    fn parent(&self, index: usize) -> QModelIndex {
-        if index >= self.entries.len() {
+    fn parent(&self, item: usize) -> QModelIndex {
+        if item >= self.entries.len() || item == 0 {
             return QModelIndex::invalid();
         }
-        let entry = &self.entries[index];
-        QModelIndex::create(entry.row as i32, entry.id)
+        let entry = &self.entries[item];
+        QModelIndex::create(entry.row as i32, entry.parent)
     }
     fn file_name(&self, item: usize) -> String {
         self.get(item).data.file_name()
