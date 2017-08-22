@@ -4,10 +4,9 @@
 namespace {
     template <typename T>
     struct option {
-    private:
+    public:
         T value;
         bool some;
-    public:
         operator QVariant() const {
             if (some) {
                 return QVariant(value);

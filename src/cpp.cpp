@@ -65,8 +65,8 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
     QString indexDecl = ", int";
     QString index = ", index.row()";
     if (o.type == ObjectType::UniformTree) {
-        indexDecl = ", int, quintptr";
-        index = ", index.row(), index.internalId()";
+        indexDecl = ", quintptr";
+        index = ", index.internalId()";
     }
 
     cpp << "extern \"C\" {\n";
@@ -136,11 +136,12 @@ void %1::fetchMore(const QModelIndex &parent)
 )").arg(o.name, lcname, QString::number(o.columnCount));
     } else {
         cpp << QString(R"(
-    int %2_row_count(const %1::Private*, int, quintptr);
-    bool %2_can_fetch_more(const %1::Private*, int, quintptr);
-    void %2_fetch_more(%1::Private*, int, quintptr);
-    quintptr %2_index(const %1::Private*, int, quintptr);
+    int %2_row_count(const %1::Private*, quintptr, bool);
+    bool %2_can_fetch_more(const %1::Private*, quintptr, bool);
+    void %2_fetch_more(%1::Private*, quintptr, bool);
+    quintptr %2_index(const %1::Private*, quintptr, bool, int);
     qmodelindex_t %2_parent(const %1::Private*, quintptr);
+    int %2_row(const %1::Private*, quintptr);
 }
 int %1::columnCount(const QModelIndex &) const
 {
@@ -157,7 +158,7 @@ int %1::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return %2_row_count(d, parent.row(), parent.internalId());
+    return %2_row_count(d, parent.internalId(), parent.isValid());
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
@@ -168,7 +169,10 @@ QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return QModelIndex();
     }
-    const quintptr id = %2_index(d, parent.row(), parent.internalId());
+    if (row >= rowCount(parent)) {
+        return QModelIndex();
+    }
+    const quintptr id = %2_index(d, parent.internalId(), parent.isValid(), row);
     return createIndex(row, column, id);
 }
 
@@ -186,12 +190,12 @@ bool %1::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return %2_can_fetch_more(d, parent.row(), parent.internalId());
+    return %2_can_fetch_more(d, parent.internalId(), parent.isValid());
 }
 
 void %1::fetchMore(const QModelIndex &parent)
 {
-    %2_fetch_more(d, parent.row(), parent.internalId());
+    %2_fetch_more(d, parent.internalId(), parent.isValid());
 }
 )").arg(o.name, lcname, QString::number(o.columnCount));
     }
@@ -366,12 +370,12 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
-        void (*)(const %1*, quintptr),
+        void (*)(const %1*, quintptr, bool),
         void (*)(%1*),
         void (*)(%1*),
-        void (*)(%1*, quintptr, int, int),
+        void (*)(%1*, option<quintptr>, int, int),
         void (*)(%1*),
-        void (*)(%1*, quintptr, int, int),
+        void (*)(%1*, option<quintptr>, int, int),
         void (*)(%1*))").arg(o.name);
     }
     cpp << ");" << endl;
@@ -438,9 +442,13 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
-        [](const %1* o, quintptr id) {
-            auto i = %2_parent(o->d, id);
-            emit o->newDataReady(o->createIndex(i.row, 0, i.id));
+        [](const %1* o, quintptr id, bool valid) {
+            if (valid) {
+                int row = %2_row(o->d, id);
+                emit o->newDataReady(o->createIndex(row, 0, id));
+            } else {
+                emit o->newDataReady(QModelIndex());
+            }
         },
         [](%1* o) {
             o->beginResetModel();
@@ -448,16 +456,24 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         [](%1* o) {
             o->endResetModel();
         },
-        [](%1* o, quintptr id, int first, int last) {
-                       auto i = %2_parent(o->d, id);
-            o->beginInsertRows(o->createIndex(i.row, 0, i.id), first, last);
+        [](%1* o, option<quintptr> id, int first, int last) {
+            if (id.some) {
+                int row = %2_row(o->d, id.value);
+                o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
+            } else {
+                o->beginInsertRows(QModelIndex(), first, last);
+            }
         },
         [](%1* o) {
             o->endInsertRows();
         },
-        [](%1* o, quintptr id, int first, int last) {
-                       auto i = %2_parent(o->d, id);
-            o->beginRemoveRows(o->createIndex(i.row, 0, i.id), first, last);
+        [](%1* o, option<quintptr> id, int first, int last) {
+            if (id.some) {
+                int row = %2_row(o->d, id.value);
+                o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
+            } else {
+                o->beginRemoveRows(QModelIndex(), first, last);
+            }
         },
         [](%1* o) {
             o->endRemoveRows();
@@ -534,10 +550,9 @@ void writeCpp(const Configuration& conf) {
 namespace {
     template <typename T>
     struct option {
-    private:
+    public:
         T value;
         bool some;
-    public:
         operator QVariant() const {
             if (some) {
                 return QVariant(value);

@@ -4,10 +4,9 @@
 namespace {
     template <typename T>
     struct option {
-    private:
+    public:
         T value;
         bool some;
-    public:
         operator QVariant() const {
             if (some) {
                 return QVariant(value);
@@ -56,15 +55,16 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    void persons_data_user_name(const Persons::Private*, int, quintptr, QString*, qstring_set);
-    bool persons_set_data_user_name(Persons::Private*, int, quintptr, qstring_t);
+    void persons_data_user_name(const Persons::Private*, quintptr, QString*, qstring_set);
+    bool persons_set_data_user_name(Persons::Private*, quintptr, qstring_t);
     void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
-    int persons_row_count(const Persons::Private*, int, quintptr);
-    bool persons_can_fetch_more(const Persons::Private*, int, quintptr);
-    void persons_fetch_more(Persons::Private*, int, quintptr);
-    quintptr persons_index(const Persons::Private*, int, quintptr);
+    int persons_row_count(const Persons::Private*, quintptr, bool);
+    bool persons_can_fetch_more(const Persons::Private*, quintptr, bool);
+    void persons_fetch_more(Persons::Private*, quintptr, bool);
+    quintptr persons_index(const Persons::Private*, quintptr, bool, int);
     qmodelindex_t persons_parent(const Persons::Private*, quintptr);
+    int persons_row(const Persons::Private*, quintptr);
 }
 int Persons::columnCount(const QModelIndex &) const
 {
@@ -81,7 +81,7 @@ int Persons::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return persons_row_count(d, parent.row(), parent.internalId());
+    return persons_row_count(d, parent.internalId(), parent.isValid());
 }
 
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
@@ -92,7 +92,10 @@ QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return QModelIndex();
     }
-    const quintptr id = persons_index(d, parent.row(), parent.internalId());
+    if (row >= rowCount(parent)) {
+        return QModelIndex();
+    }
+    const quintptr id = persons_index(d, parent.internalId(), parent.isValid(), row);
     return createIndex(row, column, id);
 }
 
@@ -110,12 +113,12 @@ bool Persons::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return persons_can_fetch_more(d, parent.row(), parent.internalId());
+    return persons_can_fetch_more(d, parent.internalId(), parent.isValid());
 }
 
 void Persons::fetchMore(const QModelIndex &parent)
 {
-    persons_fetch_more(d, parent.row(), parent.internalId());
+    persons_fetch_more(d, parent.internalId(), parent.isValid());
 }
 
 void Persons::sort(int column, Qt::SortOrder order)
@@ -141,7 +144,7 @@ QVariant Persons::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            persons_data_user_name(d, index.row(), index.internalId(), &s, set_qstring);
+            persons_data_user_name(d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         }
@@ -159,7 +162,7 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
     bool set = false;
     if (index.column() == 0) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            set = persons_set_data_user_name(d, index.row(), index.internalId(), value.value<QString>());
+            set = persons_set_data_user_name(d, index.internalId(), value.value<QString>());
         }
     }
     if (set) {
@@ -169,21 +172,25 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 }
 extern "C" {
     Persons::Private* persons_new(Persons*,
-        void (*)(const Persons*, quintptr),
+        void (*)(const Persons*, quintptr, bool),
         void (*)(Persons*),
         void (*)(Persons*),
-        void (*)(Persons*, quintptr, int, int),
+        void (*)(Persons*, option<quintptr>, int, int),
         void (*)(Persons*),
-        void (*)(Persons*, quintptr, int, int),
+        void (*)(Persons*, option<quintptr>, int, int),
         void (*)(Persons*));
     void persons_free(Persons::Private*);
 };
 Persons::Persons(QObject *parent):
     QAbstractItemModel(parent),
     d(persons_new(this,
-        [](const Persons* o, quintptr id) {
-            auto i = persons_parent(o->d, id);
-            emit o->newDataReady(o->createIndex(i.row, 0, i.id));
+        [](const Persons* o, quintptr id, bool valid) {
+            if (valid) {
+                int row = persons_row(o->d, id);
+                emit o->newDataReady(o->createIndex(row, 0, id));
+            } else {
+                emit o->newDataReady(QModelIndex());
+            }
         },
         [](Persons* o) {
             o->beginResetModel();
@@ -191,16 +198,24 @@ Persons::Persons(QObject *parent):
         [](Persons* o) {
             o->endResetModel();
         },
-        [](Persons* o, quintptr id, int first, int last) {
-                       auto i = persons_parent(o->d, id);
-            o->beginInsertRows(o->createIndex(i.row, 0, i.id), first, last);
+        [](Persons* o, option<quintptr> id, int first, int last) {
+            if (id.some) {
+                int row = persons_row(o->d, id.value);
+                o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
+            } else {
+                o->beginInsertRows(QModelIndex(), first, last);
+            }
         },
         [](Persons* o) {
             o->endInsertRows();
         },
-        [](Persons* o, quintptr id, int first, int last) {
-                       auto i = persons_parent(o->d, id);
-            o->beginRemoveRows(o->createIndex(i.row, 0, i.id), first, last);
+        [](Persons* o, option<quintptr> id, int first, int last) {
+            if (id.some) {
+                int row = persons_row(o->d, id.value);
+                o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
+            } else {
+                o->beginRemoveRows(QModelIndex(), first, last);
+            }
         },
         [](Persons* o) {
             o->endRemoveRows();

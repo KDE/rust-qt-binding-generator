@@ -26,8 +26,17 @@ impl PersonsTrait for Persons {
     fn emit(&self) -> &PersonsEmitter {
         &self.emit
     }
-    fn row_count(&self, item: usize) -> usize {
+    fn row_count(&self, item: Option<usize>) -> usize {
         self.list.len()
+    }
+    fn index(&self, item: Option<usize>, row: usize) -> usize {
+        0
+    }
+    fn parent(&self, item: usize) -> Option<usize> {
+        None
+    }
+    fn row(&self, item: usize) -> usize {
+        item
     }
     fn user_name(&self, item: usize) -> String {
         self.list[item].user_name.clone()
@@ -35,11 +44,5 @@ impl PersonsTrait for Persons {
     fn set_user_name(&mut self, item: usize, v: String) -> bool {
         self.list[item].user_name = v;
         true
-    }
-    fn index(&self, item: usize, row: usize) -> usize {
-        0
-    }
-    fn parent(&self, item: usize) -> QModelIndex {
-        QModelIndex::create(0, 0)
     }
 }

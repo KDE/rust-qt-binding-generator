@@ -64,7 +64,7 @@ impl Item for DirEntry {
             let mut map = q.lock().unwrap();
             if !map.contains_key(&id) {
                 map.insert(id, v);
-                emit.new_data_ready(id);
+                emit.new_data_ready(Some(id));
             }
         });
     }
@@ -94,7 +94,7 @@ pub trait Item: Default {
 pub type Tree = RGeneralItemModel<DirEntry>;
 
 struct Entry<T: Item> {
-    parent: usize,
+    parent: Option<usize>,
     row: usize,
     children: Option<Vec<usize>>,
     data: T,
@@ -112,16 +112,9 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
     fn reset(&mut self) {
         self.model.begin_reset_model();
         self.entries.clear();
-        self.entries.push(Entry {
-            parent: 0,
-            row: 0,
-            children: None,
-            data: T::default(),
-        });
         if let Some(ref path) = self.path {
-            self.entries[0].children = Some(vec![1]);
             let root = Entry {
-                parent: 0,
+                parent: None,
                 row: 0,
                 children: None,
                 data: T::create(&path),
@@ -149,7 +142,7 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
                 {
                     for (r, d) in entries.into_iter().enumerate() {
                         let e = Entry {
-                            parent: id,
+                            parent: Some(id),
                             row: r,
                             children: None,
                             data: d,
@@ -158,7 +151,7 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
                         new_entries.push(e);
                     }
                     if new_entries.len() > 0 {
-                        self.model.begin_insert_rows(id, 0,
+                        self.model.begin_insert_rows(Some(id), 0,
                             (new_entries.len() - 1));
                     }
                 }
@@ -171,11 +164,11 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         }
     }
     fn get_parents(&self, id: usize) -> Vec<&T> {
-        let mut pos = id;
+        let mut pos = Some(id);
         let mut e = Vec::new();
-        while pos > 0 {
-            e.push(pos);
-            pos = self.entries[pos].parent;
+        while let Some(p) = pos {
+            e.push(p);
+            pos = self.entries[p].parent;
         }
         e.into_iter().rev().map(|i| &self.entries[i].data).collect()
     }
@@ -206,40 +199,54 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             self.reset();
         }
     }
-    fn can_fetch_more(&self, item: usize) -> bool {
-        let entry = self.get(item);
-        entry.children.is_none() && entry.data.can_fetch_more()
+    fn can_fetch_more(&self, item: Option<usize>) -> bool {
+        if let Some(item) = item {
+            let entry = self.get(item);
+            entry.children.is_none() && entry.data.can_fetch_more()
+        } else {
+            false
+        }
     }
-    fn fetch_more(&mut self, item: usize) {
+    fn fetch_more(&mut self, item: Option<usize>) {
         self.process_incoming();
         if !self.can_fetch_more(item) {
             return;
         }
-        self.retrieve(item);
-    }
-    fn row_count(&self, item: usize) -> usize {
-        let r = self.get(item).children.as_ref()
-            .map(|i| i.len())
-            .unwrap_or(0);
-        // model does lazy loading, signal that data may be available
-        if r == 0 && self.can_fetch_more(item) {
-            self.emit.new_data_ready(item);
+        if let Some(item) = item {
+            self.retrieve(item);
         }
-        r
     }
-    fn index(&self, item: usize, row: usize) -> usize {
-        self.entries.get(item)
-            .and_then(|i| i.children.as_ref())
-            .and_then(|i| i.get(row))
-            .map(|i| *i)
-            .unwrap_or(0)
-    }
-    fn parent(&self, item: usize) -> QModelIndex {
-        if item >= self.entries.len() || item == 0 {
-            return QModelIndex::invalid();
+    fn row_count(&self, item: Option<usize>) -> usize {
+        if self.entries.len() == 0 {
+            return 0;
         }
-        let entry = &self.entries[item];
-        QModelIndex::create(entry.row as i32, entry.parent)
+        if let Some(i) = item {
+            let entry = self.get(i);
+            if let Some(ref children) = entry.children {
+                children.len()
+            } else {
+                // model does lazy loading, signal that data may be available
+                if self.can_fetch_more(item) {
+                    self.emit.new_data_ready(item);
+                }
+                0
+            }
+        } else {
+            1
+        }
+    }
+    fn index(&self, item: Option<usize>, row: usize) -> usize {
+        if let Some(item) = item {
+            self.get(item).children.as_ref().unwrap()[row]
+        } else {
+            0
+        }
+    }
+    fn parent(&self, item: usize) -> Option<usize> {
+        self.entries[item].parent
+    }
+    fn row(&self, item: usize) -> usize {
+        self.entries[item].row
     }
     fn file_name(&self, item: usize) -> String {
         self.get(item).data.file_name()

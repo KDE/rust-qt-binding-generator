@@ -4,10 +4,9 @@
 namespace {
     template <typename T>
     struct option {
-    private:
+    public:
         T value;
         bool some;
-    public:
         operator QVariant() const {
             if (some) {
                 return QVariant(value);
@@ -56,19 +55,20 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    void tree_data_file_icon(const Tree::Private*, int, quintptr, QByteArray*, qbytearray_set);
-    void tree_data_file_name(const Tree::Private*, int, quintptr, QString*, qstring_set);
-    void tree_data_file_path(const Tree::Private*, int, quintptr, QString*, qstring_set);
-    qint32 tree_data_file_permissions(const Tree::Private*, int, quintptr);
-    option<quint64> tree_data_file_size(const Tree::Private*, int, quintptr);
-    qint32 tree_data_file_type(const Tree::Private*, int, quintptr);
+    void tree_data_file_icon(const Tree::Private*, quintptr, QByteArray*, qbytearray_set);
+    void tree_data_file_name(const Tree::Private*, quintptr, QString*, qstring_set);
+    void tree_data_file_path(const Tree::Private*, quintptr, QString*, qstring_set);
+    qint32 tree_data_file_permissions(const Tree::Private*, quintptr);
+    option<quint64> tree_data_file_size(const Tree::Private*, quintptr);
+    qint32 tree_data_file_type(const Tree::Private*, quintptr);
     void tree_sort(Tree::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
-    int tree_row_count(const Tree::Private*, int, quintptr);
-    bool tree_can_fetch_more(const Tree::Private*, int, quintptr);
-    void tree_fetch_more(Tree::Private*, int, quintptr);
-    quintptr tree_index(const Tree::Private*, int, quintptr);
+    int tree_row_count(const Tree::Private*, quintptr, bool);
+    bool tree_can_fetch_more(const Tree::Private*, quintptr, bool);
+    void tree_fetch_more(Tree::Private*, quintptr, bool);
+    quintptr tree_index(const Tree::Private*, quintptr, bool, int);
     qmodelindex_t tree_parent(const Tree::Private*, quintptr);
+    int tree_row(const Tree::Private*, quintptr);
 }
 int Tree::columnCount(const QModelIndex &) const
 {
@@ -85,7 +85,7 @@ int Tree::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return tree_row_count(d, parent.row(), parent.internalId());
+    return tree_row_count(d, parent.internalId(), parent.isValid());
 }
 
 QModelIndex Tree::index(int row, int column, const QModelIndex &parent) const
@@ -96,7 +96,10 @@ QModelIndex Tree::index(int row, int column, const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return QModelIndex();
     }
-    const quintptr id = tree_index(d, parent.row(), parent.internalId());
+    if (row >= rowCount(parent)) {
+        return QModelIndex();
+    }
+    const quintptr id = tree_index(d, parent.internalId(), parent.isValid(), row);
     return createIndex(row, column, id);
 }
 
@@ -114,12 +117,12 @@ bool Tree::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return tree_can_fetch_more(d, parent.row(), parent.internalId());
+    return tree_can_fetch_more(d, parent.internalId(), parent.isValid());
 }
 
 void Tree::fetchMore(const QModelIndex &parent)
 {
-    tree_fetch_more(d, parent.row(), parent.internalId());
+    tree_fetch_more(d, parent.internalId(), parent.isValid());
 }
 
 void Tree::sort(int column, Qt::SortOrder order)
@@ -141,26 +144,26 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DecorationRole:
         case Qt::UserRole + 0:
-            tree_data_file_icon(d, index.row(), index.internalId(), &b, set_qbytearray);
+            tree_data_file_icon(d, index.internalId(), &b, set_qbytearray);
             if (!b.isNull()) v.setValue<QByteArray>(b);
             break;
         case Qt::DisplayRole:
         case Qt::UserRole + 1:
-            tree_data_file_name(d, index.row(), index.internalId(), &s, set_qstring);
+            tree_data_file_name(d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::UserRole + 2:
-            tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
+            tree_data_file_path(d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::UserRole + 3:
-            v = tree_data_file_permissions(d, index.row(), index.internalId());
+            v = tree_data_file_permissions(d, index.internalId());
             break;
         case Qt::UserRole + 4:
-            v = tree_data_file_size(d, index.row(), index.internalId());
+            v = tree_data_file_size(d, index.internalId());
             break;
         case Qt::UserRole + 5:
-            v = tree_data_file_type(d, index.row(), index.internalId());
+            v = tree_data_file_type(d, index.internalId());
             break;
         }
         break;
@@ -168,7 +171,7 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 4:
-            v = tree_data_file_size(d, index.row(), index.internalId());
+            v = tree_data_file_size(d, index.internalId());
             break;
         }
         break;
@@ -176,7 +179,7 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
-            tree_data_file_path(d, index.row(), index.internalId(), &s, set_qstring);
+            tree_data_file_path(d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         }
@@ -185,7 +188,7 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
-            v = tree_data_file_permissions(d, index.row(), index.internalId());
+            v = tree_data_file_permissions(d, index.internalId());
             break;
         }
         break;
@@ -193,7 +196,7 @@ QVariant Tree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 5:
-            v = tree_data_file_type(d, index.row(), index.internalId());
+            v = tree_data_file_type(d, index.internalId());
             break;
         }
         break;
@@ -220,12 +223,12 @@ bool Tree::setData(const QModelIndex &index, const QVariant &value, int role)
 }
 extern "C" {
     Tree::Private* tree_new(Tree*, void (*)(Tree*),
-        void (*)(const Tree*, quintptr),
+        void (*)(const Tree*, quintptr, bool),
         void (*)(Tree*),
         void (*)(Tree*),
-        void (*)(Tree*, quintptr, int, int),
+        void (*)(Tree*, option<quintptr>, int, int),
         void (*)(Tree*),
-        void (*)(Tree*, quintptr, int, int),
+        void (*)(Tree*, option<quintptr>, int, int),
         void (*)(Tree*));
     void tree_free(Tree::Private*);
     void tree_path_get(const Tree::Private*, QString*, qstring_set);
@@ -236,9 +239,13 @@ Tree::Tree(QObject *parent):
     QAbstractItemModel(parent),
     d(tree_new(this,
         [](Tree* o) { emit o->pathChanged(); },
-        [](const Tree* o, quintptr id) {
-            auto i = tree_parent(o->d, id);
-            emit o->newDataReady(o->createIndex(i.row, 0, i.id));
+        [](const Tree* o, quintptr id, bool valid) {
+            if (valid) {
+                int row = tree_row(o->d, id);
+                emit o->newDataReady(o->createIndex(row, 0, id));
+            } else {
+                emit o->newDataReady(QModelIndex());
+            }
         },
         [](Tree* o) {
             o->beginResetModel();
@@ -246,16 +253,24 @@ Tree::Tree(QObject *parent):
         [](Tree* o) {
             o->endResetModel();
         },
-        [](Tree* o, quintptr id, int first, int last) {
-                       auto i = tree_parent(o->d, id);
-            o->beginInsertRows(o->createIndex(i.row, 0, i.id), first, last);
+        [](Tree* o, option<quintptr> id, int first, int last) {
+            if (id.some) {
+                int row = tree_row(o->d, id.value);
+                o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
+            } else {
+                o->beginInsertRows(QModelIndex(), first, last);
+            }
         },
         [](Tree* o) {
             o->endInsertRows();
         },
-        [](Tree* o, quintptr id, int first, int last) {
-                       auto i = tree_parent(o->d, id);
-            o->beginRemoveRows(o->createIndex(i.row, 0, i.id), first, last);
+        [](Tree* o, option<quintptr> id, int first, int last) {
+            if (id.some) {
+                int row = tree_row(o->d, id.value);
+                o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
+            } else {
+                o->beginRemoveRows(QModelIndex(), first, last);
+            }
         },
         [](Tree* o) {
             o->endRemoveRows();

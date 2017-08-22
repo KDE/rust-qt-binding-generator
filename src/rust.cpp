@@ -45,7 +45,7 @@ pub struct %1Emitter {
         r << QString("    new_data_ready: fn(*const %1QObject),\n")
             .arg(o.name);
     } else if (o.type == ObjectType::UniformTree) {
-        r << QString("    new_data_ready: fn(*const %1QObject, item: usize),\n")
+        r << QString("    new_data_ready: fn(*const %1QObject, item: usize, valid: bool),\n")
             .arg(o.name);
     }
     r << QString(R"(}
@@ -75,10 +75,10 @@ impl %1Emitter {
     }
 )";
     } else if (o.type == ObjectType::UniformTree) {
-        r << R"(    pub fn new_data_ready(&self, item: usize) {
+        r << R"(    pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.new_data_ready)(ptr, item);
+             (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
         }
     }
 )";
@@ -90,9 +90,11 @@ impl %1Emitter {
         modelStruct = ", model: " + o.name + type;
         QString index;
         QString indexDecl;
+        QString indexCDecl;
         if (o.type == ObjectType::UniformTree) {
-            indexDecl = " item: usize,";
-            index = " item,";
+            indexDecl = " item: Option<usize>,";
+            indexCDecl = " item: usize, valid: bool,";
+            index = " item.unwrap_or(13), item.is_some(),";
         }
         r << QString(R"(}
 
@@ -100,9 +102,9 @@ pub struct %1%2 {
     qobject: *const %1QObject,
     begin_reset_model: fn(*const %1QObject),
     end_reset_model: fn(*const %1QObject),
-    begin_insert_rows: fn(*const %1QObject,%3 usize, usize),
+    begin_insert_rows: fn(*const %1QObject,%5 usize, usize),
     end_insert_rows: fn(*const %1QObject),
-    begin_remove_rows: fn(*const %1QObject,%3 usize, usize),
+    begin_remove_rows: fn(*const %1QObject,%5 usize, usize),
     end_remove_rows: fn(*const %1QObject),
 }
 
@@ -125,7 +127,7 @@ impl %1%2 {
     pub fn end_remove_rows(&self) {
         (self.end_remove_rows)(self.qobject);
     }
-)").arg(o.name, type, indexDecl, index);
+)").arg(o.name, type, indexDecl, index, indexCDecl);
     }
 
     r << QString(R"(}
@@ -141,16 +143,23 @@ pub trait %1Trait {
             r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
         }
     }
-    if (o.type != ObjectType::Object) {
-        QString index;
-        if (o.type == ObjectType::UniformTree) {
-            index = ", item: usize";
-        }
-        r << QString(R"(    fn row_count(&self%1) -> usize;
-    fn can_fetch_more(&self%1) -> bool { false }
-    fn fetch_more(&mut self%1) {}
+    if (o.type == ObjectType::List) {
+        r << R"(    fn row_count(&self) -> usize;
+    fn can_fetch_more(&self) -> bool { false }
+    fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-)").arg(index);
+)";
+    } else if (o.type == ObjectType::UniformTree) {
+        r << R"(    fn row_count(&self, Option<usize>) -> usize;
+    fn can_fetch_more(&self, Option<usize>) -> bool { false }
+    fn fetch_more(&mut self, Option<usize>) {}
+    fn sort(&mut self, u8, SortOrder) {}
+    fn index(&self, item: Option<usize>, row: usize) -> usize;
+    fn parent(&self, item: usize) -> Option<usize>;
+    fn row(&self, item: usize) -> usize;
+)";
+    }
+    if (o.type != ObjectType::Object) {
         for (auto ip: o.itemProperties) {
             r << QString("    fn %1(&self, item: usize) -> %2;\n")
                     .arg(snakeCase(ip.name), rustType(ip));
@@ -159,10 +168,6 @@ pub trait %1Trait {
                     .arg(snakeCase(ip.name), rustType(ip));
             }
         }
-    }
-    if (o.type == ObjectType::UniformTree) {
-        r << "    fn index(&self, item: usize, row: usize) -> usize;\n";
-        r << "    fn parent(&self, item: usize) -> QModelIndex;\n";
     }
 
     r << QString(R"(}
@@ -177,13 +182,13 @@ pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
         r << QString(",\n        new_data_ready: fn(*const %1QObject)")
             .arg(o.name);
     } else if (o.type == ObjectType::UniformTree) {
-        r << QString(",\n        new_data_ready: fn(*const %1QObject, item: usize)")
+        r << QString(",\n        new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
             .arg(o.name);
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl;
         if (o.type == ObjectType::UniformTree) {
-            indexDecl = " item: usize,";
+            indexDecl = " item: usize, valid: bool,";
         }
         r << QString(R"(,
         begin_reset_model: fn(*const %1QObject),
@@ -297,34 +302,83 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
             }
         }
     }
-    if (o.type != ObjectType::Object) {
-        QString indexDecl;
-        QString index;
-        if (o.type == ObjectType::UniformTree) {
-            indexDecl = ", row: c_int, item: usize";
-            index = "(&*ptr).index(item, row as usize)";
-        }
+    if (o.type == ObjectType::List) {
         r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_row_count(ptr: *const %1%3) -> c_int {
-    (&*ptr).row_count(%4) as c_int
+pub unsafe extern "C" fn %2_row_count(ptr: *const %1) -> c_int {
+    (&*ptr).row_count() as c_int
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1%3) -> bool {
-    (&*ptr).can_fetch_more(%4)
+pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1) -> bool {
+    (&*ptr).can_fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1%3) {
-    (&mut *ptr).fetch_more(%4)
+pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1) {
+    (&mut *ptr).fetch_more()
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: u8, order: SortOrder) {
     (&mut *ptr).sort(column, order)
 }
-)").arg(o.name, lcname, indexDecl, index);
-        if (o.type == ObjectType::List) {
-            indexDecl = ", row: c_int";
-            index = "row as usize";
+)").arg(o.name, lcname);
+    } else if (o.type == ObjectType::UniformTree) {
+        r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_row_count(ptr: *const %1, item: usize, valid: bool) -> c_int {
+    if valid {
+        (&*ptr).row_count(Some(item)) as c_int
+    } else {
+        (&*ptr).row_count(None) as c_int
+    }
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1, item: usize, valid: bool) -> bool {
+    if valid {
+        (&*ptr).can_fetch_more(Some(item))
+    } else {
+        (&*ptr).can_fetch_more(None)
+    }
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1, item: usize, valid: bool) {
+    if valid {
+        (&mut *ptr).fetch_more(Some(item))
+    } else {
+        (&mut *ptr).fetch_more(None)
+    }
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: u8, order: SortOrder) {
+    (&mut *ptr).sort(column, order)
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_index(ptr: *const %1, item: usize, valid: bool, row: c_int) -> usize {
+    if !valid {
+        (&*ptr).index(None, row as usize)
+    } else {
+        (&*ptr).index(Some(item), row as usize)
+    }
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_parent(ptr: *const %1, index: usize) -> QModelIndex {
+    if let Some(parent) = (&*ptr).parent(index) {
+        QModelIndex::create((&*ptr).row(parent) as c_int, parent)
+    } else {
+        QModelIndex::invalid()
+    }
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_row(ptr: *const %1, item: usize) -> c_int {
+    (&*ptr).row(item) as c_int
+}
+)").arg(o.name, lcname);
+    }
+    if (o.type != ObjectType::Object) {
+        QString indexDecl = ", row: c_int";
+        QString index = "row as usize";
+        if (o.type == ObjectType::UniformTree) {
+            indexDecl = ", item: usize";
+            index = "item";
         }
         for (auto ip: o.itemProperties) {
             if (ip.type.isComplex() && !ip.optional) {
@@ -383,19 +437,6 @@ pub unsafe extern "C" fn %2_set_data_%3_none(ptr: *mut %1, row: c_int%4) -> bool
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
             }
         }
-    }
-    if (o.type == ObjectType::UniformTree) {
-        r << QString(R"(
-#[no_mangle]
-pub unsafe extern "C" fn %2_index(ptr: *const %1, row: c_int, parent: usize) -> usize {
-    (&*ptr).index(parent, row as usize)
-}
-#[no_mangle]
-pub unsafe extern "C" fn %2_parent(ptr: *const %1, parent: usize) -> QModelIndex {
-    (&*ptr).parent(parent)
-}
-)").arg(o.name, lcname);
-
     }
 }
 
@@ -492,12 +533,28 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
 )").arg(lc, rustType(p));
         }
     }
+    if (o.type == ObjectType::List) {
+        r << "    fn row_count(&self) -> usize {\n        self.list.len()\n    }\n";
+    } else if (o.type == ObjectType::UniformTree) {
+        r << R"(    fn row_count(&self, item: Option<usize>) -> usize {
+        self.list.len()
+    }
+    fn index(&self, item: Option<usize>, row: usize) -> usize {
+        0
+    }
+    fn parent(&self, item: usize) -> Option<usize> {
+        None
+    }
+    fn row(&self, item: usize) -> usize {
+        item
+    }
+)";
+    }
     if (o.type != ObjectType::Object) {
         QString index;
         if (o.type == ObjectType::UniformTree) {
             index = ", item: usize";
         }
-        r << "    fn row_count(&self" << index << ") -> usize {\n        self.list.len()\n    }\n";
         for (auto ip: o.itemProperties) {
             const QString lc(snakeCase(ip.name));
             r << QString("    fn %1(&self, item: usize) -> %2 {\n")
@@ -512,15 +569,6 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
                 r << "    }\n";
             }
         }
-    }
-    if (o.type == ObjectType::UniformTree) {
-        r << R"(    fn index(&self, item: usize, row: usize) -> usize {
-        0
-    }
-    fn parent(&self, item: usize) -> QModelIndex {
-        QModelIndex::create(0, 0)
-    }
-)";
     }
     r << "}\n";
 }
