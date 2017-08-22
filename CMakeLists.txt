@@ -51,7 +51,7 @@ else()
     set(RUST_BUILD_FLAG --release)
 endif()
 
-add_subdirectory(rust_qt_binding_generator)
+add_subdirectory(src)
 
 enable_testing()
 add_subdirectory(tests)

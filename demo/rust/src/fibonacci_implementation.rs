@@ -1,8 +1,6 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
-use libc::c_int;
-use libc::c_uint;
 use types::*;
 use std::thread;
 use fibonacci_interface::*;
@@ -80,10 +78,10 @@ impl FibonacciListTrait for FibonacciList {
     fn emit(&self) -> &FibonacciListEmitter {
         &self.emit
     }
-    fn row_count(&self) -> c_int {
+    fn row_count(&self) -> usize {
         94
     }
-    fn result(&self, row: c_int) -> u64 {
+    fn result(&self, row: usize) -> u64 {
         fibonacci(row as u32) as u64
     }
 }

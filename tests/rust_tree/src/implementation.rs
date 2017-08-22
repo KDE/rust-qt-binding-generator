@@ -1,8 +1,6 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
-use libc::c_int;
-use libc::c_uint;
 use types::*;
 use interface::*;
 
@@ -28,20 +26,20 @@ impl PersonsTrait for Persons {
     fn emit(&self) -> &PersonsEmitter {
         &self.emit
     }
-    fn row_count(&self, row: c_int, parent: usize) -> c_int {
-        self.list.len() as c_int
+    fn row_count(&self, item: usize) -> usize {
+        self.list.len()
     }
-    fn user_name(&self, row: c_int, parent: usize) -> String {
-        self.list[row as usize].user_name.clone()
+    fn user_name(&self, item: usize) -> String {
+        self.list[item].user_name.clone()
     }
-    fn set_user_name(&mut self, row: c_int, parent: usize, v: String) -> bool {
-        self.list[row as usize].user_name = v;
+    fn set_user_name(&mut self, item: usize, v: String) -> bool {
+        self.list[item].user_name = v;
         true
     }
-    fn index(&self, row: c_int, parent: usize) -> usize {
+    fn index(&self, item: usize, row: usize) -> usize {
         0
     }
-    fn parent(&self, parent: usize) -> QModelIndex {
+    fn parent(&self, item: usize) -> QModelIndex {
         QModelIndex::create(0, 0)
     }
 }

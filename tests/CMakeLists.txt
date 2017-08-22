@@ -1,5 +1,5 @@
 
-SET(GENERATOR "${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator")
+SET(GENERATOR "${CMAKE_BINARY_DIR}/src/rust_qt_binding_generator")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_custom_target("clean-rust")
@@ -17,7 +17,7 @@ function(rust_test NAME DIRECTORY)
         #      "${SRC}/${NAME}_rust.cpp"
         COMMAND "${GENERATOR}" --overwrite-implementation "${SRC}/${NAME}.json"
         MAIN_DEPENDENCY "${NAME}.json"
-        DEPENDS "${GENERATOR}"
+        DEPENDS rust_qt_binding_generator
     )
 
     add_custom_command(

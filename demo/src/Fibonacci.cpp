@@ -61,6 +61,95 @@ extern "C" {
     quint32 fibonacci_input_get(const Fibonacci::Private*);
     void fibonacci_input_set(Fibonacci::Private*, uint);
     quint64 fibonacci_result_get(const Fibonacci::Private*);
+};
+extern "C" {
+    quint64 fibonacci_list_data_result(const FibonacciList::Private*, int);
+    void fibonacci_list_sort(FibonacciList::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
+
+    int fibonacci_list_row_count(const FibonacciList::Private*);
+    bool fibonacci_list_can_fetch_more(const FibonacciList::Private*);
+    void fibonacci_list_fetch_more(FibonacciList::Private*);
+}
+int FibonacciList::columnCount(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : 1;
+}
+
+bool FibonacciList::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
+}
+
+int FibonacciList::rowCount(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : fibonacci_list_row_count(d);
+}
+
+QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
+{
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
+        return createIndex(row, column, (quintptr)0);
+    }
+    return QModelIndex();
+}
+
+QModelIndex FibonacciList::parent(const QModelIndex &) const
+{
+    return QModelIndex();
+}
+
+bool FibonacciList::canFetchMore(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : fibonacci_list_can_fetch_more(d);
+}
+
+void FibonacciList::fetchMore(const QModelIndex &parent)
+{
+    if (!parent.isValid()) {
+        fibonacci_list_fetch_more(d);
+    }
+}
+
+void FibonacciList::sort(int column, Qt::SortOrder order)
+{
+    fibonacci_list_sort(d, column, order);
+}
+Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
+{
+    auto flags = QAbstractItemModel::flags(i);
+    return flags;
+}
+QVariant FibonacciList::data(const QModelIndex &index, int role) const
+{
+    QVariant v;
+    QString s;
+    QByteArray b;
+    switch (index.column()) {
+    case 0:
+        switch (role) {
+        case Qt::DisplayRole:
+        case Qt::UserRole + 0:
+            v = fibonacci_list_data_result(d, index.row());
+            break;
+        }
+        break;
+    }
+    return v;
+}
+QHash<int, QByteArray> FibonacciList::roleNames() const {
+    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
+    names.insert(Qt::UserRole + 0, "result");
+    return names;
+}
+bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    bool set = false;
+    if (set) {
+        emit dataChanged(index, index, QVector<int>() << role);
+    }
+    return set;
+}
+extern "C" {
     FibonacciList::Private* fibonacci_list_new(FibonacciList*,
         void (*)(const FibonacciList*),
         void (*)(FibonacciList*),
@@ -124,91 +213,4 @@ FibonacciList::FibonacciList(QObject *parent):
 
 FibonacciList::~FibonacciList() {
     fibonacci_list_free(d);
-}
-extern "C" {
-    quint64 fibonacci_list_data_result(const FibonacciList::Private*, int);
-    void fibonacci_list_sort(FibonacciList::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
-
-    int fibonacci_list_row_count(const FibonacciList::Private*);
-    bool fibonacci_list_can_fetch_more(const FibonacciList::Private*);
-    void fibonacci_list_fetch_more(FibonacciList::Private*);
-}
-int FibonacciList::columnCount(const QModelIndex &parent) const
-{
-    return (parent.isValid()) ? 0 : 1;
-}
-
-bool FibonacciList::hasChildren(const QModelIndex &parent) const
-{
-    return rowCount(parent) > 0;
-}
-
-int FibonacciList::rowCount(const QModelIndex &parent) const
-{
-    return (parent.isValid()) ? 0 : fibonacci_list_row_count(d);
-}
-
-QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
-{
-    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
-        return createIndex(row, column, (quintptr)0);
-    }
-    return QModelIndex();
-}
-
-QModelIndex FibonacciList::parent(const QModelIndex &) const
-{
-    return QModelIndex();
-}
-
-bool FibonacciList::canFetchMore(const QModelIndex &parent) const
-{
-    return (parent.isValid()) ? 0 : fibonacci_list_can_fetch_more(d);
-}
-
-void FibonacciList::fetchMore(const QModelIndex &parent)
-{
-    if (!parent.isValid()) {
-        fibonacci_list_fetch_more(d);
-    }
-}
-
-void FibonacciList::sort(int column, Qt::SortOrder order)
-{
-    fibonacci_list_sort(d, column, order);
-}
-Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
-{
-    auto flags = QAbstractItemModel::flags(i);
-    return flags;
-}
-QVariant FibonacciList::data(const QModelIndex &index, int role) const
-{
-    QVariant v;
-    QString s;
-    QByteArray b;
-    switch (index.column()) {
-    case 0:
-        switch (role) {
-        case 256:
-        case 0:
-            v = fibonacci_list_data_result(d, index.row());
-            break;
-        }
-        break;
-    }
-    return v;
-}
-QHash<int, QByteArray> FibonacciList::roleNames() const {
-    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
-    names.insert(256, "result");
-    return names;
-}
-bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-    bool set = false;
-    if (set) {
-        emit dataChanged(index, index, QVector<int>() << role);
-    }
-    return set;
 }

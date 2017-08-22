@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_void};
+use libc::{c_int, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -35,9 +35,9 @@ pub struct TimeSeriesList {
     qobject: *const TimeSeriesQObject,
     begin_reset_model: fn(*const TimeSeriesQObject),
     end_reset_model: fn(*const TimeSeriesQObject),
-    begin_insert_rows: fn(*const TimeSeriesQObject, c_int, c_int),
+    begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
     end_insert_rows: fn(*const TimeSeriesQObject),
-    begin_remove_rows: fn(*const TimeSeriesQObject, c_int, c_int),
+    begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
     end_remove_rows: fn(*const TimeSeriesQObject),
 }
 
@@ -48,13 +48,13 @@ impl TimeSeriesList {
     pub fn end_reset_model(&self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, first: c_int, last: c_int) {
+    pub fn begin_insert_rows(&self, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, first: c_int, last: c_int) {
+    pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
     }
     pub fn end_remove_rows(&self) {
@@ -65,14 +65,14 @@ impl TimeSeriesList {
 pub trait TimeSeriesTrait {
     fn create(emit: TimeSeriesEmitter, model: TimeSeriesList) -> Self;
     fn emit(&self) -> &TimeSeriesEmitter;
-    fn row_count(&self) -> c_int;
+    fn row_count(&self) -> usize;
     fn can_fetch_more(&self) -> bool { false }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, c_int, SortOrder) {}
-    fn input(&self, row: c_int) -> u32;
-    fn set_input(&mut self, row: c_int, u32) -> bool;
-    fn result(&self, row: c_int) -> u32;
-    fn set_result(&mut self, row: c_int, u32) -> bool;
+    fn sort(&mut self, u8, SortOrder) {}
+    fn input(&self, item: usize) -> u32;
+    fn set_input(&mut self, item: usize, u32) -> bool;
+    fn result(&self, item: usize) -> u32;
+    fn set_result(&mut self, item: usize, u32) -> bool;
 }
 
 #[no_mangle]
@@ -81,12 +81,12 @@ pub extern "C" fn time_series_new(qobject: *const TimeSeriesQObject,
         begin_reset_model: fn(*const TimeSeriesQObject),
         end_reset_model: fn(*const TimeSeriesQObject),
         begin_insert_rows: fn(*const TimeSeriesQObject,
-            c_int,
-            c_int),
+            usize,
+            usize),
         end_insert_rows: fn(*const TimeSeriesQObject),
         begin_remove_rows: fn(*const TimeSeriesQObject,
-            c_int,
-            c_int),
+            usize,
+            usize),
         end_remove_rows: fn(*const TimeSeriesQObject))
         -> *mut TimeSeries {
     let emit = TimeSeriesEmitter {
@@ -113,7 +113,7 @@ pub unsafe extern "C" fn time_series_free(ptr: *mut TimeSeries) {
 
 #[no_mangle]
 pub unsafe extern "C" fn time_series_row_count(ptr: *const TimeSeries) -> c_int {
-    (&*ptr).row_count()
+    (&*ptr).row_count() as c_int
 }
 #[no_mangle]
 pub unsafe extern "C" fn time_series_can_fetch_more(ptr: *const TimeSeries) -> bool {
@@ -124,26 +124,26 @@ pub unsafe extern "C" fn time_series_fetch_more(ptr: *mut TimeSeries) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn time_series_sort(ptr: *mut TimeSeries, column: c_int, order: SortOrder) {
+pub unsafe extern "C" fn time_series_sort(ptr: *mut TimeSeries, column: u8, order: SortOrder) {
     (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn time_series_data_input(ptr: *const TimeSeries, row: c_int) -> u32 {
-    (&*ptr).input(row).into()
+    (&*ptr).input(row as usize).into()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn time_series_set_data_input(ptr: *mut TimeSeries, row: c_int, v: u32) -> bool {
-    (&mut *ptr).set_input(row, v)
+    (&mut *ptr).set_input(row as usize, v)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn time_series_data_result(ptr: *const TimeSeries, row: c_int) -> u32 {
-    (&*ptr).result(row).into()
+    (&*ptr).result(row as usize).into()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn time_series_set_data_result(ptr: *mut TimeSeries, row: c_int, v: u32) -> bool {
-    (&mut *ptr).set_result(row, v)
+    (&mut *ptr).set_result(row as usize, v)
 }

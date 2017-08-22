@@ -7,7 +7,7 @@ add_custom_command(
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Fibonacci.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Fibonacci.cpp"
-  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/fibonacci.json"
+  COMMAND ${CMAKE_BINARY_DIR}/src/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/fibonacci.json"
   DEPENDS rust_qt_binding_generator fibonacci.json
 )
 
@@ -18,7 +18,7 @@ add_custom_command(
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Tree.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Tree.cpp"
-  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/tree.json"
+  COMMAND ${CMAKE_BINARY_DIR}/src/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/tree.json"
   DEPENDS rust_qt_binding_generator tree.json
 )
 
@@ -29,7 +29,7 @@ add_custom_command(
          "${CMAKE_CURRENT_SOURCE_DIR}/src/TimeSeries.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/TimeSeries.cpp"
-  COMMAND ${CMAKE_BINARY_DIR}/rust_qt_binding_generator/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/time_series.json"
+  COMMAND ${CMAKE_BINARY_DIR}/src/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/time_series.json"
   DEPENDS rust_qt_binding_generator time_series.json
 )
 

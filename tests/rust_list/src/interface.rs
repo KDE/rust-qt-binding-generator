@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_void};
+use libc::{c_int, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -35,9 +35,9 @@ pub struct PersonsList {
     qobject: *const PersonsQObject,
     begin_reset_model: fn(*const PersonsQObject),
     end_reset_model: fn(*const PersonsQObject),
-    begin_insert_rows: fn(*const PersonsQObject, c_int, c_int),
+    begin_insert_rows: fn(*const PersonsQObject, usize, usize),
     end_insert_rows: fn(*const PersonsQObject),
-    begin_remove_rows: fn(*const PersonsQObject, c_int, c_int),
+    begin_remove_rows: fn(*const PersonsQObject, usize, usize),
     end_remove_rows: fn(*const PersonsQObject),
 }
 
@@ -48,13 +48,13 @@ impl PersonsList {
     pub fn end_reset_model(&self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, first: c_int, last: c_int) {
+    pub fn begin_insert_rows(&self, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, first: c_int, last: c_int) {
+    pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
     }
     pub fn end_remove_rows(&self) {
@@ -65,12 +65,12 @@ impl PersonsList {
 pub trait PersonsTrait {
     fn create(emit: PersonsEmitter, model: PersonsList) -> Self;
     fn emit(&self) -> &PersonsEmitter;
-    fn row_count(&self) -> c_int;
+    fn row_count(&self) -> usize;
     fn can_fetch_more(&self) -> bool { false }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, c_int, SortOrder) {}
-    fn user_name(&self, row: c_int) -> String;
-    fn set_user_name(&mut self, row: c_int, String) -> bool;
+    fn sort(&mut self, u8, SortOrder) {}
+    fn user_name(&self, item: usize) -> String;
+    fn set_user_name(&mut self, item: usize, String) -> bool;
 }
 
 #[no_mangle]
@@ -79,12 +79,12 @@ pub extern "C" fn persons_new(qobject: *const PersonsQObject,
         begin_reset_model: fn(*const PersonsQObject),
         end_reset_model: fn(*const PersonsQObject),
         begin_insert_rows: fn(*const PersonsQObject,
-            c_int,
-            c_int),
+            usize,
+            usize),
         end_insert_rows: fn(*const PersonsQObject),
         begin_remove_rows: fn(*const PersonsQObject,
-            c_int,
-            c_int),
+            usize,
+            usize),
         end_remove_rows: fn(*const PersonsQObject))
         -> *mut Persons {
     let emit = PersonsEmitter {
@@ -111,7 +111,7 @@ pub unsafe extern "C" fn persons_free(ptr: *mut Persons) {
 
 #[no_mangle]
 pub unsafe extern "C" fn persons_row_count(ptr: *const Persons) -> c_int {
-    (&*ptr).row_count()
+    (&*ptr).row_count() as c_int
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_can_fetch_more(ptr: *const Persons) -> bool {
@@ -122,20 +122,19 @@ pub unsafe extern "C" fn persons_fetch_more(ptr: *mut Persons) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn persons_sort(ptr: *mut Persons, column: c_int, order: SortOrder) {
+pub unsafe extern "C" fn persons_sort(ptr: *mut Persons, column: u8, order: SortOrder) {
     (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn persons_data_user_name(ptr: *const Persons,
-                                    row: c_int,
+pub unsafe extern "C" fn persons_data_user_name(ptr: *const Persons, row: c_int,
         d: *mut c_void,
         set: fn(*mut c_void, QString)) {
-    let data = (&*ptr).user_name(row);
+    let data = (&*ptr).user_name(row as usize);
     set(d, QString::from(&data));
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn persons_set_data_user_name(ptr: *mut Persons, row: c_int, v: QStringIn) -> bool {
-    (&mut *ptr).set_user_name(row, v.convert())
+    (&mut *ptr).set_user_name(row as usize, v.convert())
 }

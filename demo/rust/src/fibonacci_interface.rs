@@ -2,7 +2,7 @@
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
 #![allow(unused_imports)]
-use libc::{c_int, c_uint, c_void};
+use libc::{c_int, c_void};
 use types::*;
 use std::sync::{Arc, Mutex};
 use std::ptr::null;
@@ -106,9 +106,9 @@ pub struct FibonacciListList {
     qobject: *const FibonacciListQObject,
     begin_reset_model: fn(*const FibonacciListQObject),
     end_reset_model: fn(*const FibonacciListQObject),
-    begin_insert_rows: fn(*const FibonacciListQObject, c_int, c_int),
+    begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
     end_insert_rows: fn(*const FibonacciListQObject),
-    begin_remove_rows: fn(*const FibonacciListQObject, c_int, c_int),
+    begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
     end_remove_rows: fn(*const FibonacciListQObject),
 }
 
@@ -119,13 +119,13 @@ impl FibonacciListList {
     pub fn end_reset_model(&self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, first: c_int, last: c_int) {
+    pub fn begin_insert_rows(&self, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, first: c_int, last: c_int) {
+    pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
     }
     pub fn end_remove_rows(&self) {
@@ -136,11 +136,11 @@ impl FibonacciListList {
 pub trait FibonacciListTrait {
     fn create(emit: FibonacciListEmitter, model: FibonacciListList) -> Self;
     fn emit(&self) -> &FibonacciListEmitter;
-    fn row_count(&self) -> c_int;
+    fn row_count(&self) -> usize;
     fn can_fetch_more(&self) -> bool { false }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, c_int, SortOrder) {}
-    fn result(&self, row: c_int) -> u64;
+    fn sort(&mut self, u8, SortOrder) {}
+    fn result(&self, item: usize) -> u64;
 }
 
 #[no_mangle]
@@ -149,12 +149,12 @@ pub extern "C" fn fibonacci_list_new(qobject: *const FibonacciListQObject,
         begin_reset_model: fn(*const FibonacciListQObject),
         end_reset_model: fn(*const FibonacciListQObject),
         begin_insert_rows: fn(*const FibonacciListQObject,
-            c_int,
-            c_int),
+            usize,
+            usize),
         end_insert_rows: fn(*const FibonacciListQObject),
         begin_remove_rows: fn(*const FibonacciListQObject,
-            c_int,
-            c_int),
+            usize,
+            usize),
         end_remove_rows: fn(*const FibonacciListQObject))
         -> *mut FibonacciList {
     let emit = FibonacciListEmitter {
@@ -181,7 +181,7 @@ pub unsafe extern "C" fn fibonacci_list_free(ptr: *mut FibonacciList) {
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_row_count(ptr: *const FibonacciList) -> c_int {
-    (&*ptr).row_count()
+    (&*ptr).row_count() as c_int
 }
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_can_fetch_more(ptr: *const FibonacciList) -> bool {
@@ -192,11 +192,11 @@ pub unsafe extern "C" fn fibonacci_list_fetch_more(ptr: *mut FibonacciList) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn fibonacci_list_sort(ptr: *mut FibonacciList, column: c_int, order: SortOrder) {
+pub unsafe extern "C" fn fibonacci_list_sort(ptr: *mut FibonacciList, column: u8, order: SortOrder) {
     (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_data_result(ptr: *const FibonacciList, row: c_int) -> u64 {
-    (&*ptr).result(row).into()
+    (&*ptr).result(row as usize).into()
 }

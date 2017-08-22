@@ -56,54 +56,9 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    Persons::Private* persons_new(Persons*,
-        void (*)(const Persons*),
-        void (*)(Persons*),
-        void (*)(Persons*),
-        void (*)(Persons*, int, int),
-        void (*)(Persons*),
-        void (*)(Persons*, int, int),
-        void (*)(Persons*));
-    void persons_free(Persons::Private*);
-};
-Persons::Persons(QObject *parent):
-    QAbstractItemModel(parent),
-    d(persons_new(this,
-        [](const Persons* o) {
-            emit o->newDataReady(QModelIndex());
-        },
-        [](Persons* o) {
-            o->beginResetModel();
-        },
-        [](Persons* o) {
-            o->endResetModel();
-        },
-        [](Persons* o, int first, int last) {
-            o->beginInsertRows(QModelIndex(), first, last);
-        },
-        [](Persons* o) {
-            o->endInsertRows();
-        },
-        [](Persons* o, int first, int last) {
-            o->beginRemoveRows(QModelIndex(), first, last);
-        },
-        [](Persons* o) {
-            o->endRemoveRows();
-        }
-    )) {
-    connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
-        fetchMore(i);
-    }, Qt::QueuedConnection);
-}
-
-
-Persons::~Persons() {
-    persons_free(d);
-}
-extern "C" {
     void persons_data_user_name(const Persons::Private*, int, QString*, qstring_set);
     bool persons_set_data_user_name(Persons::Private*, int, qstring_t);
-    void persons_sort(Persons::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
+    void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int persons_row_count(const Persons::Private*);
     bool persons_can_fetch_more(const Persons::Private*);
@@ -169,9 +124,9 @@ QVariant Persons::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
-        case 256:
-        case 0:
-        case 2:
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+        case Qt::UserRole + 0:
             persons_data_user_name(d, index.row(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
@@ -182,14 +137,14 @@ QVariant Persons::data(const QModelIndex &index, int role) const
 }
 QHash<int, QByteArray> Persons::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
-    names.insert(256, "userName");
+    names.insert(Qt::UserRole + 0, "userName");
     return names;
 }
 bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     bool set = false;
     if (index.column() == 0) {
-        if (role == 256 || role == 0 || role == 2) {
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
             set = persons_set_data_user_name(d, index.row(), value.value<QString>());
         }
     }
@@ -197,4 +152,49 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
         emit dataChanged(index, index, QVector<int>() << role);
     }
     return set;
+}
+extern "C" {
+    Persons::Private* persons_new(Persons*,
+        void (*)(const Persons*),
+        void (*)(Persons*),
+        void (*)(Persons*),
+        void (*)(Persons*, int, int),
+        void (*)(Persons*),
+        void (*)(Persons*, int, int),
+        void (*)(Persons*));
+    void persons_free(Persons::Private*);
+};
+Persons::Persons(QObject *parent):
+    QAbstractItemModel(parent),
+    d(persons_new(this,
+        [](const Persons* o) {
+            emit o->newDataReady(QModelIndex());
+        },
+        [](Persons* o) {
+            o->beginResetModel();
+        },
+        [](Persons* o) {
+            o->endResetModel();
+        },
+        [](Persons* o, int first, int last) {
+            o->beginInsertRows(QModelIndex(), first, last);
+        },
+        [](Persons* o) {
+            o->endInsertRows();
+        },
+        [](Persons* o, int first, int last) {
+            o->beginRemoveRows(QModelIndex(), first, last);
+        },
+        [](Persons* o) {
+            o->endRemoveRows();
+        }
+    )) {
+    connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
+
+
+Persons::~Persons() {
+    persons_free(d);
 }

@@ -1,7 +1,6 @@
 use interface::*;
 use types::*;
 use std::fs::*;
-use libc::{c_int};
 use std::fs::read_dir;
 use std::path::PathBuf;
 use std::ffi::OsString;
@@ -36,10 +35,10 @@ impl Item for DirEntry {
     fn file_path(&self) -> Option<String> {
         self.path.as_ref().map(|p| p.to_string_lossy().into())
     }
-    fn file_permissions(&self) -> c_int {
+    fn file_permissions(&self) -> i32 {
         42
     }
-    fn file_type(&self) -> c_int {
+    fn file_type(&self) -> i32 {
         0
     }
     fn file_size(&self) -> Option<u64> {
@@ -65,7 +64,7 @@ impl Item for DirEntry {
             let mut map = q.lock().unwrap();
             if !map.contains_key(&id) {
                 map.insert(id, v);
-                emit.new_data_ready(0, 0);
+                emit.new_data_ready(id);
             }
         });
     }
@@ -87,15 +86,15 @@ pub trait Item: Default {
     fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: TreeEmitter);
     fn file_name(&self) -> String;
     fn file_path(&self) -> Option<String>;
-    fn file_permissions(&self) -> c_int;
-    fn file_type(&self) -> c_int;
+    fn file_permissions(&self) -> i32;
+    fn file_type(&self) -> i32;
     fn file_size(&self) -> Option<u64>;
 }
 
 pub type Tree = RGeneralItemModel<DirEntry>;
 
 struct Entry<T: Item> {
-    parent: usize,
+    id: usize,
     row: usize,
     children: Option<Vec<usize>>,
     data: T,
@@ -114,14 +113,14 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         self.model.begin_reset_model();
         self.entries.clear();
         let none0 = Entry {
-            parent: 0,
+            id: 0,
             row: 0,
             children: Some(vec![1]),
             data: T::default(),
         };
         self.entries.push(none0);
         let none1 = Entry {
-            parent: 0,
+            id: 0,
             row: 0,
             children: None,
             data: T::default(),
@@ -130,7 +129,7 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         if let Some(ref path) = self.path {
             self.entries[1].children = Some(vec![2]);
             let root = Entry {
-                parent: 1,
+                id: 1,
                 row: 0,
                 children: None,
                 data: T::create(&path),
@@ -139,29 +138,23 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         }
         self.model.end_reset_model();
     }
-    fn get_index(&self, row: c_int, parent: usize) -> Option<usize> {
+    fn get_index(&self, item: usize, row: usize) -> Option<usize> {
         // for an invalid index return the root
-        if parent == 0 || row < 0 {
+        if item == 0 {
             return Some(1);
         }
-        self.entries.get(parent)
+        self.entries.get(item)
             .and_then(|i| i.children.as_ref())
-            .and_then(|i| i.get(row as usize))
+            .and_then(|i| i.get(row))
             .map(|i| *i)
     }
-    fn get(&self, row: c_int, parent: usize) -> Option<&Entry<T>> {
-        self.get_index(row, parent)
-            .map(|i| &self.entries[i])
+    fn get(&self, item: usize) -> &Entry<T> {
+        &self.entries[item]
     }
-    fn get_mut(&mut self, row: c_int, parent: usize) -> Option<&mut Entry<T>> {
-        self.get_index(row, parent)
-            .map(move |i| &mut self.entries[i])
-    }
-    fn retrieve(&mut self, row: c_int, parent: usize) {
-        let id = self.get_index(row, parent).unwrap();
-        let parents = self.get_parents(id);
+    fn retrieve(&mut self, item: usize) {
+        let parents = self.get_parents(item);
         let incoming = self.incoming.clone();
-        T::retrieve(id, parents, incoming, self.emit.clone());
+        T::retrieve(item, parents, incoming, self.emit.clone());
     }
     fn process_incoming(&mut self) {
         let mut incoming = self.incoming.lock().unwrap();
@@ -174,7 +167,7 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
             {
                 for (r, d) in entries.into_iter().enumerate() {
                     let e = Entry {
-                        parent: id,
+                        id: id,
                         row: r,
                         children: None,
                         data: d,
@@ -183,9 +176,8 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
                     new_entries.push(e);
                 }
                 if new_entries.len() > 0 {
-                    let ref e = self.entries[id];
-                    self.model.begin_insert_rows(e.row as c_int, e.parent, 0,
-                        (new_entries.len() - 1) as c_int);
+                    self.model.begin_insert_rows(id, 0,
+                        (new_entries.len() - 1));
                 }
             }
             self.entries[id].children = Some(children);
@@ -200,7 +192,7 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
         let mut e = Vec::new();
         while pos > 0 {
             e.push(pos);
-            pos = self.entries[pos].parent;
+            pos = self.entries[pos].id;
         }
         e.into_iter().rev().map(|i| &self.entries[i].data).collect()
     }
@@ -231,66 +223,54 @@ impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
             self.reset();
         }
     }
-    fn can_fetch_more(&self, row: c_int, parent: usize) -> bool {
-        self.get(row, parent)
-            .map(|entry| entry.children.is_none()
-                 && entry.data.can_fetch_more())
-            .unwrap_or(false)
+    fn can_fetch_more(&self, item: usize) -> bool {
+        let entry = self.get(item);
+        entry.children.is_none() && entry.data.can_fetch_more()
     }
-    fn fetch_more(&mut self, row: c_int, parent: usize) {
+    fn fetch_more(&mut self, item: usize) {
         self.process_incoming();
-        if !self.can_fetch_more(row, parent) {
+        if !self.can_fetch_more(item) {
             return;
         }
-        self.retrieve(row, parent);
+        self.retrieve(item);
     }
-    fn row_count(&self, row: c_int, parent: usize) -> c_int {
-        let r = self.get(row, parent)
-            .and_then(|entry| entry.children.as_ref())
+    fn row_count(&self, item: usize) -> usize {
+        let r = self.get(item).children.as_ref()
             .map(|i| i.len())
-            .unwrap_or(0) as c_int;
+            .unwrap_or(0);
         // model does lazy loading, signal that data may be available
-        if r == 0 && self.can_fetch_more(row, parent) {
-            self.emit.new_data_ready(row, parent);
+        if r == 0 && self.can_fetch_more(item) {
+            self.emit.new_data_ready(item);
         }
         r
     }
-    fn index(&self, row: c_int, parent: usize) -> usize {
-        self.get_index(row, parent).unwrap_or(0)
+    fn index(&self, item: usize, row: usize) -> usize {
+        self.get_index(item, row).unwrap_or(0)
     }
     fn parent(&self, index: usize) -> QModelIndex {
         if index >= self.entries.len() {
             return QModelIndex::invalid();
         }
         let entry = &self.entries[index];
-        QModelIndex::create(entry.row as i32, entry.parent)
+        QModelIndex::create(entry.row as i32, entry.id)
     }
-    fn file_name(&self, row: c_int, parent: usize) -> String {
-        self.get(row, parent)
-            .map(|entry| entry.data.file_name())
-            .unwrap_or_default()
+    fn file_name(&self, item: usize) -> String {
+        self.get(item).data.file_name()
     }
-    fn file_permissions(&self, row: c_int, parent: usize) -> c_int {
-        self.get(row, parent)
-            .map(|entry| entry.data.file_permissions())
-            .unwrap_or_default()
+    fn file_permissions(&self, item: usize) -> i32 {
+        self.get(item).data.file_permissions()
     }
-    fn file_icon(&self, row: c_int, parent: usize) -> Vec<u8> {
+    #[allow(unused_variables)]
+    fn file_icon(&self, item: usize) -> Vec<u8> {
         Vec::new()
     }
-    fn file_path(&self, row: c_int, parent: usize) -> Option<String> {
-        self.get(row, parent)
-            .map(|entry| entry.data.file_path())
-            .unwrap_or_default()
+    fn file_path(&self, item: usize) -> Option<String> {
+        self.get(item).data.file_path()
     }
-    fn file_type(&self, row: c_int, parent: usize) -> c_int {
-        self.get(row, parent)
-            .map(|entry| entry.data.file_type())
-            .unwrap_or_default()
+    fn file_type(&self, item: usize) -> i32 {
+        self.get(item).data.file_type()
     }
-    fn file_size(&self, row: c_int, parent: usize) -> Option<u64> {
-        self.get(row, parent)
-            .map(|entry| entry.data.file_size())
-            .unwrap_or(None)
+    fn file_size(&self, item: usize) -> Option<u64> {
+        self.get(item).data.file_size()
     }
 }

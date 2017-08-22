@@ -1,9 +1,3 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-use libc::c_int;
-use libc::c_uint;
-use types::*;
 use time_series_interface::*;
 
 #[derive (Default, Clone)]
@@ -36,21 +30,20 @@ impl TimeSeriesTrait for TimeSeries {
     fn emit(&self) -> &TimeSeriesEmitter {
         &self.emit
     }
-    fn row_count(&self) -> c_int {
-        self.list.len() as c_int
+    fn row_count(&self) -> usize {
+        self.list.len() as usize
     }
-    fn input(&self, row: c_int) -> u32 {
+    fn input(&self, row: usize) -> u32 {
         self.list[row as usize].input
     }
-    fn set_input(&mut self, row: c_int, v: u32) -> bool {
-println!("setting input to {} {}", row, v);
+    fn set_input(&mut self, row: usize, v: u32) -> bool {
         self.list[row as usize].input = v;
         true
     }
-    fn result(&self, row: c_int) -> u32 {
+    fn result(&self, row: usize) -> u32 {
         self.list[row as usize].result
     }
-    fn set_result(&mut self, row: c_int, v: u32) -> bool {
+    fn set_result(&mut self, row: usize, v: u32) -> bool {
         self.list[row as usize].result = v;
         true
     }

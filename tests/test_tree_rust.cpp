@@ -56,54 +56,9 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 }
 
 extern "C" {
-    Persons::Private* persons_new(Persons*,
-        void (*)(const Persons*, int, quintptr),
-        void (*)(Persons*),
-        void (*)(Persons*),
-        void (*)(Persons*, int, quintptr, int, int),
-        void (*)(Persons*),
-        void (*)(Persons*, int, quintptr, int, int),
-        void (*)(Persons*));
-    void persons_free(Persons::Private*);
-};
-Persons::Persons(QObject *parent):
-    QAbstractItemModel(parent),
-    d(persons_new(this,
-        [](const Persons* o, int row, quintptr id) {
-            emit o->newDataReady(o->createIndex(row, 0, id));
-        },
-        [](Persons* o) {
-            o->beginResetModel();
-        },
-        [](Persons* o) {
-            o->endResetModel();
-        },
-        [](Persons* o, int row, quintptr id, int first, int last) {
-            o->beginInsertRows(o->createIndex(row, 0, id), first, last);
-        },
-        [](Persons* o) {
-            o->endInsertRows();
-        },
-        [](Persons* o, int row, quintptr id, int first, int last) {
-            o->beginRemoveRows(o->createIndex(row, 0, id), first, last);
-        },
-        [](Persons* o) {
-            o->endRemoveRows();
-        }
-    )) {
-    connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
-        fetchMore(i);
-    }, Qt::QueuedConnection);
-}
-
-
-Persons::~Persons() {
-    persons_free(d);
-}
-extern "C" {
     void persons_data_user_name(const Persons::Private*, int, quintptr, QString*, qstring_set);
     bool persons_set_data_user_name(Persons::Private*, int, quintptr, qstring_t);
-    void persons_sort(Persons::Private*, int column, Qt::SortOrder order = Qt::AscendingOrder);
+    void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int persons_row_count(const Persons::Private*, int, quintptr);
     bool persons_can_fetch_more(const Persons::Private*, int, quintptr);
@@ -183,9 +138,9 @@ QVariant Persons::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
-        case 256:
-        case 0:
-        case 2:
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+        case Qt::UserRole + 0:
             persons_data_user_name(d, index.row(), index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
@@ -196,14 +151,14 @@ QVariant Persons::data(const QModelIndex &index, int role) const
 }
 QHash<int, QByteArray> Persons::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
-    names.insert(256, "userName");
+    names.insert(Qt::UserRole + 0, "userName");
     return names;
 }
 bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     bool set = false;
     if (index.column() == 0) {
-        if (role == 256 || role == 0 || role == 2) {
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
             set = persons_set_data_user_name(d, index.row(), index.internalId(), value.value<QString>());
         }
     }
@@ -211,4 +166,52 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
         emit dataChanged(index, index, QVector<int>() << role);
     }
     return set;
+}
+extern "C" {
+    Persons::Private* persons_new(Persons*,
+        void (*)(const Persons*, quintptr),
+        void (*)(Persons*),
+        void (*)(Persons*),
+        void (*)(Persons*, quintptr, int, int),
+        void (*)(Persons*),
+        void (*)(Persons*, quintptr, int, int),
+        void (*)(Persons*));
+    void persons_free(Persons::Private*);
+};
+Persons::Persons(QObject *parent):
+    QAbstractItemModel(parent),
+    d(persons_new(this,
+        [](const Persons* o, quintptr id) {
+            auto i = persons_parent(o->d, id);
+            emit o->newDataReady(o->createIndex(i.row, 0, i.id));
+        },
+        [](Persons* o) {
+            o->beginResetModel();
+        },
+        [](Persons* o) {
+            o->endResetModel();
+        },
+        [](Persons* o, quintptr id, int first, int last) {
+                       auto i = persons_parent(o->d, id);
+            o->beginInsertRows(o->createIndex(i.row, 0, i.id), first, last);
+        },
+        [](Persons* o) {
+            o->endInsertRows();
+        },
+        [](Persons* o, quintptr id, int first, int last) {
+                       auto i = persons_parent(o->d, id);
+            o->beginRemoveRows(o->createIndex(i.row, 0, i.id), first, last);
+        },
+        [](Persons* o) {
+            o->endRemoveRows();
+        }
+    )) {
+    connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+}
+
+
+Persons::~Persons() {
+    persons_free(d);
 }
