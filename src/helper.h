@@ -3,8 +3,6 @@
 #include <QFile>
 #include <QTextStream>
 
-static QTextStream err;
-
 inline QString snakeCase(const QString& name) {
     return name.left(1).toLower() + name.mid(1)
         .replace(QRegExp("([A-Z])"), "_\\1").toLower();
@@ -36,6 +34,7 @@ public:
     void write() const {
         QFile file(path);
         if (!file.open(QIODevice::WriteOnly)) {
+            QTextStream err(stderr);
             err << QCoreApplication::translate("main",
                 "Cannot write %1.\n").arg(file.fileName());
             err.flush();

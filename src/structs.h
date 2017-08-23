@@ -12,9 +12,11 @@ enum class ObjectType {
 
 enum class BindingType {
     Bool,
+    UChar,
     Int,
     UInt,
     ULongLong,
+    Float,
     QString,
     QByteArray
 };

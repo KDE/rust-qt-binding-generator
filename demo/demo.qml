@@ -12,22 +12,35 @@ ApplicationWindow {
     visible: true
     ItemSelectionModel {
         id: selectionModel
-        model: fsModel
+        model: sortedFileSystem
     }
     TabView {
+        id: tabView
         anchors.fill: parent
+        onCountChanged: {
+            for (var i = 0; i < tabView.count; ++i) {
+                if (tabView.getTab(i).title == initialTab) {
+                    tabView.currentIndex = i;
+                }
+            }
+        }
         Tab {
             title: "style"
-            ComboBox {
-                currentIndex: qtquickIndex
-                model: styles
-                textRole: "display"
-                onCurrentIndexChanged: {
-                    if (currentIndex != qtquickIndex) {
-                        widgets.currentIndex = currentIndex;
-                        application.close();
+            Column {
+                anchors.fill: parent
+                anchors.margins: 5
+                ComboBox {
+                    currentIndex: qtquickIndex
+                    model: styles
+                    textRole: "display"
+                    onCurrentIndexChanged: {
+                        if (currentIndex != qtquickIndex) {
+                            widgets.currentIndex = currentIndex;
+                            application.close();
+                        }
                     }
                 }
+                Item {}
             }
         }
         Tab {
@@ -61,7 +74,9 @@ ApplicationWindow {
             title: "tree"
             TreeView {
                 id: treeView
-                model: sortedFsModel
+                model: sortedFileSystem
+                sortIndicatorVisible: true
+                alternatingRowColors: true
                 selection: selectionModel
                 TableViewColumn {
                     title: "Name"
@@ -77,6 +92,66 @@ ApplicationWindow {
                     treeView.expand(first);
                 }
             }
+        }
+        Tab {
+            title: "processes"
+            TreeView {
+                id: processView
+                model: processes
+                sortIndicatorVisible: true
+                alternatingRowColors: true
+                TableViewColumn {
+                    title: "pid"
+                    role: "pid"
+                }
+                TableViewColumn {
+                    title: "name"
+                    role: "name"
+                }
+                TableViewColumn {
+                    title: "cpu"
+                    role: "cpu"
+                }
+                onSortIndicatorColumnChanged: {
+                    switch (processView.sortIndicatorColumn) {
+                    case 0: model.sortRole = Qt.DisplayRole; break;
+                    }
+                    console.log(model.sortRole);
+                }
+                onSortIndicatorOrderChanged: {
+console.log(model.sort);
+                    model.sort(Qt.DisplayRole, processView.sortIndicatorOrderChanged);
+                }
+            }
+        }
+        Tab {
+            id: chartTab
+            title: "chart"
+//            Row {
+//                anchors.fill: parent
+                Text {
+                    text: "YAYAYA"
+anchors.left: parent.left
+anchors.right: i.left
+                }
+                Item {
+id: i
+anchors.right: parent.right
+                    Text {
+                        anchors.centerIn: parent
+                        text: "QtChart is not available.";
+                        visible: chartLoader.status !== Loader.Ready
+                    }
+                    Loader {
+width: 100
+
+                        id: chartLoader
+        //                anchors.fill: parent
+                        source: "chart.qml"
+                    }
+                }
+
+//            }
         }
     }
 }

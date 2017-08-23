@@ -1,0 +1,43 @@
+{
+    "cppFile": "src/Processes.cpp",
+    "rust": {
+        "dir": "rust",
+        "interfaceModule": "processes_interface",
+        "implementationModule": "processes_implementation",
+        "typesModule": "processes_types"
+    },
+    "objects": {
+        "Processes": {
+            "type": "UniformTree",
+            "properties": {
+            },
+            "itemProperties": {
+                "pid": {
+                    "type": "quint32",
+                    "roles": [ ["display"] ]
+                },
+                "name": {
+                    "type": "QString",
+                    "roles": [ [], ["display"] ]
+                },
+                "cpuUsage": {
+                    "type": "float",
+                    "roles": [ [], [], ["display"] ]
+                },
+                "memory": {
+                    "type": "quint64",
+                    "roles": [ [], [], [], ["display"] ]
+                },
+                "uid": {
+                    "type": "quint32"
+                },
+                "cpuPercentage": {
+                    "type": "quint8"
+                },
+                "cmd": {
+                    "type": "QString"
+                }
+            }
+        }
+    }
+}

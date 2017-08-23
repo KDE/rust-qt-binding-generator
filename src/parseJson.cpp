@@ -20,6 +20,13 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
     if (p.empty()) {
         QMap<BindingType, BindingTypeProperties> f;
         f.insert(BindingType::Bool, simpleType("bool", "true"));
+        f.insert(BindingType::UChar, {
+                     .name = "quint8",
+                     .cppSetType = "quint8",
+                     .cSetType = "quint8",
+                     .rustType = "u8",
+                     .rustTypeInit = "0",
+                 });
         f.insert(BindingType::Int, {
                      .name = "qint32",
                      .cppSetType = "qint32",
@@ -40,6 +47,13 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .cSetType = "quint64",
                      .rustType = "u64",
                      .rustTypeInit = "0"
+                 });
+        f.insert(BindingType::Float, {
+                     .name = "float",
+                     .cppSetType = "float",
+                     .cSetType = "float",
+                     .rustType = "f32",
+                     .rustTypeInit = "0.0"
                  });
         f.insert(BindingType::QString, {
                      .name = "QString",
@@ -68,6 +82,7 @@ BindingTypeProperties parseBindingType(const QString& value) {
             return i.value();
         }
     }
+    QTextStream err(stderr);
     err << QCoreApplication::translate("main",
         "'%1' is not a supported type. Try one of\n").arg(value);
     for (auto i: bindingTypeProperties()) {
@@ -94,6 +109,7 @@ Qt::ItemDataRole parseItemDataRole(const QString& s) {
     if (v >= 0) {
         return (Qt::ItemDataRole)v;
     }
+    QTextStream err(stderr);
     err << QCoreApplication::translate("main",
         "%1 is not a valid role name.\n").arg(s);
     err.flush();
@@ -134,6 +150,7 @@ parseObject(const QString& name, const QJsonObject& json) {
     for (const QString& key: properties.keys()) {
         o.properties.append(parseProperty(key, properties[key].toObject()));
     }
+    QTextStream err(stderr);
     const QJsonObject& itemProperties = json.value("itemProperties").toObject();
     if (o.type != ObjectType::Object && itemProperties.size() == 0) {
         err << QCoreApplication::translate("main",
@@ -159,6 +176,7 @@ Configuration
 parseConfiguration(const QString& path) {
     QFile configurationFile(path);
     const QDir base = QFileInfo(configurationFile).dir();
+    QTextStream err(stderr);
     if (!configurationFile.open(QIODevice::ReadOnly)) {
         err << QCoreApplication::translate("main",
             "Cannot read %1.\n").arg(configurationFile.fileName());

@@ -1,6 +1,7 @@
 #include "Tree.h"
 #include "Fibonacci.h"
 #include "TimeSeries.h"
+#include "Processes.h"
 
 #ifdef QT_CHARTS_LIB
 #include <QtCharts>
@@ -39,8 +40,10 @@ struct Models {
     QStringListModel styles;
     Fibonacci fibonacci;
     FibonacciList fibonacciList;
-    Tree tree;
-    QSortFilterProxyModel sortedTree;
+    Tree fileSystem;
+    QSortFilterProxyModel sortedFileSystem;
+    Processes processes;
+    QSortFilterProxyModel sortedProcesses;
     TimeSeries timeSeries;
 };
 
@@ -74,17 +77,21 @@ void copyWindowGeometry(QWidget* w, QQmlContext* c) {
     }
 }
 
-void createQtQuick(const QString& name, const QString& qml, Models* models, QWidget* widgets) {
+void createQtQuick(const QString& name, const QString& qml, Models* models,
+            QWidget* widgets, const QString& initialTab) {
     QQmlApplicationEngine* engine = new QQmlApplicationEngine();
     QQmlContext* c = engine->rootContext();
-    c->setContextProperty("fsModel", &models->tree);
-    c->setContextProperty("sortedFsModel", &models->sortedTree);
+    c->setContextProperty("styles", &models->styles);
     c->setContextProperty("fibonacci", &models->fibonacci);
     c->setContextProperty("fibonacciList", &models->fibonacciList);
-    c->setContextProperty("styles", &models->styles);
+    c->setContextProperty("sortedFileSystem", &models->sortedFileSystem);
+    c->setContextProperty("processes", &models->sortedProcesses);
+    c->setContextProperty("timeSeries", &models->timeSeries);
+
     c->setContextProperty("widgets", widgets);
     c->setContextProperty("qtquickIndex",
         QVariant(models->styles.stringList().indexOf(name)));
+    c->setContextProperty("initialTab", initialTab);
     copyWindowGeometry(widgets, engine->rootContext());
     engine->load(QUrl(qml));
 }
@@ -111,10 +118,10 @@ QComboBox* createStyleComboBox(Models* models) {
     return box;
 }
 
-QWidget* createStyleTab(Models* models, QWidget* tabs) {
-    QComboBox* box = createStyleComboBox(models);
+QWidget* createStyleTab(Models* models, QWidget* tabs, QComboBox* box,
+        const QString& initialTab) {
     QRect windowRect;
-    box->connect(box, &QComboBox::currentTextChanged, box, [windowRect, box, tabs, models](const QString &text) mutable {
+    auto f = [windowRect, box, tabs, models, initialTab](const QString &text) mutable {
         QWindow* window = getWindow(tabs);
         bool visible = tabs->isVisible();
         if (text.startsWith("QWidgets ")) {
@@ -138,13 +145,16 @@ QWidget* createStyleTab(Models* models, QWidget* tabs) {
 #ifdef QTQUICKCONTROLS2
             if (text == "QtQuick Controls 2") {
                 createQtQuick("QtQuick Controls 2", "qrc:///demo-qtquick2.qml",
-                    models, box);
+                    models, box, initialTab);
             } else
 #endif
-            createQtQuick("QtQuick", "qrc:///demo.qml", models, box);
+            createQtQuick("QtQuick", "qrc:///demo.qml", models, box, initialTab);
 #endif
         }
-    });
+    };
+    box->connect(box, &QComboBox::currentTextChanged, box, f);
+//    box->setCurrentText(style);
+//    f(style);
     return box;
 }
 
@@ -188,11 +198,22 @@ QWidget* createTreeTab(Models* models) {
     QTreeView* view = new QTreeView();
     view->setUniformRowHeights(true);
     view->setSortingEnabled(true);
-    view->setModel(&models->sortedTree);
-    auto root = models->sortedTree.index(0, 0);
+    view->setModel(&models->sortedFileSystem);
+    auto root = models->sortedFileSystem.index(0, 0);
     view->expand(root);
     view->sortByColumn(0, Qt::AscendingOrder);
     view->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    return view;
+}
+
+QWidget* createProcessesTab(Models* models) {
+    QTreeView* view = new QTreeView();
+    view->setUniformRowHeights(true);
+    view->setSortingEnabled(true);
+    view->setModel(&models->sortedProcesses);
+    auto root = models->sortedFileSystem.index(0, 0);
+    view->expand(root);
+    view->sortByColumn(0, Qt::AscendingOrder);
     return view;
 }
 
@@ -237,18 +258,27 @@ QWidget* createChartTab(Models* models) {
 }
 #endif
 
-void createWidgets(Models* models) {
+void createWidgets(Models* models, const QString& initialStyle,
+        const QString& initialTab) {
     QTabWidget* tabs = new QTabWidget();
 
-    tabs->addTab(createStyleTab(models, tabs), "style");
+    QComboBox* box = createStyleComboBox(models);
+    tabs->addTab(createStyleTab(models, tabs, box, initialTab), "style");
     tabs->addTab(createObjectTab(models), "object");
     tabs->addTab(createListTab(models), "list");
     tabs->addTab(createTreeTab(models), "tree");
+    tabs->addTab(createProcessesTab(models), "processes");
 #ifdef QT_CHARTS_LIB
     tabs->addTab(createChartTab(models), "chart");
 #endif
     tabs->setMinimumSize(QSize(500, 500));
     tabs->show();
+    box->setCurrentText(initialStyle);
+    for (int i = 0; i < tabs->count(); ++i) {
+        if (tabs->tabText(i) == initialTab) {
+            tabs->setCurrentIndex(i);
+        }
+    }
 }
 
 int main (int argc, char *argv[])
@@ -256,20 +286,38 @@ int main (int argc, char *argv[])
     QApplication app(argc, argv);
 
 #ifdef QT_QUICK_LIB
-
     qmlRegisterType<QSortFilterProxyModel>("org.qtproject.example", 1, 0, "SortFilterProxyModel");
     qmlRegisterType<Fibonacci>("rust", 1, 0, "Fibonacci");
     qmlRegisterType<FibonacciList>("rust", 1, 0, "FibonacciList");
-
 #endif
 
-    Models models;
-    Tree& model = models.tree;
-    QSortFilterProxyModel& sortedModel = models.sortedTree;
-    model.setPath("/");
-    sortedModel.setSourceModel(&model);
-    sortedModel.setDynamicSortFilter(true);
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Demo application for Qt and RUst");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    // --initial-style
+    QCommandLineOption initialStyleOption(QStringList()
+            << "initial-style",
+            QCoreApplication::translate("main", "Initial widget style."),
+            QCoreApplication::translate("main", "style"));
+    parser.addOption(initialStyleOption);
+    // --initial-tab
+    QCommandLineOption initialTabOption(QStringList()
+            << "initial-tab",
+            QCoreApplication::translate("main", "Initial tab."),
+            QCoreApplication::translate("main", "tab"));
+    parser.addOption(initialTabOption);
+    parser.process(app);
 
-    createWidgets(&models);
+    Models models;
+    models.fileSystem.setPath("/");
+    models.sortedFileSystem.setSourceModel(&models.fileSystem);
+    models.sortedFileSystem.setDynamicSortFilter(true);
+    models.sortedProcesses.setSourceModel(&models.processes);
+    models.sortedProcesses.setDynamicSortFilter(true);
+
+    createWidgets(&models, parser.value(initialStyleOption),
+                           parser.value(initialTabOption));
+
     return app.exec();
 }

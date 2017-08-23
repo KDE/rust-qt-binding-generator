@@ -14,4 +14,4 @@ else
   charts="qt5.qtcharts libsForQt5.kirigami_2"
 fi
 
-nix-shell -p qtcreator kmail cmake ninja gcc rustc cargo qt5.full extra-cmake-modules kdeFrameworks.kwidgetsaddons kdeFrameworks.kcoreaddons kdeFrameworks.ki18n appstream cmakeCurses kdeFrameworks.ktexteditor qt5.qtquickcontrols2 $charts
+nix-shell -p kdevelop qtcreator qt5.qtsensors qt5.qtdoc cmake ninja gcc rustc cargo qt5.full extra-cmake-modules kdeFrameworks.kwidgetsaddons kdeFrameworks.kcoreaddons kdeFrameworks.ki18n appstream cmakeCurses kdeFrameworks.ktexteditor qt5.qtquickcontrols2 $charts

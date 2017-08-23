@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
 
     const QStringList args = parser.positionalArguments();
     if (args.isEmpty()) {
+        QTextStream err(stderr);
         err << QCoreApplication::translate("main",
             "Configuration file is missing.\n");
         return 1;

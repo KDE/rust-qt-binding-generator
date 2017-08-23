@@ -22,6 +22,17 @@ add_custom_command(
   DEPENDS rust_qt_binding_generator tree.json
 )
 
+# generate c++ and rust code from processes.json
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/processes_interface.rs"
+         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/processes_types.rs"
+         "${CMAKE_CURRENT_SOURCE_DIR}/src/Processes.h"
+  # if the cpp file is marked GENERATED, CMake will not check it for moc
+  #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Processes.cpp"
+  COMMAND ${CMAKE_BINARY_DIR}/src/rust_qt_binding_generator "${CMAKE_CURRENT_SOURCE_DIR}/processes.json"
+  DEPENDS rust_qt_binding_generator processes.json
+)
+
 # generate c++ and rust code from time_series.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/time_series_interface.rs"
@@ -47,6 +58,9 @@ add_custom_command(
           rust/src/time_series_interface.rs
           rust/src/time_series_implementation.rs
           rust/src/time_series_types.rs
+          rust/src/processes_interface.rs
+          rust/src/processes_implementation.rs
+          rust/src/processes_types.rs
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rust"
 )
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
@@ -65,7 +79,7 @@ if (Qt5Charts_FOUND)
 endif()
 
 set(Demo_SRCS src/main.cpp src/Fibonacci.cpp src/Tree.cpp  src/TimeSeries.cpp
-    resource_file.qrc)
+    src/Processes.cpp resource_file.qrc)
 
 add_executable(Demo ${Demo_SRCS})
 add_dependencies(Demo rust_target)
