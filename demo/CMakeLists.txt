@@ -79,7 +79,7 @@ if (Qt5Charts_FOUND)
 endif()
 
 set(Demo_SRCS src/main.cpp src/Fibonacci.cpp src/Tree.cpp  src/TimeSeries.cpp
-    src/modeltest.cpp src/Processes.cpp resource_file.qrc)
+    src/Processes.cpp resource_file.qrc)
 
 add_executable(Demo ${Demo_SRCS})
 add_dependencies(Demo rust_target)

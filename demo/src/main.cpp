@@ -2,7 +2,6 @@
 #include "Fibonacci.h"
 #include "TimeSeries.h"
 #include "Processes.h"
-#include "modeltest.h"
 
 #ifdef QT_CHARTS_LIB
 #include <QtCharts>
@@ -317,7 +316,6 @@ int main (int argc, char *argv[])
     parser.process(app);
 
     Models models;
-    //new ModelTest(&models.processes);
     models.fileSystem.setPath("/");
     models.sortedFileSystem.setSourceModel(&models.fileSystem);
     models.sortedFileSystem.setDynamicSortFilter(true);

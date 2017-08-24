@@ -1,4 +1,3 @@
-use types::*;
 use processes_interface::*;
 use sysinfo::*;
 use std::sync::{Arc, Mutex};
@@ -23,7 +22,6 @@ pub struct Processes {
     emit: ProcessesEmitter,
     model: ProcessesUniformTree,
     p: ProcessTree,
-    fallback: Process,
     incoming: Arc<Mutex<Option<ProcessTree>>>
 }
 
@@ -114,14 +112,8 @@ impl Processes {
         &self.p.processes[&pid]
     }
     fn process(&self, item: usize) -> &Process {
-        // normally this should never call with an invalid index
-        // nevertheless, instead of crashing, we'll provide default data
         let pid = item as pid_t;
-        if self.p.processes.contains_key(&pid) {
-            &self.p.processes[&pid].process
-        } else {
-            &self.fallback
-        }
+        &self.p.processes[&pid].process
     }
 }
 
@@ -136,68 +128,81 @@ fn move_process(pid: pid_t, amap: &mut HashMap<pid_t, ProcessItem>,
     }
 }
 
-fn sync_tree(model: &ProcessesUniformTree, parent: Option<usize>,
-        avec: &mut Vec<pid_t>,
+fn remove_row(model: &ProcessesUniformTree, parent: pid_t, row: usize,
+        map: &mut HashMap<pid_t, ProcessItem>) {
+    let pid = map[&parent].tasks[row];
+    println!("removing {} '{}' {}", pid, map[&pid].process.exe,
+                map[&pid].process.cmd.join(" "));
+    model.begin_remove_rows(Some(parent as usize), row, row);
+    map.remove(&pid);
+    let len = {
+        let ref mut tasks = map.get_mut(&parent).unwrap().tasks;
+        tasks.remove(row);
+        tasks.len()
+    };
+    for r in row..len {
+        let pid = map.get_mut(&parent).unwrap().tasks[r];
+        map.get_mut(&pid).unwrap().row = r;
+    }
+    model.end_remove_rows();
+}
+
+fn insert_row(model:  &ProcessesUniformTree, parent: pid_t, row: usize,
+        map: &mut HashMap<pid_t, ProcessItem>, pid: pid_t,
+        source: &mut HashMap<pid_t, ProcessItem>) {
+    println!("adding {} '{}' {}", pid, source[&pid].process.exe,
+            source[&pid].process.cmd.join(" "));
+    model.begin_insert_rows(Some(parent as usize), row, row);
+    move_process(pid, map, source);
+    let len = {
+        let ref mut tasks = map.get_mut(&parent).unwrap().tasks;
+        tasks.insert(row, pid);
+        tasks.len()
+    };
+    for r in row..len {
+        let pid = map.get_mut(&parent).unwrap().tasks[r];
+        map.get_mut(&pid).unwrap().row = r;
+    }
+    model.end_insert_rows();
+}
+
+fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
         amap: &mut HashMap<pid_t, ProcessItem>,
-        bvec: &Vec<pid_t>,
         bmap: &mut HashMap<pid_t, ProcessItem>) {
     let mut a = 0;
     let mut b = 0;
+    let mut alen = amap[&parent].tasks.len();
+    let blen = bmap[&parent].tasks.len();
 
-    while a < avec.len() && b < bvec.len() {
-        if avec[a] < bvec[a] { // a process has disappeared
-            let pid = avec[a];
-            println!("removing {} '{}' {}", pid, amap[&pid].process.exe,
-                amap[&pid].process.cmd.join(" "));
-            model.begin_remove_rows(parent, a, a);
-            amap.remove(&pid);
-            avec.remove(a);
-            model.end_remove_rows();
-        } else if avec[a] > bvec[b] { // a process has appeared
-            let pid = bvec[b];
-            println!("adding {} '{}' {}", pid, bmap[&pid].process.exe,
-                bmap[&pid].process.cmd.join(" "));
-            model.begin_insert_rows(parent, a, a);
-            move_process(pid, amap, bmap);
-            avec.insert(a, pid);
-            let e = amap.get_mut(&pid).unwrap();
-            assert_eq!(e.row, a);
-            assert_eq!(e.process.parent.map(|p| p as usize), parent);
-            model.end_insert_rows();
+    while a < alen && b < blen {
+        let apid = amap[&parent].tasks[a];
+        let bpid = bmap[&parent].tasks[b];
+        if apid < bpid { // a process has disappeared
+            remove_row(model, parent, a, amap);
+            alen -= 1;
+        } else if apid > bpid { // a process has appeared
+            insert_row(model, parent, a, amap, bpid, bmap);
             a += 1;
+            alen += 1;
             b += 1;
         } else {
-            let pid = bvec[b];
-            let mut av = amap[&pid].tasks.clone();
-            let bv = bmap[&pid].tasks.clone();
-            sync_tree(model, Some(pid as usize), &mut av, amap, &bv, bmap);
-            let e = amap.get_mut(&pid).unwrap();
-            e.tasks = av;
-            e.row = a;
-            assert_eq!(e.process.parent.map(|p| p as usize), parent);
+            sync_tree(model, apid, amap, bmap);
             a += 1;
             b += 1;
         }
     }
-    while a < bvec.len() {
-        let pid = bvec[b];
-        model.begin_insert_rows(parent, a, a);
-        move_process(pid, amap, bmap);
-        avec.push(pid);
-        assert_eq!(amap.get_mut(&pid).unwrap().row, a);
-        model.end_insert_rows();
+    while a < blen {
+        let bpid = bmap[&parent].tasks[b];
+        insert_row(model, parent, a, amap, bpid, bmap);
         a += 1;
+        alen += 1;
         b += 1;
     }
-    while b < avec.len() {
-        model.begin_remove_rows(parent, a, a);
-        amap.remove(&avec[a]);
-        avec.remove(a);
-        model.end_remove_rows();
+    while b < alen {
+        remove_row(model, parent, a, amap);
+        alen -= 1;
     }
     assert_eq!(a, b);
-    assert_eq!(a, avec.len());
-    assert_eq!(avec.len(), bvec.len());
 }
 
 impl ProcessesTrait for Processes {
@@ -206,8 +211,7 @@ impl ProcessesTrait for Processes {
             emit: emit.clone(),
             model: model,
             p: ProcessTree::default(),
-            incoming: Arc::new(Mutex::new(None)),
-            fallback: Process::new(0, None, 0)
+            incoming: Arc::new(Mutex::new(None))
         };
         update_thread(emit, p.incoming.clone());
         p
@@ -252,8 +256,18 @@ impl ProcessesTrait for Processes {
             None
         };
         if let Some(mut new) = new {
-            sync_tree(&self.model, None, &mut self.p.top, &mut self.p.processes,
-                &new.top, &mut new.processes);
+            // alert! at the top level, only adding is supported!
+            if self.p.top.len() == 0 {
+                self.model.begin_reset_model();
+                self.p = new;
+                self.model.end_reset_model();
+            } else {
+                let top = self.p.top.clone();
+                for pid in top {
+                    sync_tree(&self.model, pid, &mut self.p.processes,
+                        &mut new.processes);
+                }
+            }
         }
     }
     fn row(&self, item: usize) -> usize {

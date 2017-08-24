@@ -1,5 +1,4 @@
 use interface::*;
-use types::*;
 use std::fs::*;
 use std::fs::read_dir;
 use std::path::PathBuf;

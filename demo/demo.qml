@@ -88,7 +88,7 @@ ApplicationWindow {
                 }
                 Component.onCompleted: {
                     var root = treeView.rootIndex;
-                    var first = sortedFsModel.index(0, 0, root);
+                    var first = sortedFileSystem.index(0, 0, root);
                     treeView.expand(first);
                 }
             }
@@ -122,7 +122,31 @@ ApplicationWindow {
 console.log(model.sort);
                     model.sort(Qt.DisplayRole, processView.sortIndicatorOrderChanged);
                 }
+                Component.onCompleted: {
+                    var r = processView.rootIndex;
+                    var a = processes.index(0, 0, r);
+                    var b = processes.index(1, 0, r);
+                    processView.expand(processView.rootIndex);
+                    processView.expand(a);
+                    processView.expand(b);
+console.log('ho', a.data, b.data);
+                    processes.rowsInserted.connect(function (index) {
+                        processView.expand(processView.rootIndex);
+                        processView.expand(index);
+console.log('hi');
+                    });
+console.log('ha');
+                }
             }
+/*
+    view->connect(&models->sortedProcesses, &QAbstractItemModel::rowsInserted,
+        view, [view](const QModelIndex& index) {
+        if (!index.isValid()) {
+            view->expandAll();
+        }
+    });
+            }
+*/
         }
         Tab {
             id: chartTab
