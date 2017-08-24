@@ -23,6 +23,7 @@ pub struct Processes {
     emit: ProcessesEmitter,
     model: ProcessesUniformTree,
     p: ProcessTree,
+    fallback: Process,
     incoming: Arc<Mutex<Option<ProcessTree>>>
 }
 
@@ -112,6 +113,16 @@ impl Processes {
         let pid = item as pid_t;
         &self.p.processes[&pid]
     }
+    fn process(&self, item: usize) -> &Process {
+        // normally this should never call with an invalid index
+        // nevertheless, instead of crashing, we'll provide default data
+        let pid = item as pid_t;
+        if self.p.processes.contains_key(&pid) {
+            &self.p.processes[&pid].process
+        } else {
+            &self.fallback
+        }
+    }
 }
 
 fn move_process(pid: pid_t, amap: &mut HashMap<pid_t, ProcessItem>,
@@ -195,7 +206,8 @@ impl ProcessesTrait for Processes {
             emit: emit.clone(),
             model: model,
             p: ProcessTree::default(),
-            incoming: Arc::new(Mutex::new(None))
+            incoming: Arc::new(Mutex::new(None)),
+            fallback: Process::new(0, None, 0)
         };
         update_thread(emit, p.incoming.clone());
         p
@@ -248,25 +260,25 @@ impl ProcessesTrait for Processes {
         self.get(item).row
     }
     fn pid(&self, item: usize) -> u32 {
-        self.get(item).process.pid as u32
+        self.process(item).pid as u32
     }
     fn uid(&self, item: usize) -> u32 {
-        self.get(item).process.uid as u32
+        self.process(item).uid as u32
     }
     fn cpu_usage(&self, item: usize) -> f32 {
-        self.get(item).process.cpu_usage
+        self.process(item).cpu_usage
     }
     fn cpu_percentage(&self, item: usize) -> u8 {
-        let cpu = self.get(item).process.cpu_usage / self.p.cpusum;
+        let cpu = self.process(item).cpu_usage / self.p.cpusum;
         (cpu * 100.0) as u8
     }
     fn memory(&self, item: usize) -> u64 {
-        self.get(item).process.memory
+        self.process(item).memory
     }
     fn name(&self, item: usize) -> String {
-        self.get(item).process.name.clone()
+        self.process(item).name.clone()
     }
     fn cmd(&self, item: usize) -> String {
-        self.get(item).process.cmd.join(" ")
+        self.process(item).cmd.join(" ")
     }
 }
