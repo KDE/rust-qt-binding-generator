@@ -7,16 +7,15 @@ use libc::pid_t;
 use std::{thread, time};
 
 struct ProcessItem {
-    parent: Option<usize>,
     row: usize,
-    tasks: Vec<usize>,
+    tasks: Vec<pid_t>,
     process: Process
 }
 
 #[derive (Default)]
 struct ProcessTree {
-    top: Vec<usize>,
-    processes: Vec<ProcessItem>,
+    top: Vec<pid_t>,
+    processes: HashMap<pid_t, ProcessItem>,
     cpusum: f32
 }
 
@@ -27,37 +26,72 @@ pub struct Processes {
     incoming: Arc<Mutex<Option<ProcessTree>>>
 }
 
-fn handle_tasks(tasks: &HashMap<pid_t,Process>,
-        mut processes: &mut Vec<ProcessItem>,
-        parentPos: Option<usize>) -> (Vec<usize>, f32) {
-    let mut t = Vec::new();
-    let mut i = 0;
+fn check() {
+    fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t,Process>) {
+        for (pid, process) in processes {
+            assert_eq!(process.pid, *pid);
+            if !parent.is_none() {
+                assert_eq!(process.parent, parent);
+            }
+            check_process_hierarchy(Some(*pid), &process.tasks);
+        }
+    }
+
+    let mut sysinfo = System::new();
+    sysinfo.refresh_processes();
+    check_process_hierarchy(None, sysinfo.get_process_list());
+}
+
+fn collect_processes(tasks: &HashMap<pid_t,Process>,
+        mut processes: &mut HashMap<pid_t, ProcessItem>) -> f32 {
     let mut cpusum = 0.0;
-    for process in tasks.values() {
-        let pos = processes.len();
-        t.push(pos);
-        processes.push(ProcessItem {
-            parent: parentPos,
-            row: i,
+    for (pid, process) in tasks {
+        processes.insert(process.pid, ProcessItem {
+            row: 0,
             tasks: Vec::new(),
             process: process.clone()
         });
-        let (t, s) = handle_tasks(&process.tasks, &mut processes, Some(pos));
-        processes[pos].tasks = t;
+        let s = collect_processes(&process.tasks, &mut processes);
         cpusum += process.cpu_usage + s;
-        i += 1;
     }
-    (t, cpusum)
+    cpusum
+}
+
+// reconstruct process hierarchy
+fn handle_tasks(mut processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
+    let mut top = Vec::new();
+    let pids: Vec<pid_t> = processes.keys().map(|p| *p).collect();
+    for pid in pids {
+        if let Some(parent) = processes[&pid].process.parent {
+            let row = {
+                let p = processes.get_mut(&parent).unwrap();
+                let row = p.tasks.len();
+                p.tasks.push(pid);
+                row
+            };
+            processes.get_mut(&pid).unwrap().row = row;
+        } else {
+            top.push(pid);
+        }
+    }
+    top.sort();
+    top
+}
+
+fn sort_tasks(mut processes: &mut HashMap<pid_t, ProcessItem>) {
+    for process in processes.values_mut() {
+        process.tasks.sort();
+    }
 }
 
 fn update() -> ProcessTree {
+    check();
     let mut p = ProcessTree::default();
     let mut sysinfo = System::new();
     sysinfo.refresh_processes();
-    let (top, cpusum) = handle_tasks(sysinfo.get_process_list(),
-        &mut p.processes, None);
-    p.top = top;
-    p.cpusum = cpusum;
+    p.cpusum = collect_processes(sysinfo.get_process_list(), &mut p.processes);
+    p.top = handle_tasks(&mut p.processes);
+    sort_tasks(&mut p.processes);
     p
 }
 
@@ -70,6 +104,13 @@ fn update_thread(emit: ProcessesEmitter, incoming: Arc<Mutex<Option<ProcessTree>
             thread::sleep(second);
         }
     });
+}
+
+impl Processes {
+    fn get(&self, item: usize) -> &ProcessItem {
+        let pid = item as pid_t;
+        &self.p.processes[&pid]
+    }
 }
 
 impl ProcessesTrait for Processes {
@@ -88,20 +129,20 @@ impl ProcessesTrait for Processes {
     }
     fn row_count(&self, item: Option<usize>) -> usize {
         if let Some(item) = item {
-            self.p.processes[item].tasks.len()
+            self.get(item).tasks.len()
         } else {
             self.p.top.len()
         }
     }
     fn index(&self, item: Option<usize>, row: usize) -> usize {
         if let Some(item) = item {
-            self.p.processes[item].tasks[row]
+            self.get(item).tasks[row] as usize
         } else {
-            self.p.top[row]
+            self.p.top[row] as usize
         }
     }
     fn parent(&self, item: usize) -> Option<usize> {
-        self.p.processes[item].parent
+        self.get(item).process.parent.map(|pid| pid as usize)
     }
     fn can_fetch_more(&self, item: Option<usize>) -> bool {
         if let Ok(ref incoming) = self.incoming.try_lock() {
@@ -120,28 +161,28 @@ impl ProcessesTrait for Processes {
         }
     }
     fn row(&self, item: usize) -> usize {
-        self.p.processes[item].row
+        self.get(item).row
     }
     fn pid(&self, item: usize) -> u32 {
-        self.p.processes[item].process.pid as u32
+        self.get(item).process.pid as u32
     }
     fn uid(&self, item: usize) -> u32 {
-        self.p.processes[item].process.uid as u32
+        self.get(item).process.uid as u32
     }
     fn cpu_usage(&self, item: usize) -> f32 {
-        self.p.processes[item].process.cpu_usage
+        self.get(item).process.cpu_usage
     }
     fn cpu_percentage(&self, item: usize) -> u8 {
-        let cpu = self.p.processes[item].process.cpu_usage / self.p.cpusum;
+        let cpu = self.get(item).process.cpu_usage / self.p.cpusum;
         (cpu * 100.0) as u8
     }
     fn memory(&self, item: usize) -> u64 {
-        self.p.processes[item].process.memory
+        self.get(item).process.memory
     }
     fn name(&self, item: usize) -> String {
-        self.p.processes[item].process.name.clone()
+        self.get(item).process.name.clone()
     }
     fn cmd(&self, item: usize) -> String {
-        self.p.processes[item].process.cmd.join(" ")
+        self.get(item).process.cmd.join(" ")
     }
 }

@@ -73,7 +73,7 @@ extern "C" {
 }
 int Processes::columnCount(const QModelIndex &) const
 {
-    return 4;
+    return 3;
 }
 
 bool Processes::hasChildren(const QModelIndex &parent) const
@@ -91,7 +91,7 @@ int Processes::rowCount(const QModelIndex &parent) const
 
 QModelIndex Processes::index(int row, int column, const QModelIndex &parent) const
 {
-    if (row < 0 || column < 0 || column >= 4) {
+    if (row < 0 || column < 0 || column >= 3) {
         return QModelIndex();
     }
     if (parent.isValid() && parent.column() != 0) {
@@ -156,11 +156,12 @@ QVariant Processes::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 3:
             v = processes_data_memory(d, index.internalId());
             break;
+        case Qt::DisplayRole:
         case Qt::UserRole + 4:
             processes_data_name(d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
-        case Qt::DisplayRole:
+        case Qt::ToolTipRole:
         case Qt::UserRole + 5:
             v = processes_data_pid(d, index.internalId());
             break;
@@ -172,21 +173,12 @@ QVariant Processes::data(const QModelIndex &index, int role) const
     case 1:
         switch (role) {
         case Qt::DisplayRole:
-        case Qt::UserRole + 4:
-            processes_data_name(d, index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
-        }
-        break;
-    case 2:
-        switch (role) {
-        case Qt::DisplayRole:
         case Qt::UserRole + 2:
             v = processes_data_cpu_usage(d, index.internalId());
             break;
         }
         break;
-    case 3:
+    case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:

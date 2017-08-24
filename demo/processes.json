@@ -14,19 +14,19 @@
             "itemProperties": {
                 "pid": {
                     "type": "quint32",
-                    "roles": [ ["display"] ]
+                    "roles": [ ["toolTip"] ]
                 },
                 "name": {
                     "type": "QString",
-                    "roles": [ [], ["display"] ]
+                    "roles": [ ["display"] ]
                 },
                 "cpuUsage": {
                     "type": "float",
-                    "roles": [ [], [], ["display"] ]
+                    "roles": [ [], ["display"] ]
                 },
                 "memory": {
                     "type": "quint64",
-                    "roles": [ [], [], [], ["display"] ]
+                    "roles": [ [], [], ["display"] ]
                 },
                 "uid": {
                     "type": "quint32"
