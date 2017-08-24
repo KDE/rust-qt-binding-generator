@@ -123,6 +123,7 @@ Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
 QVariant TimeSeries::data(const QModelIndex &index, int role) const
 {
     QVariant v;
+    Q_ASSERT(rowCount(index.parent()) > index.row());
     QString s;
     QByteArray b;
     switch (index.column()) {

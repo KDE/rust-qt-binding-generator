@@ -220,6 +220,7 @@ Qt::ItemFlags %1::flags(const QModelIndex &i) const
 QVariant %1::data(const QModelIndex &index, int role) const
 {
     QVariant v;
+    Q_ASSERT(rowCount(index.parent()) > index.row());
     QString s;
     QByteArray b;
     switch (index.column()) {

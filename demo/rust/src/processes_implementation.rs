@@ -26,26 +26,20 @@ pub struct Processes {
     incoming: Arc<Mutex<Option<ProcessTree>>>
 }
 
-fn check() {
-    fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t,Process>) {
-        for (pid, process) in processes {
-            assert_eq!(process.pid, *pid);
-            if !parent.is_none() {
-                assert_eq!(process.parent, parent);
-            }
-            check_process_hierarchy(Some(*pid), &process.tasks);
+fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t,Process>) {
+    for (pid, process) in processes {
+        assert_eq!(process.pid, *pid);
+        if !parent.is_none() {
+            assert_eq!(process.parent, parent);
         }
+        check_process_hierarchy(Some(*pid), &process.tasks);
     }
-
-    let mut sysinfo = System::new();
-    sysinfo.refresh_processes();
-    check_process_hierarchy(None, sysinfo.get_process_list());
 }
 
 fn collect_processes(tasks: &HashMap<pid_t,Process>,
         mut processes: &mut HashMap<pid_t, ProcessItem>) -> f32 {
     let mut cpusum = 0.0;
-    for (pid, process) in tasks {
+    for process in tasks.values() {
         processes.insert(process.pid, ProcessItem {
             row: 0,
             tasks: Vec::new(),
@@ -63,42 +57,49 @@ fn handle_tasks(mut processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
     let pids: Vec<pid_t> = processes.keys().map(|p| *p).collect();
     for pid in pids {
         if let Some(parent) = processes[&pid].process.parent {
-            let row = {
-                let p = processes.get_mut(&parent).unwrap();
-                let row = p.tasks.len();
-                p.tasks.push(pid);
-                row
-            };
-            processes.get_mut(&pid).unwrap().row = row;
+            let p = processes.get_mut(&parent).unwrap();
+            p.tasks.push(pid);
         } else {
             top.push(pid);
         }
     }
-    top.sort();
     top
 }
 
-fn sort_tasks(mut processes: &mut HashMap<pid_t, ProcessItem>) {
-    for process in processes.values_mut() {
-        process.tasks.sort();
+fn update_rows(list: Vec<pid_t>, mut processes: &mut HashMap<pid_t, ProcessItem>) {
+    let mut row = 0;
+    for pid in list {
+        processes.get_mut(&pid).unwrap().row = row;
+        let l = processes[&pid].tasks.clone();
+        update_rows(l, processes);
+        row += 1;
     }
 }
 
+fn sort_tasks(p: &mut ProcessTree) {
+    for process in p.processes.values_mut() {
+        process.tasks.sort();
+    }
+    p.top.sort();
+    update_rows(p.top.clone(), &mut p.processes);
+}
+
 fn update() -> ProcessTree {
-    check();
     let mut p = ProcessTree::default();
     let mut sysinfo = System::new();
     sysinfo.refresh_processes();
-    p.cpusum = collect_processes(sysinfo.get_process_list(), &mut p.processes);
+    let list = sysinfo.get_process_list();
+    check_process_hierarchy(None, list);
+    p.cpusum = collect_processes(list, &mut p.processes);
     p.top = handle_tasks(&mut p.processes);
-    sort_tasks(&mut p.processes);
+    sort_tasks(&mut p);
     p
 }
 
 fn update_thread(emit: ProcessesEmitter, incoming: Arc<Mutex<Option<ProcessTree>>>) {
     thread::spawn(move || {
         let second = time::Duration::new(1, 0);
-        while true {
+        loop {
             *incoming.lock().unwrap() = Some(update());
             emit.new_data_ready(None);
             thread::sleep(second);
@@ -113,9 +114,84 @@ impl Processes {
     }
 }
 
+fn move_process(pid: pid_t, amap: &mut HashMap<pid_t, ProcessItem>,
+        bmap: &mut HashMap<pid_t, ProcessItem>) {
+    if let Some(e) = bmap.remove(&pid) {
+        amap.insert(pid, e);
+        let ts = amap[&pid].tasks.clone();
+        for t in ts {
+            move_process(t, amap, bmap);
+        }
+    }
+}
+
+fn sync_tree(model: &ProcessesUniformTree, parent: Option<usize>,
+        avec: &mut Vec<pid_t>,
+        amap: &mut HashMap<pid_t, ProcessItem>,
+        bvec: &Vec<pid_t>,
+        bmap: &mut HashMap<pid_t, ProcessItem>) {
+    let mut a = 0;
+    let mut b = 0;
+
+    while a < avec.len() && b < bvec.len() {
+        if avec[a] < bvec[a] { // a process has disappeared
+            let pid = avec[a];
+            println!("removing {} '{}' {}", pid, amap[&pid].process.exe,
+                amap[&pid].process.cmd.join(" "));
+            model.begin_remove_rows(parent, a, a);
+            amap.remove(&pid);
+            avec.remove(a);
+            model.end_remove_rows();
+        } else if avec[a] > bvec[b] { // a process has appeared
+            let pid = bvec[b];
+            println!("adding {} '{}' {}", pid, bmap[&pid].process.exe,
+                bmap[&pid].process.cmd.join(" "));
+            model.begin_insert_rows(parent, a, a);
+            move_process(pid, amap, bmap);
+            avec.insert(a, pid);
+            let e = amap.get_mut(&pid).unwrap();
+            assert_eq!(e.row, a);
+            assert_eq!(e.process.parent.map(|p| p as usize), parent);
+            model.end_insert_rows();
+            a += 1;
+            b += 1;
+        } else {
+            let pid = bvec[b];
+            let mut av = amap[&pid].tasks.clone();
+            let bv = bmap[&pid].tasks.clone();
+            sync_tree(model, Some(pid as usize), &mut av, amap, &bv, bmap);
+            let e = amap.get_mut(&pid).unwrap();
+            e.tasks = av;
+            e.row = a;
+            assert_eq!(e.process.parent.map(|p| p as usize), parent);
+            a += 1;
+            b += 1;
+        }
+    }
+    while a < bvec.len() {
+        let pid = bvec[b];
+        model.begin_insert_rows(parent, a, a);
+        move_process(pid, amap, bmap);
+        avec.push(pid);
+        assert_eq!(amap.get_mut(&pid).unwrap().row, a);
+        model.end_insert_rows();
+        a += 1;
+        b += 1;
+    }
+    while b < avec.len() {
+        model.begin_remove_rows(parent, a, a);
+        amap.remove(&avec[a]);
+        avec.remove(a);
+        model.end_remove_rows();
+    }
+    assert_eq!(a, b);
+    assert_eq!(a, avec.len());
+    assert_eq!(avec.len(), bvec.len());
+}
+
 impl ProcessesTrait for Processes {
     fn create(emit: ProcessesEmitter, model: ProcessesUniformTree) -> Processes {
-        let mut p = Processes {
+        let p = Processes {
             emit: emit.clone(),
             model: model,
             p: ProcessTree::default(),
@@ -145,6 +221,9 @@ impl ProcessesTrait for Processes {
         self.get(item).process.parent.map(|pid| pid as usize)
     }
     fn can_fetch_more(&self, item: Option<usize>) -> bool {
+        if item.is_some() {
+            return false;
+        }
         if let Ok(ref incoming) = self.incoming.try_lock() {
             incoming.is_some()
         } else {
@@ -152,12 +231,17 @@ impl ProcessesTrait for Processes {
         }
     }
     fn fetch_more(&mut self, item: Option<usize>) {
-        if let Ok(ref mut incoming) = self.incoming.try_lock() {
-            if let Some(more) = incoming.take() {
-                self.model.begin_reset_model();
-                self.p = more;
-                self.model.end_reset_model();
-            }
+        if item.is_some() {
+            return;
+        }
+        let new = if let Ok(ref mut incoming) = self.incoming.try_lock() {
+            incoming.take()
+        } else {
+            None
+        };
+        if let Some(mut new) = new {
+            sync_tree(&self.model, None, &mut self.p.top, &mut self.p.processes,
+                &new.top, &mut new.processes);
         }
     }
     fn row(&self, item: usize) -> usize {

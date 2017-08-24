@@ -2,6 +2,7 @@
 #include "Fibonacci.h"
 #include "TimeSeries.h"
 #include "Processes.h"
+#include "modeltest.h"
 
 #ifdef QT_CHARTS_LIB
 #include <QtCharts>
@@ -211,8 +212,14 @@ QWidget* createProcessesTab(Models* models) {
     view->setUniformRowHeights(true);
     view->setSortingEnabled(true);
     view->setModel(&models->sortedProcesses);
-    auto root = models->sortedFileSystem.index(0, 0);
-    view->expand(root);
+    // expand when the model is populated
+    view->connect(&models->sortedProcesses, &QAbstractItemModel::rowsInserted,
+        view, [view](const QModelIndex& index) {
+        if (!index.isValid()) {
+            view->expandAll();
+        }
+    });
+    view->expandAll();
     view->sortByColumn(0, Qt::AscendingOrder);
     return view;
 }
@@ -310,6 +317,7 @@ int main (int argc, char *argv[])
     parser.process(app);
 
     Models models;
+    //new ModelTest(&models.processes);
     models.fileSystem.setPath("/");
     models.sortedFileSystem.setSourceModel(&models.fileSystem);
     models.sortedFileSystem.setDynamicSortFilter(true);
