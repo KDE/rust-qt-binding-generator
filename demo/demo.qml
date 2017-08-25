@@ -93,46 +93,65 @@ ApplicationWindow {
                     var first = sortedFileSystem.index(0, 0, root);
                     treeView.expand(first);
                 }
+                onSortIndicatorColumnChanged: sort()
+                onSortIndicatorOrderChanged: sort()
+                function sort() {
+                    var role = getColumn(treeView.sortIndicatorColumn).role;
+                    model.sortByRole(role, treeView.sortIndicatorOrder);
+                }
             }
         }
         Tab {
             title: "processes"
-            TreeView {
-                id: processView
-                model: processes
-                sortIndicatorVisible: true
-                alternatingRowColors: true
-                TableViewColumn {
-                    title: "pid"
-                    role: "pid"
-                }
-                TableViewColumn {
-                    title: "name"
-                    role: "name"
-                }
-                TableViewColumn {
-                    title: "cpu"
-                    role: "cpu"
-                }
-                onSortIndicatorColumnChanged: {
-                    switch (processView.sortIndicatorColumn) {
-                    case 0: model.sortRole = Qt.DisplayRole; break;
+            Item {
+                anchors.fill: parent
+                TextField {
+                    id: processFilterInput
+                    width: parent.width
+                    placeholderText: "Filter processes"
+                    onTextChanged: {
+                        processes.filterRegExp
+                            = new RegExp(processFilterInput.text);
                     }
                 }
-                onSortIndicatorOrderChanged: {
-                    model.sort(Qt.DisplayRole, processView.sortIndicatorOrderChanged);
-                }
-                Component.onCompleted: {
-                    var r = processView.rootIndex;
-                    var a = processes.index(0, 0, r);
-                    var b = processes.index(1, 0, r);
-                    processView.expand(processView.rootIndex);
-                    processView.expand(a);
-                    processView.expand(b);
-                    processes.rowsInserted.connect(function (index) {
+                TreeView {
+                    width: parent.width
+                    anchors.top: processFilterInput.bottom
+                    anchors.bottom: parent.bottom
+                    id: processView
+                    model: processes
+                    sortIndicatorVisible: true
+                    alternatingRowColors: true
+                    TableViewColumn {
+                        title: "pid"
+                        role: "pid"
+                    }
+                    TableViewColumn {
+                        title: "name"
+                        role: "name"
+                    }
+                    TableViewColumn {
+                        title: "cpu"
+                        role: "cpu"
+                    }
+                    onSortIndicatorColumnChanged: sort()
+                    onSortIndicatorOrderChanged: sort()
+                    function sort() {
+                        var role = getColumn(processView.sortIndicatorColumn).role;
+                        model.sortByRole(role, processView.sortIndicatorOrder);
+                    }
+                    Component.onCompleted: {
+                        var r = processView.rootIndex;
+                        var a = processes.index(0, 0, r);
+                        var b = processes.index(1, 0, r);
                         processView.expand(processView.rootIndex);
-                        processView.expand(index);
-                    });
+                        processView.expand(a);
+                        processView.expand(b);
+                        processes.rowsInserted.connect(function (index) {
+                            processView.expand(processView.rootIndex);
+                            processView.expand(index);
+                        });
+                    }
                 }
             }
 /*

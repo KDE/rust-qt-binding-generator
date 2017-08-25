@@ -2,6 +2,7 @@
 #include "Fibonacci.h"
 #include "TimeSeries.h"
 #include "Processes.h"
+#include "SortedModel.h"
 
 #ifdef QT_CHARTS_LIB
 #include <QtCharts>
@@ -43,9 +44,9 @@ struct Models {
     Fibonacci fibonacci;
     FibonacciList fibonacciList;
     Tree fileSystem;
-    QSortFilterProxyModel sortedFileSystem;
+    SortedModel sortedFileSystem;
     Processes processes;
-    QSortFilterProxyModel sortedProcesses;
+    SortedModel sortedProcesses;
     TimeSeries timeSeries;
 };
 
