@@ -40,7 +40,9 @@ ApplicationWindow {
                         }
                     }
                 }
-                Item {}
+                Image {
+                    source: "logo.svg"
+                }
             }
         }
         Tab {

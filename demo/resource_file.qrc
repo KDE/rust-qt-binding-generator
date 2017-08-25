@@ -3,5 +3,6 @@
         <file>demo.qml</file>
         <file>chart.qml</file>
         <file>demo-qtquick2.qml</file>
+        <file alias="logo.svg">../logo.svg</file>
     </qresource>
 </RCC>
