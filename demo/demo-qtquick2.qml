@@ -22,15 +22,20 @@ ApplicationWindow {
         anchors.top: bar.bottom
         anchors.bottom: parent.bottom
         currentIndex: bar.currentIndex
-        ComboBox {
-            currentIndex: qtquickIndex
-            model: styles
-            textRole: "display"
-            onCurrentIndexChanged: {
-                if (currentIndex != qtquickIndex) {
-                    widgets.currentIndex = currentIndex;
-                    application.close();
+        ColumnLayout {
+            ComboBox {
+                currentIndex: qtquickIndex
+                model: styles
+                textRole: "display"
+                onCurrentIndexChanged: {
+                    if (currentIndex != qtquickIndex) {
+                        widgets.currentIndex = currentIndex;
+                        application.close();
+                    }
                 }
+            }
+            Image {
+                source: "logo.svg"
             }
         }
         RowLayout {
