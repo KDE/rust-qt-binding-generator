@@ -116,10 +116,8 @@ ApplicationWindow {
                     switch (processView.sortIndicatorColumn) {
                     case 0: model.sortRole = Qt.DisplayRole; break;
                     }
-                    console.log(model.sortRole);
                 }
                 onSortIndicatorOrderChanged: {
-console.log(model.sort);
                     model.sort(Qt.DisplayRole, processView.sortIndicatorOrderChanged);
                 }
                 Component.onCompleted: {
@@ -129,13 +127,10 @@ console.log(model.sort);
                     processView.expand(processView.rootIndex);
                     processView.expand(a);
                     processView.expand(b);
-console.log('ho', a.data, b.data);
                     processes.rowsInserted.connect(function (index) {
                         processView.expand(processView.rootIndex);
                         processView.expand(index);
-console.log('hi');
                     });
-console.log('ha');
                 }
             }
 /*

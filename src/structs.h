@@ -61,7 +61,6 @@ struct Configuration {
     QDir rustdir;
     QString interfaceModule;
     QString implementationModule;
-    QString typesModule;
     QList<Object> objects;
     bool overwriteImplementation;
 };

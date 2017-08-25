@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
         writeCpp(configuration);
         writeRustInterface(configuration);
         writeRustImplementation(configuration);
-        writeRustTypes(configuration);
     }
 
     return 0;

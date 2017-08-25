@@ -3,7 +3,6 @@ set(CMAKE_AUTORCC ON)
 # generate c++ and rust code from fibonacci.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/fibonacci_interface.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/fibonacci_types.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Fibonacci.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Fibonacci.cpp"
@@ -14,7 +13,6 @@ add_custom_command(
 # generate c++ and rust code from tree.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/interface.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/types.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Tree.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Tree.cpp"
@@ -25,7 +23,6 @@ add_custom_command(
 # generate c++ and rust code from processes.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/processes_interface.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/processes_types.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Processes.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Processes.cpp"
@@ -36,7 +33,6 @@ add_custom_command(
 # generate c++ and rust code from time_series.json
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/time_series_interface.rs"
-         "${CMAKE_CURRENT_SOURCE_DIR}/rust/src/time_series_types.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/TimeSeries.h"
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/TimeSeries.cpp"
@@ -51,16 +47,12 @@ add_custom_command(
   DEPENDS rust/src/lib.rs
           rust/src/fibonacci_interface.rs
           rust/src/fibonacci_implementation.rs
-          rust/src/fibonacci_types.rs
           rust/src/implementation.rs
           rust/src/interface.rs
-          rust/src/types.rs
           rust/src/time_series_interface.rs
           rust/src/time_series_implementation.rs
-          rust/src/time_series_types.rs
           rust/src/processes_interface.rs
           rust/src/processes_implementation.rs
-          rust/src/processes_types.rs
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rust"
 )
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")

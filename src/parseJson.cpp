@@ -204,6 +204,5 @@ parseConfiguration(const QString& path) {
     c.rustdir = QDir(base.filePath(rust.value("dir").toString()));
     c.interfaceModule = rust.value("interfaceModule").toString();
     c.implementationModule = rust.value("implementationModule").toString();
-    c.typesModule = rust.value("typesModule").toString();
     return c;
 }

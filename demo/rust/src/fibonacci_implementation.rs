@@ -1,7 +1,3 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-use types::*;
 use std::thread;
 use fibonacci_interface::*;
 use std::sync::atomic::AtomicUsize;
