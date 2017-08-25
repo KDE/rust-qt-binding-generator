@@ -32,6 +32,7 @@ impl<T> From<Option<T>> for COption<T> where T: Default {
     }
 }
 
+
 #[repr(C)]
 pub struct QString {
     data: *const uint8_t,
@@ -60,6 +61,7 @@ impl<'a> From<&'a String> for QString {
     }
 }
 
+
 #[repr(C)]
 pub struct QByteArray {
     data: *const uint8_t,
@@ -81,34 +83,6 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
         }
     }
 }
-
-#[repr(C)]
-pub struct QModelIndex {
-    row: c_int,
-    internal_id: usize,
-}
-
-impl QModelIndex {
-    fn invalid() -> QModelIndex {
-        QModelIndex {
-            row: -1,
-            internal_id: 0,
-        }
-    }
-    fn create(row: c_int, id: usize) -> QModelIndex {
-        QModelIndex {
-            row: row,
-            internal_id: id,
-        }
-    }
-}
-
-#[repr(C)]
-pub enum SortOrder {
-    Ascending = 0,
-    Descending = 1
-}
-
 
 pub struct ObjectQObject {}
 

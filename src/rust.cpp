@@ -362,9 +362,9 @@ pub unsafe extern "C" fn %2_index(ptr: *const %1, item: usize, valid: bool, row:
 #[no_mangle]
 pub unsafe extern "C" fn %2_parent(ptr: *const %1, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
-        QModelIndex::create((&*ptr).row(parent) as c_int, parent)
+        QModelIndex{row: (&*ptr).row(parent) as c_int, internal_id: parent}
     } else {
-        QModelIndex::invalid()
+        QModelIndex{row: -1, internal_id: 0}
     }
 }
 #[no_mangle]
@@ -446,8 +446,31 @@ QString rustFile(const QDir rustdir, const QString& module) {
     return path;
 }
 
-void writeRustTypes(QTextStream& r) {
-    r << QString(R"(
+void writeRustTypes(const Configuration& conf, QTextStream& r) {
+    bool hasOption = false;
+    bool hasString = false;
+    bool hasStringWrite = false;
+    bool hasByteArray = false;
+    bool hasListOrTree = false;
+
+    for (auto o: conf.objects) {
+        hasListOrTree |= o.type != ObjectType::Object;
+        for (auto p: o.properties) {
+            hasOption |= p.optional;
+            hasString |= p.type.type == BindingType::QString;
+            hasStringWrite |= p.type.type == BindingType::QString
+                    && p.write;
+            hasByteArray |= p.type.type == BindingType::QByteArray;
+        }
+        for (auto p: o.itemProperties) {
+            hasOption |= p.optional;
+            hasString |= p.type.type == BindingType::QString;
+            hasByteArray |= p.type.type == BindingType::QByteArray;
+        }
+    }
+
+    if (hasOption || hasListOrTree) {
+        r << R"(
 
 #[repr(C)]
 pub struct COption<T> {
@@ -470,6 +493,10 @@ impl<T> From<Option<T>> for COption<T> where T: Default {
         }
     }
 }
+)";
+    }
+    if (hasString) {
+        r << R"(
 
 #[repr(C)]
 pub struct QString {
@@ -498,6 +525,10 @@ impl<'a> From<&'a String> for QString {
         }
     }
 }
+)";
+                 }
+    if (hasByteArray) {
+        r << R"(
 
 #[repr(C)]
 pub struct QByteArray {
@@ -520,27 +551,10 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
         }
     }
 }
-
-#[repr(C)]
-pub struct QModelIndex {
-    row: c_int,
-    internal_id: usize,
-}
-
-impl QModelIndex {
-    fn invalid() -> QModelIndex {
-        QModelIndex {
-            row: -1,
-            internal_id: 0,
-        }
+)";
     }
-    fn create(row: c_int, id: usize) -> QModelIndex {
-        QModelIndex {
-            row: row,
-            internal_id: id,
-        }
-    }
-}
+    if (hasListOrTree) {
+        r << R"(
 
 #[repr(C)]
 pub enum SortOrder {
@@ -548,7 +562,13 @@ pub enum SortOrder {
     Descending = 1
 }
 
-)");
+#[repr(C)]
+pub struct QModelIndex {
+    row: c_int,
+    internal_id: usize,
+}
+)";
+    }
 }
 
 void writeRustInterface(const Configuration& conf) {
@@ -566,7 +586,7 @@ use std::ptr::null;
 use %1::*;
 )").arg(conf.implementationModule);
 
-    writeRustTypes(r);
+    writeRustTypes(conf, r);
 
     for (auto object: conf.objects) {
         writeRustInterfaceObject(r, object);

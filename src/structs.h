@@ -22,6 +22,7 @@ enum class BindingType {
 };
 
 struct BindingTypeProperties {
+    BindingType type;
     QString name;
     QString cppSetType;
     QString cSetType;

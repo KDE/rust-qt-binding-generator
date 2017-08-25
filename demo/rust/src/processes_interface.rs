@@ -32,6 +32,7 @@ impl<T> From<Option<T>> for COption<T> where T: Default {
     }
 }
 
+
 #[repr(C)]
 pub struct QString {
     data: *const uint8_t,
@@ -60,48 +61,6 @@ impl<'a> From<&'a String> for QString {
     }
 }
 
-#[repr(C)]
-pub struct QByteArray {
-    data: *const uint8_t,
-    len: c_int,
-}
-
-impl QByteArray {
-    fn convert(&self) -> Vec<u8> {
-        let data = unsafe { slice::from_raw_parts(self.data, self.len as usize) };
-        Vec::from(data)
-    }
-}
-
-impl<'a> From<&'a Vec<u8>> for QByteArray {
-    fn from(value: &'a Vec<u8>) -> QByteArray {
-        QByteArray {
-            len: value.len() as c_int,
-            data: value.as_ptr(),
-        }
-    }
-}
-
-#[repr(C)]
-pub struct QModelIndex {
-    row: c_int,
-    internal_id: usize,
-}
-
-impl QModelIndex {
-    fn invalid() -> QModelIndex {
-        QModelIndex {
-            row: -1,
-            internal_id: 0,
-        }
-    }
-    fn create(row: c_int, id: usize) -> QModelIndex {
-        QModelIndex {
-            row: row,
-            internal_id: id,
-        }
-    }
-}
 
 #[repr(C)]
 pub enum SortOrder {
@@ -109,6 +68,11 @@ pub enum SortOrder {
     Descending = 1
 }
 
+#[repr(C)]
+pub struct QModelIndex {
+    row: c_int,
+    internal_id: usize,
+}
 
 pub struct ProcessesQObject {}
 
@@ -257,9 +221,9 @@ pub unsafe extern "C" fn processes_index(ptr: *const Processes, item: usize, val
 #[no_mangle]
 pub unsafe extern "C" fn processes_parent(ptr: *const Processes, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
-        QModelIndex::create((&*ptr).row(parent) as c_int, parent)
+        QModelIndex{row: (&*ptr).row(parent) as c_int, internal_id: parent}
     } else {
-        QModelIndex::invalid()
+        QModelIndex{row: -1, internal_id: 0}
     }
 }
 #[no_mangle]

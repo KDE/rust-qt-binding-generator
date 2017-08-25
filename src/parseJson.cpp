@@ -5,8 +5,9 @@
 #include <QJsonArray>
 #include <QMetaEnum>
 
-BindingTypeProperties simpleType(const char* name, const char* init) {
+BindingTypeProperties simpleType(BindingType type, const char* name, const char* init) {
     return {
+        .type = type,
         .name = name,
         .cppSetType = name,
         .cSetType = name,
@@ -19,8 +20,9 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
     static QMap<BindingType, BindingTypeProperties> p;
     if (p.empty()) {
         QMap<BindingType, BindingTypeProperties> f;
-        f.insert(BindingType::Bool, simpleType("bool", "true"));
+        f.insert(BindingType::Bool, simpleType(BindingType::Bool, "bool", "true"));
         f.insert(BindingType::UChar, {
+                     .type = BindingType::UChar,
                      .name = "quint8",
                      .cppSetType = "quint8",
                      .cSetType = "quint8",
@@ -28,6 +30,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "0",
                  });
         f.insert(BindingType::Int, {
+                     .type = BindingType::Int,
                      .name = "qint32",
                      .cppSetType = "qint32",
                      .cSetType = "qint32",
@@ -35,6 +38,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "0",
                  });
         f.insert(BindingType::UInt, {
+                     .type = BindingType::UInt,
                      .name = "quint32",
                      .cppSetType = "uint",
                      .cSetType = "uint",
@@ -42,6 +46,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::ULongLong, {
+                     .type = BindingType::ULongLong,
                      .name = "quint64",
                      .cppSetType = "quint64",
                      .cSetType = "quint64",
@@ -49,6 +54,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "0"
                  });
         f.insert(BindingType::Float, {
+                     .type = BindingType::Float,
                      .name = "float",
                      .cppSetType = "float",
                      .cSetType = "float",
@@ -56,6 +62,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "0.0"
                  });
         f.insert(BindingType::QString, {
+                     .type = BindingType::QString,
                      .name = "QString",
                      .cppSetType = "const QString&",
                      .cSetType = "qstring_t",
@@ -63,6 +70,7 @@ const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
                      .rustTypeInit = "String::new()"
                  });
         f.insert(BindingType::QByteArray, {
+                     .type = BindingType::QByteArray,
                      .name = "QByteArray",
                      .cppSetType = "const QByteArray&",
                      .cSetType = "qbytearray_t",
