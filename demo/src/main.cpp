@@ -25,11 +25,13 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
-#include <QTableView>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QStyleFactory>
+#include <QSvgRenderer>
+#include <QSvgWidget>
 #include <QTabWidget>
+#include <QTableView>
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -153,9 +155,16 @@ QWidget* createStyleTab(Models* models, QWidget* tabs, QComboBox* box,
         }
     };
     box->connect(box, &QComboBox::currentTextChanged, box, f);
-//    box->setCurrentText(style);
-//    f(style);
-    return box;
+
+    QSvgWidget* logo = new QSvgWidget("/home/oever/src/rust_qt_binding_generator/logo.svg");
+    logo->setFixedSize(logo->renderer()->defaultSize());
+
+    QWidget* tab = new QWidget;
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(box);
+    layout->addWidget(logo);
+    tab->setLayout(layout);
+    return tab;
 }
 
 QWidget* createObjectTab(Models* models) {
@@ -290,6 +299,7 @@ void createWidgets(Models* models, const QString& initialStyle,
 int main (int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/logo.svg"));
 
 #ifdef QT_QUICK_LIB
     qmlRegisterType<QSortFilterProxyModel>("org.qtproject.example", 1, 0, "SortFilterProxyModel");

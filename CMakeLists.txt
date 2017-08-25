@@ -24,6 +24,7 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG
         Test
     OPTIONAL_COMPONENTS
         Widgets
+        Svg
         Quick
 )
 find_package(Qt5QuickControls2 EXACT ${Qt5Core_VERSION})
@@ -56,7 +57,7 @@ add_subdirectory(src)
 enable_testing()
 add_subdirectory(tests)
 
-if(Qt5Widgets_FOUND)
+if(Qt5Widgets_FOUND AND Qt5Svg_FOUND)
     add_subdirectory(demo)
 endif()
 

@@ -58,7 +58,7 @@ add_custom_command(
 add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
 
 list(APPEND DemoLibs "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
-list(APPEND DemoLibs Qt5::Widgets)
+list(APPEND DemoLibs Qt5::Widgets Qt5::Svg)
 if (Qt5Quick_FOUND)
     list(APPEND DemoLibs Qt5::Quick)
 endif()
