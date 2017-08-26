@@ -147,7 +147,7 @@ pub trait ProcessesTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn processes_new(qobject: *const ProcessesQObject,
+pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
         new_data_ready: fn(*const ProcessesQObject, item: usize, valid: bool),
         begin_reset_model: fn(*const ProcessesQObject),
         end_reset_model: fn(*const ProcessesQObject),
@@ -160,12 +160,12 @@ pub extern "C" fn processes_new(qobject: *const ProcessesQObject,
             usize),
         end_remove_rows: fn(*const ProcessesQObject))
         -> *mut Processes {
-    let emit = ProcessesEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let processes_emit = ProcessesEmitter {
+        qobject: Arc::new(Mutex::new(processes)),
         new_data_ready: new_data_ready,
     };
     let model = ProcessesUniformTree {
-        qobject: qobject,
+        qobject: processes,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
@@ -173,8 +173,8 @@ pub extern "C" fn processes_new(qobject: *const ProcessesQObject,
         begin_remove_rows: begin_remove_rows,
         end_remove_rows: end_remove_rows,
     };
-    let d = Processes::create(emit, model);
-    Box::into_raw(Box::new(d))
+    let d_processes = Processes::create(processes_emit, model);
+    Box::into_raw(Box::new(d_processes))
 }
 
 #[no_mangle]

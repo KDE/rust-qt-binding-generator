@@ -11,9 +11,11 @@ class Fibonacci : public QObject
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
     Q_PROPERTY(quint32 input READ input WRITE setInput NOTIFY inputChanged FINAL)
     Q_PROPERTY(quint64 result READ result NOTIFY resultChanged FINAL)
+    explicit Fibonacci(bool owned, QObject *parent);
 public:
     explicit Fibonacci(QObject *parent = nullptr);
     ~Fibonacci();
@@ -23,9 +25,6 @@ public:
 signals:
     void inputChanged();
     void resultChanged();
-private:
-    quint32 m_input;
-    quint64 m_result;
 };
 
 class FibonacciList : public QAbstractItemModel
@@ -34,7 +33,9 @@ class FibonacciList : public QAbstractItemModel
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
+    explicit FibonacciList(bool owned, QObject *parent);
 public:
     explicit FibonacciList(QObject *parent = nullptr);
     ~FibonacciList();
@@ -55,6 +56,5 @@ signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 signals:
-private:
 };
 #endif // FIBONACCI_H

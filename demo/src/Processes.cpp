@@ -44,6 +44,7 @@ namespace {
         int row;
         quintptr id;
     };
+
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -53,7 +54,6 @@ typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
 }
-
 extern "C" {
     void processes_data_cmd(const Processes::Private*, quintptr, QString*, qstring_set);
     quint8 processes_data_cpu_percentage(const Processes::Private*, quintptr);
@@ -86,7 +86,7 @@ int Processes::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return processes_row_count(d, parent.internalId(), parent.isValid());
+    return processes_row_count(m_d, parent.internalId(), parent.isValid());
 }
 
 QModelIndex Processes::index(int row, int column, const QModelIndex &parent) const
@@ -100,7 +100,7 @@ QModelIndex Processes::index(int row, int column, const QModelIndex &parent) con
     if (row >= rowCount(parent)) {
         return QModelIndex();
     }
-    const quintptr id = processes_index(d, parent.internalId(), parent.isValid(), row);
+    const quintptr id = processes_index(m_d, parent.internalId(), parent.isValid(), row);
     return createIndex(row, column, id);
 }
 
@@ -109,7 +109,7 @@ QModelIndex Processes::parent(const QModelIndex &index) const
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t parent = processes_parent(d, index.internalId());
+    const qmodelindex_t parent = processes_parent(m_d, index.internalId());
     return parent.row >= 0 ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
@@ -118,17 +118,17 @@ bool Processes::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return processes_can_fetch_more(d, parent.internalId(), parent.isValid());
+    return processes_can_fetch_more(m_d, parent.internalId(), parent.isValid());
 }
 
 void Processes::fetchMore(const QModelIndex &parent)
 {
-    processes_fetch_more(d, parent.internalId(), parent.isValid());
+    processes_fetch_more(m_d, parent.internalId(), parent.isValid());
 }
 
 void Processes::sort(int column, Qt::SortOrder order)
 {
-    processes_sort(d, column, order);
+    processes_sort(m_d, column, order);
 }
 Qt::ItemFlags Processes::flags(const QModelIndex &i) const
 {
@@ -145,29 +145,29 @@ QVariant Processes::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::UserRole + 0:
-            processes_data_cmd(d, index.internalId(), &s, set_qstring);
+            processes_data_cmd(m_d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::UserRole + 1:
-            v = processes_data_cpu_percentage(d, index.internalId());
+            v = processes_data_cpu_percentage(m_d, index.internalId());
             break;
         case Qt::UserRole + 2:
-            v = processes_data_cpu_usage(d, index.internalId());
+            v = processes_data_cpu_usage(m_d, index.internalId());
             break;
         case Qt::UserRole + 3:
-            v = processes_data_memory(d, index.internalId());
+            v = processes_data_memory(m_d, index.internalId());
             break;
         case Qt::DisplayRole:
         case Qt::UserRole + 4:
-            processes_data_name(d, index.internalId(), &s, set_qstring);
+            processes_data_name(m_d, index.internalId(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         case Qt::ToolTipRole:
         case Qt::UserRole + 5:
-            v = processes_data_pid(d, index.internalId());
+            v = processes_data_pid(m_d, index.internalId());
             break;
         case Qt::UserRole + 6:
-            v = processes_data_uid(d, index.internalId());
+            v = processes_data_uid(m_d, index.internalId());
             break;
         }
         break;
@@ -175,7 +175,7 @@ QVariant Processes::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
-            v = processes_data_cpu_usage(d, index.internalId());
+            v = processes_data_cpu_usage(m_d, index.internalId());
             break;
         }
         break;
@@ -183,7 +183,7 @@ QVariant Processes::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
-            v = processes_data_memory(d, index.internalId());
+            v = processes_data_memory(m_d, index.internalId());
             break;
         }
         break;
@@ -220,12 +220,16 @@ extern "C" {
         void (*)(Processes*));
     void processes_free(Processes::Private*);
 };
+Processes::Processes(bool /*owned*/, QObject *parent):
+    QAbstractItemModel(parent),
+    m_d(0),
+    m_ownsPrivate(false) {}
 Processes::Processes(QObject *parent):
     QAbstractItemModel(parent),
-    d(processes_new(this,
+    m_d(processes_new(this,
         [](const Processes* o, quintptr id, bool valid) {
             if (valid) {
-                int row = processes_row(o->d, id);
+                int row = processes_row(o->m_d, id);
                 emit o->newDataReady(o->createIndex(row, 0, id));
             } else {
                 emit o->newDataReady(QModelIndex());
@@ -239,7 +243,7 @@ Processes::Processes(QObject *parent):
         },
         [](Processes* o, option<quintptr> id, int first, int last) {
             if (id.some) {
-                int row = processes_row(o->d, id.value);
+                int row = processes_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
             } else {
                 o->beginInsertRows(QModelIndex(), first, last);
@@ -250,7 +254,7 @@ Processes::Processes(QObject *parent):
         },
         [](Processes* o, option<quintptr> id, int first, int last) {
             if (id.some) {
-                int row = processes_row(o->d, id.value);
+                int row = processes_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
             } else {
                 o->beginRemoveRows(QModelIndex(), first, last);
@@ -259,13 +263,15 @@ Processes::Processes(QObject *parent):
         [](Processes* o) {
             o->endRemoveRows();
         }
-    )) {
+)),
+    m_ownsPrivate(true) {
     connect(this, &Processes::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);
 }
 
-
 Processes::~Processes() {
-    processes_free(d);
+    if (m_ownsPrivate) {
+        processes_free(m_d);
+    }
 }

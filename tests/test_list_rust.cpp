@@ -44,6 +44,7 @@ namespace {
         int row;
         quintptr id;
     };
+
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -53,7 +54,6 @@ typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
 }
-
 extern "C" {
     void persons_data_user_name(const Persons::Private*, int, QString*, qstring_set);
     bool persons_set_data_user_name(Persons::Private*, int, qstring_t);
@@ -75,7 +75,7 @@ bool Persons::hasChildren(const QModelIndex &parent) const
 
 int Persons::rowCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : persons_row_count(d);
+    return (parent.isValid()) ? 0 : persons_row_count(m_d);
 }
 
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
@@ -93,19 +93,19 @@ QModelIndex Persons::parent(const QModelIndex &) const
 
 bool Persons::canFetchMore(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : persons_can_fetch_more(d);
+    return (parent.isValid()) ? 0 : persons_can_fetch_more(m_d);
 }
 
 void Persons::fetchMore(const QModelIndex &parent)
 {
     if (!parent.isValid()) {
-        persons_fetch_more(d);
+        persons_fetch_more(m_d);
     }
 }
 
 void Persons::sort(int column, Qt::SortOrder order)
 {
-    persons_sort(d, column, order);
+    persons_sort(m_d, column, order);
 }
 Qt::ItemFlags Persons::flags(const QModelIndex &i) const
 {
@@ -127,7 +127,7 @@ QVariant Persons::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            persons_data_user_name(d, index.row(), &s, set_qstring);
+            persons_data_user_name(m_d, index.row(), &s, set_qstring);
             if (!s.isNull()) v.setValue<QString>(s);
             break;
         }
@@ -145,7 +145,7 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
     bool set = false;
     if (index.column() == 0) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            set = persons_set_data_user_name(d, index.row(), value.value<QString>());
+            set = persons_set_data_user_name(m_d, index.row(), value.value<QString>());
         }
     }
     if (set) {
@@ -164,9 +164,13 @@ extern "C" {
         void (*)(Persons*));
     void persons_free(Persons::Private*);
 };
+Persons::Persons(bool /*owned*/, QObject *parent):
+    QAbstractItemModel(parent),
+    m_d(0),
+    m_ownsPrivate(false) {}
 Persons::Persons(QObject *parent):
     QAbstractItemModel(parent),
-    d(persons_new(this,
+    m_d(persons_new(this,
         [](const Persons* o) {
             emit o->newDataReady(QModelIndex());
         },
@@ -188,13 +192,15 @@ Persons::Persons(QObject *parent):
         [](Persons* o) {
             o->endRemoveRows();
         }
-    )) {
+)),
+    m_ownsPrivate(true) {
     connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);
 }
 
-
 Persons::~Persons() {
-    persons_free(d);
+    if (m_ownsPrivate) {
+        persons_free(m_d);
+    }
 }

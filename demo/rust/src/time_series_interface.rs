@@ -112,7 +112,7 @@ pub trait TimeSeriesTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn time_series_new(qobject: *const TimeSeriesQObject,
+pub extern "C" fn time_series_new(time_series: *mut TimeSeriesQObject,
         new_data_ready: fn(*const TimeSeriesQObject),
         begin_reset_model: fn(*const TimeSeriesQObject),
         end_reset_model: fn(*const TimeSeriesQObject),
@@ -125,12 +125,12 @@ pub extern "C" fn time_series_new(qobject: *const TimeSeriesQObject,
             usize),
         end_remove_rows: fn(*const TimeSeriesQObject))
         -> *mut TimeSeries {
-    let emit = TimeSeriesEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let time_series_emit = TimeSeriesEmitter {
+        qobject: Arc::new(Mutex::new(time_series)),
         new_data_ready: new_data_ready,
     };
     let model = TimeSeriesList {
-        qobject: qobject,
+        qobject: time_series,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
@@ -138,8 +138,8 @@ pub extern "C" fn time_series_new(qobject: *const TimeSeriesQObject,
         begin_remove_rows: begin_remove_rows,
         end_remove_rows: end_remove_rows,
     };
-    let d = TimeSeries::create(emit, model);
-    Box::into_raw(Box::new(d))
+    let d_time_series = TimeSeries::create(time_series_emit, model);
+    Box::into_raw(Box::new(d_time_series))
 }
 
 #[no_mangle]

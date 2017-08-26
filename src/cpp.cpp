@@ -16,6 +16,10 @@ QString upperInitial(const QString& name) {
     return name.left(1).toUpper() + name.mid(1);
 }
 
+QString lowerInitial(const QString& name) {
+    return name.left(1).toLower() + name.mid(1);
+}
+
 QString writeProperty(const QString& name) {
     return "WRITE set" + upperInitial(name) + " ";
 }
@@ -106,7 +110,7 @@ bool %1::hasChildren(const QModelIndex &parent) const
 
 int %1::rowCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : %2_row_count(d);
+    return (parent.isValid()) ? 0 : %2_row_count(m_d);
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
@@ -124,13 +128,13 @@ QModelIndex %1::parent(const QModelIndex &) const
 
 bool %1::canFetchMore(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : %2_can_fetch_more(d);
+    return (parent.isValid()) ? 0 : %2_can_fetch_more(m_d);
 }
 
 void %1::fetchMore(const QModelIndex &parent)
 {
     if (!parent.isValid()) {
-        %2_fetch_more(d);
+        %2_fetch_more(m_d);
     }
 }
 )").arg(o.name, lcname, QString::number(o.columnCount));
@@ -158,7 +162,7 @@ int %1::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return %2_row_count(d, parent.internalId(), parent.isValid());
+    return %2_row_count(m_d, parent.internalId(), parent.isValid());
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
@@ -172,7 +176,7 @@ QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
     if (row >= rowCount(parent)) {
         return QModelIndex();
     }
-    const quintptr id = %2_index(d, parent.internalId(), parent.isValid(), row);
+    const quintptr id = %2_index(m_d, parent.internalId(), parent.isValid(), row);
     return createIndex(row, column, id);
 }
 
@@ -181,7 +185,7 @@ QModelIndex %1::parent(const QModelIndex &index) const
     if (!index.isValid()) {
         return QModelIndex();
     }
-    const qmodelindex_t parent = %2_parent(d, index.internalId());
+    const qmodelindex_t parent = %2_parent(m_d, index.internalId());
     return parent.row >= 0 ?createIndex(parent.row, 0, parent.id) :QModelIndex();
 }
 
@@ -190,12 +194,12 @@ bool %1::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return %2_can_fetch_more(d, parent.internalId(), parent.isValid());
+    return %2_can_fetch_more(m_d, parent.internalId(), parent.isValid());
 }
 
 void %1::fetchMore(const QModelIndex &parent)
 {
-    %2_fetch_more(d, parent.internalId(), parent.isValid());
+    %2_fetch_more(m_d, parent.internalId(), parent.isValid());
 }
 )").arg(o.name, lcname, QString::number(o.columnCount));
     }
@@ -203,7 +207,7 @@ void %1::fetchMore(const QModelIndex &parent)
     cpp << QString(R"(
 void %1::sort(int column, Qt::SortOrder order)
 {
-    %2_sort(d, column, order);
+    %2_sort(m_d, column, order);
 }
 Qt::ItemFlags %1::flags(const QModelIndex &i) const
 {
@@ -241,15 +245,15 @@ QVariant %1::data(const QModelIndex &index, int role) const
             }
             cpp << QString("        case Qt::UserRole + %1:\n").arg(i);
             if (ip.type.name == "QString") {
-                cpp << QString("            %1_data_%2(d%4, &s, set_%3);\n")
+                cpp << QString("            %1_data_%2(m_d%4, &s, set_%3);\n")
                        .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), index);
                 cpp << "            if (!s.isNull()) v.setValue<QString>(s);\n";
             } else if (ip.type.name == "QByteArray") {
-                cpp << QString("            %1_data_%2(d%4, &b, set_%3);\n")
+                cpp << QString("            %1_data_%2(m_d%4, &b, set_%3);\n")
                        .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), index);
                 cpp << "            if (!b.isNull()) v.setValue<QByteArray>(b);\n";
             } else {
-                cpp << QString("            v = %1_data_%2(d%3);\n")
+                cpp << QString("            v = %1_data_%2(m_d%3);\n")
                        .arg(lcname, snakeCase(ip.name), index);
             }
             cpp << "            break;\n";
@@ -295,12 +299,12 @@ bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
                     test += " || value.isNull()";
                 }
                 cpp << "            if (" << test << ") {\n";
-                cpp << QString("                set = %1_set_data_%2_none(d%3);")
+                cpp << QString("                set = %1_set_data_%2_none(m_d%3);")
                         .arg(lcname, snakeCase(ip.name), index) << endl;
                 cpp << "            } else\n";
             }
             QString val = QString("value.value<%1>()").arg(ip.type.name);
-            cpp << QString("            set = %1_set_data_%2(d%3, %4);")
+            cpp << QString("            set = %1_set_data_%2(m_d%3, %4);")
                 .arg(lcname, snakeCase(ip.name), index, val) << endl;
             cpp << "        }\n";
         }
@@ -314,29 +318,52 @@ bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
 )";
 }
 
-void writeHeaderObject(QTextStream& h, const Object& o) {
+void writeHeaderObject(QTextStream& h, const Object& o, const Configuration& conf) {
     h << QString(R"(
 class %1 : public %3
 {
     Q_OBJEC%2
-public:
+)").arg(o.name, "T", baseType(o));
+    for (auto object: conf.objects) {
+        if (object.containsObject()) {
+            h << "    friend class " << object.name << ";\n";
+        }
+    }
+    h << R"(public:
     class Private;
 private:
-    Private * const d;
-)").arg(o.name, "T", baseType(o));
+)";
     for (auto p: o.properties) {
-        h << QString("    Q_PROPERTY(%1 %2 READ %2 %3NOTIFY %2Changed FINAL)")
-                .arg(p.type.name, p.name,
-                     p.write ? writeProperty(p.name) :"") << endl;
+        if (p.type.type == BindingType::Object) {
+            h << "    " << p.type.name << "* const m_" << p.name << ";\n";
+        }
     }
-    h << QString(R"(public:
+    h << R"(    Private * m_d;
+    bool m_ownsPrivate;
+)";
+    for (auto p: o.properties) {
+        bool obj = p.type.type == BindingType::Object;
+        h << QString("    Q_PROPERTY(%1 %2 READ %2 %3%4FINAL)")
+                .arg(p.type.name + (obj ?"*" :""),
+                     p.name,
+                     p.write ? writeProperty(p.name) :"",
+                     obj ?"" :("NOTIFY " +p.name + "Changed "))
+             << endl;
+    }
+    h << QString(R"(    explicit %1(bool owned, QObject *parent);
+public:
     explicit %1(QObject *parent = nullptr);
     ~%1();
 )").arg(o.name);
     for (auto p: o.properties) {
-        h << "    " << p.type.name << " " << p.name << "() const;" << endl;
-        if (p.write) {
-            h << "    void set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v);" << endl;
+        if (p.type.type == BindingType::Object) {
+            h << "    const " << p.type.name << "* " << p.name << "() const;" << endl;
+            h << "    " << p.type.name << "* " << p.name << "();" << endl;
+        } else {
+            h << "    " << p.type.name << " " << p.name << "() const;" << endl;
+            if (p.write) {
+                h << "    void set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v);" << endl;
+            }
         }
     }
     if (baseType(o) == "QAbstractItemModel") {
@@ -344,20 +371,22 @@ private:
     }
     h << "signals:" << endl;
     for (auto p: o.properties) {
-        h << "    void " << p.name << "Changed();" << endl;
-    }
-    h << "private:" << endl;
-    for (auto p: o.properties) {
-        h << "    " << p.type.name << " m_" << p.name << ";" << endl;
+        if (p.type.type != BindingType::Object) {
+            h << "    void " << p.name << "Changed();" << endl;
+        }
     }
     h << "};" << endl;
 }
 
-void writeObjectCDecl(QTextStream& cpp, const Object& o) {
-    const QString lcname(snakeCase(o.name));
-    cpp << QString("    %1::Private* %2_new(%1*").arg(o.name, lcname);
-    for (int i = 0; i < o.properties.size(); ++i) {
-        cpp << QString(", void (*)(%1*)").arg(o.name);
+void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration& conf) {
+    cpp << o.name << "*";
+    for (auto p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            cpp << QString(", ");
+            constructorArgsDecl(cpp, conf.findObject(p.type.name), conf);
+        } else {
+            cpp << QString(", void (*)(%1*)").arg(o.name);
+        }
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
@@ -379,37 +408,21 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o) {
         void (*)(%1*, option<quintptr>, int, int),
         void (*)(%1*))").arg(o.name);
     }
-    cpp << ");" << endl;
-    cpp << QString("    void %2_free(%1::Private*);").arg(o.name, lcname)
-        << endl;
-    for (const Property& p: o.properties) {
-        const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
-        if (p.type.isComplex()) {
-            cpp << QString("    void %2_get(const %1::Private*, %3);")
-                .arg(o.name, base, cGetType(p.type)) << endl;
-        } else {
-            cpp << QString("    %3 %2_get(const %1::Private*);")
-                .arg(o.name, base, p.type.name) << endl;
-        }
-        if (p.write) {
-            cpp << QString("    void %2_set(%1::Private*, %3);")
-                .arg(o.name, base, p.type.cSetType) << endl;
-            if (p.optional) {
-                cpp << QString("    void %2_set_none(%1::Private*);")
-                    .arg(o.name, base) << endl;
-            }
-        }
-    }
 }
 
-void writeCppObject(QTextStream& cpp, const Object& o) {
+QString changedF(const Object& o, const Property& p) {
+    return lowerInitial(o.name) + upperInitial(p.name) + "Changed";
+}
+
+void constructorArgs(QTextStream& cpp, const Object& o, const Configuration& conf) {
     const QString lcname(snakeCase(o.name));
-    cpp << QString("%1::%1(QObject *parent):\n    %2(parent),")
-            .arg(o.name, baseType(o)) << endl;
-    cpp << QString("    d(%1_new(this").arg(lcname);
     for (const Property& p: o.properties) {
-        cpp << QString(",\n        [](%1* o) { emit o->%2Changed(); }")
-            .arg(o.name, p.name);
+        if (p.type.type == BindingType::Object) {
+            cpp << ", m_" << p.name;
+            constructorArgs(cpp, conf.findObject(p.type.name), conf);
+        } else {
+            cpp << ",\n        " << changedF(o, p);
+        }
     }
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
@@ -434,18 +447,13 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         [](%1* o) {
             o->endRemoveRows();
         }
-    )) {
-    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
-        fetchMore(i);
-    }, Qt::QueuedConnection);
-}
 )").arg(o.name);
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
         [](const %1* o, quintptr id, bool valid) {
             if (valid) {
-                int row = %2_row(o->d, id);
+                int row = %2_row(o->m_d, id);
                 emit o->newDataReady(o->createIndex(row, 0, id));
             } else {
                 emit o->newDataReady(QModelIndex());
@@ -459,7 +467,7 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         },
         [](%1* o, option<quintptr> id, int first, int last) {
             if (id.some) {
-                int row = %2_row(o->d, id.value);
+                int row = %2_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
             } else {
                 o->beginInsertRows(QModelIndex(), first, last);
@@ -470,7 +478,7 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         },
         [](%1* o, option<quintptr> id, int first, int last) {
             if (id.some) {
-                int row = %2_row(o->d, id.value);
+                int row = %2_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
             } else {
                 o->beginRemoveRows(QModelIndex(), first, last);
@@ -479,44 +487,115 @@ void writeCppObject(QTextStream& cpp, const Object& o) {
         [](%1* o) {
             o->endRemoveRows();
         }
-    )) {
-    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
-        fetchMore(i);
-    }, Qt::QueuedConnection);
-}
 )").arg(o.name, lcname);
     }
-    if (o.type == ObjectType::Object) {
-        cpp << QString(")) {}");
+}
+
+void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& conf) {
+    const QString lcname(snakeCase(o.name));
+    cpp << QString("    %1::Private* %2_new(").arg(o.name, lcname);
+    constructorArgsDecl(cpp, o, conf);
+    cpp << ");" << endl;
+    cpp << QString("    void %2_free(%1::Private*);").arg(o.name, lcname)
+        << endl;
+    for (const Property& p: o.properties) {
+        const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
+        if (p.type.type == BindingType::Object) {
+            cpp << QString("    %3::Private* %2_get(const %1::Private*);")
+                .arg(o.name, base, p.type.name) << endl;
+        } else if (p.type.isComplex()) {
+            cpp << QString("    void %2_get(const %1::Private*, %3);")
+                .arg(o.name, base, cGetType(p.type)) << endl;
+        } else {
+            cpp << QString("    %3 %2_get(const %1::Private*);")
+                .arg(o.name, base, p.type.name) << endl;
+        }
+        if (p.write) {
+            cpp << QString("    void %2_set(%1::Private*, %3);")
+                .arg(o.name, base, p.type.cSetType) << endl;
+            if (p.optional) {
+                cpp << QString("    void %2_set_none(%1::Private*);")
+                    .arg(o.name, base) << endl;
+            }
+        }
     }
-    cpp << QString(R"(
+}
+
+void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf) {
+    const QString lcname(snakeCase(o.name));
+    cpp << QString("%1::%1(bool /*owned*/, QObject *parent):\n    %2(parent),")
+            .arg(o.name, baseType(o)) << endl;
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            cpp << QString("    m_%1(new %2(false, this)),\n")
+                   .arg(p.name, p.type.name);
+        }
+    }
+    cpp << "    m_d(0),\n    m_ownsPrivate(false) {}\n";
+    cpp << QString("%1::%1(QObject *parent):\n    %2(parent),")
+            .arg(o.name, baseType(o)) << endl;
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            cpp << QString("    m_%1(new %2(false, this)),\n")
+                   .arg(p.name, p.type.name);
+        }
+    }
+    cpp << QString("    m_d(%1_new(this").arg(lcname);
+    constructorArgs(cpp, o, conf);
+    cpp << ")),\n    m_ownsPrivate(true) {\n";
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            cpp << QString("    m_%1->m_d = %2_%1_get(this->m_d);\n")
+                   .arg(p.name, snakeCase(o.name));
+        }
+    }
+    if (o.type != ObjectType::Object) {
+        cpp << QString(R"(    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
+        fetchMore(i);
+    }, Qt::QueuedConnection);
+)").arg(o.name);
+    }
+    cpp << QString(R"(}
 
 %1::~%1() {
-    %2_free(d);
+    if (m_ownsPrivate) {
+        %2_free(m_d);
+    }
 }
 )").arg(o.name, lcname);
 
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
-        cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type.name);
-        if (p.type.isComplex()) {
+        if (p.type.type == BindingType::Object) {
+            cpp << QString(R"(const %3* %1::%2() const
+{
+    return m_%4;
+}
+%3* %1::%2()
+{
+    return m_%4;
+}
+)").arg(o.name, p.name, p.type.name, snakeCase(p.name));
+        } else if (p.type.isComplex()) {
+            cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type.name);
             cpp << "    " << p.type.name << " v;\n";
-            cpp << "    " << base << "_get(d, &v, set_" << p.type.name.toLower()
+            cpp << "    " << base << "_get(m_d, &v, set_" << p.type.name.toLower()
                 << ");\n";
             cpp << "    return v;\n}\n";
         } else {
-            cpp << QString("    return %1_get(d);\n}\n").arg(base);
+            cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type.name);
+            cpp << QString("    return %1_get(m_d);\n}\n").arg(base);
         }
         if (p.write) {
             cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v) {" << endl;
             if (p.optional) {
                 cpp << QString("    if (v.isNull()) {") << endl;
-                cpp << QString("        %1_set_none(d);").arg(base) << endl;
+                cpp << QString("        %1_set_none(m_d);").arg(base) << endl;
                 cpp << QString("    } else {") << endl;
-                cpp << QString("        %1_set(d, v);").arg(base) << endl;
+                cpp << QString("        %1_set(m_d, v);").arg(base) << endl;
                 cpp << QString("    }") << endl;
             } else {
-                cpp << QString("    %1_set(d, v);").arg(base) << endl;
+                cpp << QString("    %1_set(m_d, v);").arg(base) << endl;
             }
             cpp << "}" << endl;
         }
@@ -536,7 +615,12 @@ void writeHeader(const Configuration& conf) {
 )").arg(guard);
 
     for (auto object: conf.objects) {
-        writeHeaderObject(h, object);
+        if (object.containsObject()) {
+            h << "class " << object.name << ";\n";
+        }
+    }
+    for (auto object: conf.objects) {
+        writeHeaderObject(h, object, conf);
     }
 
     h << QString("#endif // %1\n").arg(guard);
@@ -591,6 +675,19 @@ namespace {
         int row;
         quintptr id;
     };
+)").arg(conf.hFile.fileName());
+
+    for (auto o: conf.objects) {
+        for (auto p: o.properties) {
+            if (p.type.type == BindingType::Object) {
+                continue;
+            }
+            cpp << "    inline void " << changedF(o, p) << "(" << o.name << "* o)\n";
+            cpp << "    {\n        emit o->" << p.name << "Changed();\n    }\n";
+        }
+    }
+
+    cpp << R"(
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -600,8 +697,7 @@ typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
 }
-
-)").arg(conf.hFile.fileName());
+)";
 
     for (auto object: conf.objects) {
         if (object.type != ObjectType::Object) {
@@ -609,11 +705,11 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
         }
 
         cpp << "extern \"C\" {\n";
-        writeObjectCDecl(cpp, object);
+        writeObjectCDecl(cpp, object, conf);
         cpp << "};" << endl;
     }
 
     for (auto object: conf.objects) {
-        writeCppObject(cpp, object);
+        writeCppObject(cpp, object, conf);
     }
 }

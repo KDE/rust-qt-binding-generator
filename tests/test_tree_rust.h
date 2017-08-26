@@ -11,7 +11,9 @@ class Persons : public QAbstractItemModel
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
+    explicit Persons(bool owned, QObject *parent);
 public:
     explicit Persons(QObject *parent = nullptr);
     ~Persons();
@@ -32,6 +34,5 @@ signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 signals:
-private:
 };
 #endif // TEST_TREE_RUST_H

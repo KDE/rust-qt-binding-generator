@@ -11,8 +11,10 @@ class Person : public QObject
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
     Q_PROPERTY(QString userName READ userName WRITE setUserName NOTIFY userNameChanged FINAL)
+    explicit Person(bool owned, QObject *parent);
 public:
     explicit Person(QObject *parent = nullptr);
     ~Person();
@@ -20,7 +22,5 @@ public:
     void setUserName(const QString& v);
 signals:
     void userNameChanged();
-private:
-    QString m_userName;
 };
 #endif // TEST_OBJECT_RUST_H

@@ -16,78 +16,76 @@ BindingTypeProperties simpleType(BindingType type, const char* name, const char*
     };
 }
 
-const QMap<BindingType, BindingTypeProperties>& bindingTypeProperties() {
-    static QMap<BindingType, BindingTypeProperties> p;
+QList<BindingTypeProperties>& bindingTypeProperties() {
+    static QList<BindingTypeProperties> p;
     if (p.empty()) {
-        QMap<BindingType, BindingTypeProperties> f;
-        f.insert(BindingType::Bool, simpleType(BindingType::Bool, "bool", "true"));
-        f.insert(BindingType::UChar, {
-                     .type = BindingType::UChar,
-                     .name = "quint8",
-                     .cppSetType = "quint8",
-                     .cSetType = "quint8",
-                     .rustType = "u8",
-                     .rustTypeInit = "0",
-                 });
-        f.insert(BindingType::Int, {
-                     .type = BindingType::Int,
-                     .name = "qint32",
-                     .cppSetType = "qint32",
-                     .cSetType = "qint32",
-                     .rustType = "i32",
-                     .rustTypeInit = "0",
-                 });
-        f.insert(BindingType::UInt, {
-                     .type = BindingType::UInt,
-                     .name = "quint32",
-                     .cppSetType = "uint",
-                     .cSetType = "uint",
-                     .rustType = "u32",
-                     .rustTypeInit = "0"
-                 });
-        f.insert(BindingType::ULongLong, {
-                     .type = BindingType::ULongLong,
-                     .name = "quint64",
-                     .cppSetType = "quint64",
-                     .cSetType = "quint64",
-                     .rustType = "u64",
-                     .rustTypeInit = "0"
-                 });
-        f.insert(BindingType::Float, {
-                     .type = BindingType::Float,
-                     .name = "float",
-                     .cppSetType = "float",
-                     .cSetType = "float",
-                     .rustType = "f32",
-                     .rustTypeInit = "0.0"
-                 });
-        f.insert(BindingType::QString, {
-                     .type = BindingType::QString,
-                     .name = "QString",
-                     .cppSetType = "const QString&",
-                     .cSetType = "qstring_t",
-                     .rustType = "String",
-                     .rustTypeInit = "String::new()"
-                 });
-        f.insert(BindingType::QByteArray, {
-                     .type = BindingType::QByteArray,
-                     .name = "QByteArray",
-                     .cppSetType = "const QByteArray&",
-                     .cSetType = "qbytearray_t",
-                     .rustType = "Vec<u8>",
-                     .rustTypeInit = "Vec::new()"
-                 });
+        QList<BindingTypeProperties> f;
+        f.append(simpleType(BindingType::Bool, "bool", "true"));
+        f.append({
+            .type = BindingType::UChar,
+            .name = "quint8",
+            .cppSetType = "quint8",
+            .cSetType = "quint8",
+            .rustType = "u8",
+            .rustTypeInit = "0",
+        });
+        f.append({
+            .type = BindingType::Int,
+            .name = "qint32",
+            .cppSetType = "qint32",
+            .cSetType = "qint32",
+            .rustType = "i32",
+            .rustTypeInit = "0",
+        });
+        f.append({
+            .type = BindingType::UInt,
+            .name = "quint32",
+            .cppSetType = "uint",
+            .cSetType = "uint",
+            .rustType = "u32",
+            .rustTypeInit = "0"
+        });
+        f.append({
+            .type = BindingType::ULongLong,
+            .name = "quint64",
+            .cppSetType = "quint64",
+            .cSetType = "quint64",
+            .rustType = "u64",
+            .rustTypeInit = "0"
+        });
+        f.append({
+            .type = BindingType::Float,
+            .name = "float",
+            .cppSetType = "float",
+            .cSetType = "float",
+            .rustType = "f32",
+            .rustTypeInit = "0.0"
+        });
+        f.append({
+            .type = BindingType::QString,
+            .name = "QString",
+            .cppSetType = "const QString&",
+            .cSetType = "qstring_t",
+            .rustType = "String",
+            .rustTypeInit = "String::new()"
+        });
+        f.append({
+            .type = BindingType::QByteArray,
+            .name = "QByteArray",
+            .cppSetType = "const QByteArray&",
+            .cSetType = "qbytearray_t",
+            .rustType = "Vec<u8>",
+            .rustTypeInit = "Vec::new()"
+        });
         p = f;
     }
     return p;
 }
 
 BindingTypeProperties parseBindingType(const QString& value) {
-    QMapIterator<BindingType, BindingTypeProperties> i(bindingTypeProperties());
-    while (i.hasNext()) {
-        i.next();
-        if (value == i.value().name) {
-            return i.value();
+    for (auto type: bindingTypeProperties()) {
+        if (value == type.name) {
+            return type;
         }
     }
     QTextStream err(stderr);
@@ -206,7 +204,16 @@ parseConfiguration(const QString& path) {
     c.hFile = QFileInfo(c.cppFile.dir(), c.cppFile.completeBaseName() + ".h");
     const QJsonObject& object = o.value("objects").toObject();
     for (const QString& key: object.keys()) {
-        c.objects.append(parseObject(key, object[key].toObject()));
+        Object o = parseObject(key, object[key].toObject());
+        c.objects.append(o);
+        bindingTypeProperties().append({
+            .type = BindingType::Object,
+            .name = o.name,
+            .cppSetType = o.name,
+            .cSetType = o.name,
+            .rustType = o.name,
+            .rustTypeInit = "",
+        });
     }
     const QJsonObject rust = o.value("rust").toObject();
     c.rustdir = QDir(base.filePath(rust.value("dir").toString()));

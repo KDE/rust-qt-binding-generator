@@ -68,15 +68,15 @@ pub trait PersonTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn person_new(qobject: *const PersonQObject,
+pub extern "C" fn person_new(person: *mut PersonQObject,
         user_name_changed: fn(*const PersonQObject))
         -> *mut Person {
-    let emit = PersonEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let person_emit = PersonEmitter {
+        qobject: Arc::new(Mutex::new(person)),
         user_name_changed: user_name_changed,
     };
-    let d = Person::create(emit);
-    Box::into_raw(Box::new(d))
+    let d_person = Person::create(person_emit);
+    Box::into_raw(Box::new(d_person))
 }
 
 #[no_mangle]

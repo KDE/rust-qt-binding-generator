@@ -139,7 +139,7 @@ pub trait PersonsTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn persons_new(qobject: *const PersonsQObject,
+pub extern "C" fn persons_new(persons: *mut PersonsQObject,
         new_data_ready: fn(*const PersonsQObject),
         begin_reset_model: fn(*const PersonsQObject),
         end_reset_model: fn(*const PersonsQObject),
@@ -152,12 +152,12 @@ pub extern "C" fn persons_new(qobject: *const PersonsQObject,
             usize),
         end_remove_rows: fn(*const PersonsQObject))
         -> *mut Persons {
-    let emit = PersonsEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let persons_emit = PersonsEmitter {
+        qobject: Arc::new(Mutex::new(persons)),
         new_data_ready: new_data_ready,
     };
     let model = PersonsList {
-        qobject: qobject,
+        qobject: persons,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
@@ -165,8 +165,8 @@ pub extern "C" fn persons_new(qobject: *const PersonsQObject,
         begin_remove_rows: begin_remove_rows,
         end_remove_rows: end_remove_rows,
     };
-    let d = Persons::create(emit, model);
-    Box::into_raw(Box::new(d))
+    let d_persons = Persons::create(persons_emit, model);
+    Box::into_raw(Box::new(d_persons))
 }
 
 #[no_mangle]

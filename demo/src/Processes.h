@@ -11,7 +11,9 @@ class Processes : public QAbstractItemModel
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
+    explicit Processes(bool owned, QObject *parent);
 public:
     explicit Processes(QObject *parent = nullptr);
     ~Processes();
@@ -32,6 +34,5 @@ signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 signals:
-private:
 };
 #endif // PROCESSES_H

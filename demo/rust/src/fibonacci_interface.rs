@@ -83,17 +83,17 @@ pub trait FibonacciTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn fibonacci_new(qobject: *const FibonacciQObject,
+pub extern "C" fn fibonacci_new(fibonacci: *mut FibonacciQObject,
         input_changed: fn(*const FibonacciQObject),
         result_changed: fn(*const FibonacciQObject))
         -> *mut Fibonacci {
-    let emit = FibonacciEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let fibonacci_emit = FibonacciEmitter {
+        qobject: Arc::new(Mutex::new(fibonacci)),
         input_changed: input_changed,
         result_changed: result_changed,
     };
-    let d = Fibonacci::create(emit);
-    Box::into_raw(Box::new(d))
+    let d_fibonacci = Fibonacci::create(fibonacci_emit);
+    Box::into_raw(Box::new(d_fibonacci))
 }
 
 #[no_mangle]
@@ -180,7 +180,7 @@ pub trait FibonacciListTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn fibonacci_list_new(qobject: *const FibonacciListQObject,
+pub extern "C" fn fibonacci_list_new(fibonacci_list: *mut FibonacciListQObject,
         new_data_ready: fn(*const FibonacciListQObject),
         begin_reset_model: fn(*const FibonacciListQObject),
         end_reset_model: fn(*const FibonacciListQObject),
@@ -193,12 +193,12 @@ pub extern "C" fn fibonacci_list_new(qobject: *const FibonacciListQObject,
             usize),
         end_remove_rows: fn(*const FibonacciListQObject))
         -> *mut FibonacciList {
-    let emit = FibonacciListEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let fibonacci_list_emit = FibonacciListEmitter {
+        qobject: Arc::new(Mutex::new(fibonacci_list)),
         new_data_ready: new_data_ready,
     };
     let model = FibonacciListList {
-        qobject: qobject,
+        qobject: fibonacci_list,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
@@ -206,8 +206,8 @@ pub extern "C" fn fibonacci_list_new(qobject: *const FibonacciListQObject,
         begin_remove_rows: begin_remove_rows,
         end_remove_rows: end_remove_rows,
     };
-    let d = FibonacciList::create(emit, model);
-    Box::into_raw(Box::new(d))
+    let d_fibonacci_list = FibonacciList::create(fibonacci_list_emit, model);
+    Box::into_raw(Box::new(d_fibonacci_list))
 }
 
 #[no_mangle]

@@ -177,7 +177,7 @@ pub trait ObjectTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn object_new(qobject: *const ObjectQObject,
+pub extern "C" fn object_new(object: *mut ObjectQObject,
         boolean_changed: fn(*const ObjectQObject),
         bytearray_changed: fn(*const ObjectQObject),
         integer_changed: fn(*const ObjectQObject),
@@ -187,8 +187,8 @@ pub extern "C" fn object_new(qobject: *const ObjectQObject,
         u64_changed: fn(*const ObjectQObject),
         uinteger_changed: fn(*const ObjectQObject))
         -> *mut Object {
-    let emit = ObjectEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let object_emit = ObjectEmitter {
+        qobject: Arc::new(Mutex::new(object)),
         boolean_changed: boolean_changed,
         bytearray_changed: bytearray_changed,
         integer_changed: integer_changed,
@@ -198,8 +198,8 @@ pub extern "C" fn object_new(qobject: *const ObjectQObject,
         u64_changed: u64_changed,
         uinteger_changed: uinteger_changed,
     };
-    let d = Object::create(emit);
-    Box::into_raw(Box::new(d))
+    let d_object = Object::create(object_emit);
+    Box::into_raw(Box::new(d_object))
 }
 
 #[no_mangle]

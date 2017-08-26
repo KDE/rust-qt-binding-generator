@@ -11,8 +11,10 @@ class Tree : public QAbstractItemModel
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged FINAL)
+    explicit Tree(bool owned, QObject *parent);
 public:
     explicit Tree(QObject *parent = nullptr);
     ~Tree();
@@ -36,7 +38,5 @@ signals:
     void newDataReady(const QModelIndex &parent) const;
 signals:
     void pathChanged();
-private:
-    QString m_path;
 };
 #endif // TREE_H

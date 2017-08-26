@@ -1,0 +1,28 @@
+{
+    "cppFile": "test_objects_rust.cpp",
+    "rust": {
+        "dir": "rust_objects",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation",
+        "typesModule": "types"
+    },
+    "objects": {
+        "InnerObject": {
+            "type": "Object",
+            "properties": {
+                "description": {
+                    "type": "QString",
+                    "write": true
+                }
+            }
+        },
+        "Person": {
+            "type": "Object",
+            "properties": {
+                "object": {
+                    "type": "InnerObject"
+                }
+            }
+        }
+    }
+}

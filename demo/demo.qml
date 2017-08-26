@@ -14,6 +14,10 @@ ApplicationWindow {
         id: selectionModel
         model: sortedFileSystem
     }
+    ItemSelectionModel {
+        id: processSelection
+        model: processes
+    }
     TabView {
         id: tabView
         anchors.fill: parent
@@ -116,11 +120,17 @@ ApplicationWindow {
                     }
                 }
                 TreeView {
+                    onClicked: {
+                        processSelection.select(index, ItemSelectionModel.ToggleCurrent);
+                    }
                     width: parent.width
                     anchors.top: processFilterInput.bottom
                     anchors.bottom: parent.bottom
                     id: processView
                     model: processes
+                    selection: processSelection
+                    selectionMode: SelectionMode.ExtendedSelection
+//                    selectionMode: SelectionMode.SingleSelection
                     sortIndicatorVisible: true
                     alternatingRowColors: true
                     TableViewColumn {

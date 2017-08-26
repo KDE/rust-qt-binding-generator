@@ -11,7 +11,8 @@ class Object : public QObject
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
     Q_PROPERTY(bool boolean READ boolean WRITE setBoolean NOTIFY booleanChanged FINAL)
     Q_PROPERTY(QByteArray bytearray READ bytearray WRITE setBytearray NOTIFY bytearrayChanged FINAL)
     Q_PROPERTY(qint32 integer READ integer WRITE setInteger NOTIFY integerChanged FINAL)
@@ -20,6 +21,7 @@ private:
     Q_PROPERTY(QString string READ string WRITE setString NOTIFY stringChanged FINAL)
     Q_PROPERTY(quint64 u64 READ u64 WRITE setU64 NOTIFY u64Changed FINAL)
     Q_PROPERTY(quint32 uinteger READ uinteger WRITE setUinteger NOTIFY uintegerChanged FINAL)
+    explicit Object(bool owned, QObject *parent);
 public:
     explicit Object(QObject *parent = nullptr);
     ~Object();
@@ -48,14 +50,5 @@ signals:
     void stringChanged();
     void u64Changed();
     void uintegerChanged();
-private:
-    bool m_boolean;
-    QByteArray m_bytearray;
-    qint32 m_integer;
-    QByteArray m_optionalBytearray;
-    QString m_optionalString;
-    QString m_string;
-    quint64 m_u64;
-    quint32 m_uinteger;
 };
 #endif // TEST_OBJECT_TYPES_RUST_H

@@ -178,7 +178,7 @@ pub trait TreeTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn tree_new(qobject: *const TreeQObject,
+pub extern "C" fn tree_new(tree: *mut TreeQObject,
         path_changed: fn(*const TreeQObject),
         new_data_ready: fn(*const TreeQObject, item: usize, valid: bool),
         begin_reset_model: fn(*const TreeQObject),
@@ -192,13 +192,13 @@ pub extern "C" fn tree_new(qobject: *const TreeQObject,
             usize),
         end_remove_rows: fn(*const TreeQObject))
         -> *mut Tree {
-    let emit = TreeEmitter {
-        qobject: Arc::new(Mutex::new(qobject)),
+    let tree_emit = TreeEmitter {
+        qobject: Arc::new(Mutex::new(tree)),
         path_changed: path_changed,
         new_data_ready: new_data_ready,
     };
     let model = TreeUniformTree {
-        qobject: qobject,
+        qobject: tree,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
@@ -206,8 +206,8 @@ pub extern "C" fn tree_new(qobject: *const TreeQObject,
         begin_remove_rows: begin_remove_rows,
         end_remove_rows: end_remove_rows,
     };
-    let d = Tree::create(emit, model);
-    Box::into_raw(Box::new(d))
+    let d_tree = Tree::create(tree_emit, model);
+    Box::into_raw(Box::new(d_tree))
 }
 
 #[no_mangle]

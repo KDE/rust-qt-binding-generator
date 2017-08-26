@@ -44,6 +44,39 @@ namespace {
         int row;
         quintptr id;
     };
+    inline void objectBooleanChanged(Object* o)
+    {
+        emit o->booleanChanged();
+    }
+    inline void objectBytearrayChanged(Object* o)
+    {
+        emit o->bytearrayChanged();
+    }
+    inline void objectIntegerChanged(Object* o)
+    {
+        emit o->integerChanged();
+    }
+    inline void objectOptionalBytearrayChanged(Object* o)
+    {
+        emit o->optionalBytearrayChanged();
+    }
+    inline void objectOptionalStringChanged(Object* o)
+    {
+        emit o->optionalStringChanged();
+    }
+    inline void objectStringChanged(Object* o)
+    {
+        emit o->stringChanged();
+    }
+    inline void objectU64Changed(Object* o)
+    {
+        emit o->u64Changed();
+    }
+    inline void objectUintegerChanged(Object* o)
+    {
+        emit o->uintegerChanged();
+    }
+
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -53,7 +86,6 @@ typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
 }
-
 extern "C" {
     Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(Object::Private*);
@@ -76,90 +108,98 @@ extern "C" {
     quint32 object_uinteger_get(const Object::Private*);
     void object_uinteger_set(Object::Private*, uint);
 };
+Object::Object(bool /*owned*/, QObject *parent):
+    QObject(parent),
+    m_d(0),
+    m_ownsPrivate(false) {}
 Object::Object(QObject *parent):
     QObject(parent),
-    d(object_new(this,
-        [](Object* o) { emit o->booleanChanged(); },
-        [](Object* o) { emit o->bytearrayChanged(); },
-        [](Object* o) { emit o->integerChanged(); },
-        [](Object* o) { emit o->optionalBytearrayChanged(); },
-        [](Object* o) { emit o->optionalStringChanged(); },
-        [](Object* o) { emit o->stringChanged(); },
-        [](Object* o) { emit o->u64Changed(); },
-        [](Object* o) { emit o->uintegerChanged(); })) {}
+    m_d(object_new(this,
+        objectBooleanChanged,
+        objectBytearrayChanged,
+        objectIntegerChanged,
+        objectOptionalBytearrayChanged,
+        objectOptionalStringChanged,
+        objectStringChanged,
+        objectU64Changed,
+        objectUintegerChanged)),
+    m_ownsPrivate(true) {
+}
 
 Object::~Object() {
-    object_free(d);
+    if (m_ownsPrivate) {
+        object_free(m_d);
+    }
 }
 bool Object::boolean() const
 {
-    return object_boolean_get(d);
+    return object_boolean_get(m_d);
 }
 void Object::setBoolean(bool v) {
-    object_boolean_set(d, v);
+    object_boolean_set(m_d, v);
 }
 QByteArray Object::bytearray() const
 {
     QByteArray v;
-    object_bytearray_get(d, &v, set_qbytearray);
+    object_bytearray_get(m_d, &v, set_qbytearray);
     return v;
 }
 void Object::setBytearray(const QByteArray& v) {
-    object_bytearray_set(d, v);
+    object_bytearray_set(m_d, v);
 }
 qint32 Object::integer() const
 {
-    return object_integer_get(d);
+    return object_integer_get(m_d);
 }
 void Object::setInteger(qint32 v) {
-    object_integer_set(d, v);
+    object_integer_set(m_d, v);
 }
 QByteArray Object::optionalBytearray() const
 {
     QByteArray v;
-    object_optional_bytearray_get(d, &v, set_qbytearray);
+    object_optional_bytearray_get(m_d, &v, set_qbytearray);
     return v;
 }
 void Object::setOptionalBytearray(const QByteArray& v) {
     if (v.isNull()) {
-        object_optional_bytearray_set_none(d);
+        object_optional_bytearray_set_none(m_d);
     } else {
-        object_optional_bytearray_set(d, v);
+        object_optional_bytearray_set(m_d, v);
     }
 }
 QString Object::optionalString() const
 {
     QString v;
-    object_optional_string_get(d, &v, set_qstring);
+    object_optional_string_get(m_d, &v, set_qstring);
     return v;
 }
 void Object::setOptionalString(const QString& v) {
     if (v.isNull()) {
-        object_optional_string_set_none(d);
+        object_optional_string_set_none(m_d);
     } else {
-        object_optional_string_set(d, v);
+        object_optional_string_set(m_d, v);
     }
 }
 QString Object::string() const
 {
     QString v;
-    object_string_get(d, &v, set_qstring);
+    object_string_get(m_d, &v, set_qstring);
     return v;
 }
 void Object::setString(const QString& v) {
-    object_string_set(d, v);
+    object_string_set(m_d, v);
 }
 quint64 Object::u64() const
 {
-    return object_u64_get(d);
+    return object_u64_get(m_d);
 }
 void Object::setU64(quint64 v) {
-    object_u64_set(d, v);
+    object_u64_set(m_d, v);
 }
 quint32 Object::uinteger() const
 {
-    return object_uinteger_get(d);
+    return object_uinteger_get(m_d);
 }
 void Object::setUinteger(uint v) {
-    object_uinteger_set(d, v);
+    object_uinteger_set(m_d, v);
 }

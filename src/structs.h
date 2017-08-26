@@ -3,6 +3,8 @@
 #include <QList>
 #include <QFileInfo>
 #include <QDir>
+#include <QTextStream>
+#include <QCoreApplication>
 
 enum class ObjectType {
     Object,
@@ -18,7 +20,8 @@ enum class BindingType {
     ULongLong,
     Float,
     QString,
-    QByteArray
+    QByteArray,
+    Object,
 };
 
 struct BindingTypeProperties {
@@ -54,6 +57,14 @@ struct Object {
     QList<Property> properties;
     QList<ItemProperty> itemProperties;
     int columnCount;
+    bool containsObject() {
+        for (auto p: properties) {
+            if (p.type.type == BindingType::Object) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 struct Configuration {
@@ -64,5 +75,17 @@ struct Configuration {
     QString implementationModule;
     QList<Object> objects;
     bool overwriteImplementation;
+    const Object& findObject(const QString& name) const {
+        for (auto& o: objects) {
+            if (o.name == name) {
+                return o;
+            }
+        }
+        QTextStream err(stderr);
+        err << QCoreApplication::translate("main",
+            "Cannot find type %1.\n").arg(name);
+        err.flush();
+        exit(1);
+    }
 };
 

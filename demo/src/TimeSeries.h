@@ -11,7 +11,9 @@ class TimeSeries : public QAbstractItemModel
 public:
     class Private;
 private:
-    Private * const d;
+    Private * m_d;
+    bool m_ownsPrivate;
+    explicit TimeSeries(bool owned, QObject *parent);
 public:
     explicit TimeSeries(QObject *parent = nullptr);
     ~TimeSeries();
@@ -32,6 +34,5 @@ signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 signals:
-private:
 };
 #endif // TIMESERIES_H

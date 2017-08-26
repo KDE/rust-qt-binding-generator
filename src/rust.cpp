@@ -28,7 +28,86 @@ QString rustTypeInit(const T& p)
     return p.type.rustTypeInit;
 }
 
-void writeRustInterfaceObject(QTextStream& r, const Object& o) {
+void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, const Configuration& conf) {
+    r << QString("%2: *mut %1QObject").arg(o.name, name);
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            r << QString(", ");
+            rConstructorArgsDecl(r, p.name, conf.findObject(p.type.name), conf);
+        } else {
+            r << QString(",\n        %2_changed: fn(*const %1QObject)")
+                .arg(o.name, snakeCase(p.name));
+        }
+    }
+    if (o.type == ObjectType::List) {
+        r << QString(",\n        new_data_ready: fn(*const %1QObject)")
+            .arg(o.name);
+    } else if (o.type == ObjectType::UniformTree) {
+        r << QString(",\n        new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
+            .arg(o.name);
+    }
+    if (o.type != ObjectType::Object) {
+        QString indexDecl;
+        if (o.type == ObjectType::UniformTree) {
+            indexDecl = " item: usize, valid: bool,";
+        }
+        r << QString(R"(,
+        begin_reset_model: fn(*const %1QObject),
+        end_reset_model: fn(*const %1QObject),
+        begin_insert_rows: fn(*const %1QObject,%2
+            usize,
+            usize),
+        end_insert_rows: fn(*const %1QObject),
+        begin_remove_rows: fn(*const %1QObject,%2
+            usize,
+            usize),
+        end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl);
+    }
+}
+
+void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, const Configuration& conf) {
+    const QString lcname(snakeCase(o.name));
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            rConstructorArgs(r, p.name, conf.findObject(p.type.name), conf);
+        }
+    }
+    r << QString(R"(    let %2_emit = %1Emitter {
+        qobject: Arc::new(Mutex::new(%2)),
+)").arg(o.name, name);
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) continue;
+        r << QString("        %1_changed: %1_changed,\n").arg(snakeCase(p.name));
+    }
+    if (o.type != ObjectType::Object) {
+        r << QString("        new_data_ready: new_data_ready,\n");
+    }
+    QString model = "";
+    if (o.type != ObjectType::Object) {
+        const QString type = o.type == ObjectType::List ? "List" : "UniformTree";
+        model = ", model";
+        r << QString(R"(    };
+    let model = %1%2 {
+        qobject: %3,
+        begin_reset_model: begin_reset_model,
+        end_reset_model: end_reset_model,
+        begin_insert_rows: begin_insert_rows,
+        end_insert_rows: end_insert_rows,
+        begin_remove_rows: begin_remove_rows,
+        end_remove_rows: end_remove_rows,
+)").arg(o.name, type, name);
+    }
+    r << QString("    };\n    let d_%3 = %1::create(%3_emit%2")
+         .arg(o.name, model, name);
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            r << ",\n        d_" << p.name;
+        }
+    }
+    r << ");\n";
+}
+
+void writeRustInterfaceObject(QTextStream& r, const Object& o, const Configuration& conf) {
     const QString lcname(snakeCase(o.name));
     r << QString(R"(
 pub struct %1QObject {}
@@ -38,6 +117,9 @@ pub struct %1Emitter {
     qobject: Arc<Mutex<*const %1QObject>>,
 )").arg(o.name);
     for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            continue;
+        }
         r << QString("    %2_changed: fn(*const %1QObject),\n")
             .arg(o.name, snakeCase(p.name));
     }
@@ -58,6 +140,9 @@ impl %1Emitter {
     }
 )").arg(o.name);
     for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            continue;
+        }
         r << QString(R"(    pub fn %1_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
@@ -133,14 +218,25 @@ impl %1%2 {
     r << QString(R"(}
 
 pub trait %1Trait {
-    fn create(emit: %1Emitter%2) -> Self;
+    fn create(emit: %1Emitter%2)").arg(o.name, modelStruct);
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            r << ",\n        " << snakeCase(p.name) << ": " << p.type.name;
+        }
+    }
+    r << QString(R"() -> Self;
     fn emit(&self) -> &%1Emitter;
-)").arg(o.name, modelStruct);
+)").arg(o.name);
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
-        if (p.write) {
-            r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
+        if (p.type.type == BindingType::Object) {
+            r << QString("    fn get_%1(&self) -> &%2;\n").arg(lc, rustType(p));
+            r << QString("    fn get_mut_%1(&mut self) -> &mut %2;\n").arg(lc, rustType(p));
+        } else {
+            r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
+            if (p.write) {
+                r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
+            }
         }
     }
     if (o.type == ObjectType::List) {
@@ -173,75 +269,30 @@ pub trait %1Trait {
     r << QString(R"(}
 
 #[no_mangle]
-pub extern "C" fn %2_new(qobject: *const %1QObject)").arg(o.name, lcname);
-    for (const Property& p: o.properties) {
-        r << QString(",\n        %2_changed: fn(*const %1QObject)")
-            .arg(o.name, snakeCase(p.name));
-    }
-    if (o.type == ObjectType::List) {
-        r << QString(",\n        new_data_ready: fn(*const %1QObject)")
-            .arg(o.name);
-    } else if (o.type == ObjectType::UniformTree) {
-        r << QString(",\n        new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
-            .arg(o.name);
-    }
-    if (o.type != ObjectType::Object) {
-        QString indexDecl;
-        if (o.type == ObjectType::UniformTree) {
-            indexDecl = " item: usize, valid: bool,";
-        }
-        r << QString(R"(,
-        begin_reset_model: fn(*const %1QObject),
-        end_reset_model: fn(*const %1QObject),
-        begin_insert_rows: fn(*const %1QObject,%2
-            usize,
-            usize),
-        end_insert_rows: fn(*const %1QObject),
-        begin_remove_rows: fn(*const %1QObject,%2
-            usize,
-            usize),
-        end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl);
-    }
-    r << QString(R"()
-        -> *mut %1 {
-    let emit = %1Emitter {
-        qobject: Arc::new(Mutex::new(qobject)),
-)").arg(o.name);
-    for (const Property& p: o.properties) {
-        r << QString("        %1_changed: %1_changed,\n").arg(snakeCase(p.name));
-    }
-    if (o.type != ObjectType::Object) {
-        r << QString("        new_data_ready: new_data_ready,\n");
-    }
-    QString model = "";
-    if (o.type != ObjectType::Object) {
-        const QString type = o.type == ObjectType::List ? "List" : "UniformTree";
-        model = ", model";
-        r << QString(R"(    };
-    let model = %1%2 {
-        qobject: qobject,
-        begin_reset_model: begin_reset_model,
-        end_reset_model: end_reset_model,
-        begin_insert_rows: begin_insert_rows,
-        end_insert_rows: end_insert_rows,
-        begin_remove_rows: begin_remove_rows,
-        end_remove_rows: end_remove_rows,
-)").arg(o.name, type);
-    }
-    r << QString(R"(    };
-    let d = %1::create(emit%3);
-    Box::into_raw(Box::new(d))
+pub extern "C" fn %1_new()").arg(lcname);
+    rConstructorArgsDecl(r, lcname, o, conf);
+    r << QString(")\n        -> *mut %1 {\n").arg(o.name);
+    rConstructorArgs(r, lcname, o, conf);
+    r << QString(R"(    Box::into_raw(Box::new(d_%2))
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
     Box::from_raw(ptr).emit().clear();
 }
-)").arg(o.name, lcname, model);
+)").arg(o.name, lcname);
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
         QString ret = ") -> " + rustType(p);
-        if (p.type.isComplex() && !p.optional) {
+        if (p.type.type == BindingType::Object) {
+            r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
+    (&mut *ptr).get_mut_%3()
+}
+)").arg(o.name, base, snakeCase(p.name), rustType(p));
+
+        } else if (p.type.isComplex() && !p.optional) {
             r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1,
@@ -589,7 +640,7 @@ use %1::*;
     writeRustTypes(conf, r);
 
     for (auto object: conf.objects) {
-        writeRustInterfaceObject(r, object);
+        writeRustInterfaceObject(r, object, conf);
     }
 }
 
@@ -621,6 +672,11 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         r << QString("    list: Vec<%1Item>,\n").arg(o.name);
     }
     r << "}\n\n";
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            modelStruct += ", " + p.name + ": " + p.type.name;
+        }
+    }
     r << QString(R"(impl %1Trait for %1 {
     fn create(emit: %1Emitter%2) -> %1 {
         %1 {
@@ -631,7 +687,11 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
+        if (p.type.type == BindingType::Object) {
+            r << QString("            %1: %1,\n").arg(lc);
+        } else {
+            r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
+        }
     }
     if (o.type != ObjectType::Object) {
         r << QString("            list: vec![%1Item::default(); 10],\n")
@@ -645,19 +705,29 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
 )").arg(o.name);
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
-        r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustType(p));
-        if (p.type.isComplex()) {
-            r << QString("        self.%1.clone()\n").arg(lc);
+        if (p.type.type == BindingType::Object) {
+            r << QString(R"(    fn get_%1(&self) -> &%2 {
+        &self.%1
+    }
+    fn get_mut_%1(&mut self) -> &mut %2 {
+        &mut self.%1
+    }
+)").arg(lc, rustType(p));
         } else {
-            r << QString("        self.%1\n").arg(lc);
-        }
-        r << "    }\n";
-        if (p.write) {
-            r << QString(R"(    fn set_%1(&mut self, value: %2) {
+            r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustType(p));
+            if (p.type.isComplex()) {
+                r << QString("        self.%1.clone()\n").arg(lc);
+            } else {
+                r << QString("        self.%1\n").arg(lc);
+            }
+            r << "    }\n";
+            if (p.write) {
+                r << QString(R"(    fn set_%1(&mut self, value: %2) {
         self.%1 = value;
         self.emit.%1_changed();
     }
-)").arg(lc, rustType(p));
+    )").arg(lc, rustType(p));
+            }
         }
     }
     if (o.type == ObjectType::List) {

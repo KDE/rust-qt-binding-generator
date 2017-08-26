@@ -44,6 +44,7 @@ namespace {
         int row;
         quintptr id;
     };
+
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
 void set_qstring(QString* v, qstring_t* val) {
@@ -53,7 +54,6 @@ typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
 void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
 }
-
 extern "C" {
     uint time_series_data_input(const TimeSeries::Private*, int);
     bool time_series_set_data_input(TimeSeries::Private*, int, uint);
@@ -77,7 +77,7 @@ bool TimeSeries::hasChildren(const QModelIndex &parent) const
 
 int TimeSeries::rowCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : time_series_row_count(d);
+    return (parent.isValid()) ? 0 : time_series_row_count(m_d);
 }
 
 QModelIndex TimeSeries::index(int row, int column, const QModelIndex &parent) const
@@ -95,19 +95,19 @@ QModelIndex TimeSeries::parent(const QModelIndex &) const
 
 bool TimeSeries::canFetchMore(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : time_series_can_fetch_more(d);
+    return (parent.isValid()) ? 0 : time_series_can_fetch_more(m_d);
 }
 
 void TimeSeries::fetchMore(const QModelIndex &parent)
 {
     if (!parent.isValid()) {
-        time_series_fetch_more(d);
+        time_series_fetch_more(m_d);
     }
 }
 
 void TimeSeries::sort(int column, Qt::SortOrder order)
 {
-    time_series_sort(d, column, order);
+    time_series_sort(m_d, column, order);
 }
 Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
 {
@@ -132,10 +132,10 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            v = time_series_data_input(d, index.row());
+            v = time_series_data_input(m_d, index.row());
             break;
         case Qt::UserRole + 1:
-            v = time_series_data_result(d, index.row());
+            v = time_series_data_result(m_d, index.row());
             break;
         }
         break;
@@ -144,7 +144,7 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 1:
-            v = time_series_data_result(d, index.row());
+            v = time_series_data_result(m_d, index.row());
             break;
         }
         break;
@@ -162,15 +162,15 @@ bool TimeSeries::setData(const QModelIndex &index, const QVariant &value, int ro
     bool set = false;
     if (index.column() == 0) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            set = time_series_set_data_input(d, index.row(), value.value<quint32>());
+            set = time_series_set_data_input(m_d, index.row(), value.value<quint32>());
         }
         if (role == Qt::UserRole + 1) {
-            set = time_series_set_data_result(d, index.row(), value.value<quint32>());
+            set = time_series_set_data_result(m_d, index.row(), value.value<quint32>());
         }
     }
     if (index.column() == 1) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 1) {
-            set = time_series_set_data_result(d, index.row(), value.value<quint32>());
+            set = time_series_set_data_result(m_d, index.row(), value.value<quint32>());
         }
     }
     if (set) {
@@ -189,9 +189,13 @@ extern "C" {
         void (*)(TimeSeries*));
     void time_series_free(TimeSeries::Private*);
 };
+TimeSeries::TimeSeries(bool /*owned*/, QObject *parent):
+    QAbstractItemModel(parent),
+    m_d(0),
+    m_ownsPrivate(false) {}
 TimeSeries::TimeSeries(QObject *parent):
     QAbstractItemModel(parent),
-    d(time_series_new(this,
+    m_d(time_series_new(this,
         [](const TimeSeries* o) {
             emit o->newDataReady(QModelIndex());
         },
@@ -213,13 +217,15 @@ TimeSeries::TimeSeries(QObject *parent):
         [](TimeSeries* o) {
             o->endRemoveRows();
         }
-    )) {
+)),
+    m_ownsPrivate(true) {
     connect(this, &TimeSeries::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);
 }
 
-
 TimeSeries::~TimeSeries() {
-    time_series_free(d);
+    if (m_ownsPrivate) {
+        time_series_free(m_d);
+    }
 }
