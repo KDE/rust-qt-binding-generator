@@ -107,6 +107,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 TextField {
                     id: processFilterInput
+                    focus: true
                     width: parent.width
                     placeholderText: "Filter processes"
                     onTextChanged: {
@@ -123,12 +124,12 @@ ApplicationWindow {
                     sortIndicatorVisible: true
                     alternatingRowColors: true
                     TableViewColumn {
-                        title: "pid"
-                        role: "pid"
-                    }
-                    TableViewColumn {
                         title: "name"
                         role: "name"
+                    }
+                    TableViewColumn {
+                        title: "pid"
+                        role: "pid"
                     }
                     TableViewColumn {
                         title: "cpu"
@@ -140,29 +141,19 @@ ApplicationWindow {
                         var role = getColumn(processView.sortIndicatorColumn).role;
                         model.sortByRole(role, processView.sortIndicatorOrder);
                     }
-                    Component.onCompleted: {
-                        var r = processView.rootIndex;
-                        var a = processes.index(0, 0, r);
-                        var b = processes.index(1, 0, r);
-                        processView.expand(processView.rootIndex);
-                        processView.expand(a);
-                        processView.expand(b);
-                        processes.rowsInserted.connect(function (index) {
-                            processView.expand(processView.rootIndex);
-                            processView.expand(index);
-                        });
+                    Timer {
+                        interval: 100; running: true; repeat: true
+                        onTriggered: {
+                            var root = processView.rootIndex;
+                            var systemd = processes.index(1, 0, root);
+                            if (processes.data(systemd) === "systemd") {
+                                processView.expand(systemd);
+                                running = false;
+                            }
+                        }
                     }
                 }
             }
-/*
-    view->connect(&models->sortedProcesses, &QAbstractItemModel::rowsInserted,
-        view, [view](const QModelIndex& index) {
-        if (!index.isValid()) {
-            view->expandAll();
-        }
-    });
-            }
-*/
         }
         Tab {
             id: chartTab
