@@ -83,7 +83,7 @@ int TimeSeries::rowCount(const QModelIndex &parent) const
 QModelIndex TimeSeries::index(int row, int column, const QModelIndex &parent) const
 {
     if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 2) {
-        return createIndex(row, column, (quintptr)0);
+        return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
 }
@@ -181,6 +181,7 @@ bool TimeSeries::setData(const QModelIndex &index, const QVariant &value, int ro
 extern "C" {
     TimeSeries::Private* time_series_new(TimeSeries*,
         void (*)(const TimeSeries*),
+        void (*)(TimeSeries*, quintptr, quintptr),
         void (*)(TimeSeries*),
         void (*)(TimeSeries*),
         void (*)(TimeSeries*, int, int),
@@ -202,6 +203,10 @@ TimeSeries::TimeSeries(QObject *parent):
     m_d(time_series_new(this,
         [](const TimeSeries* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](TimeSeries* o, quintptr first, quintptr last) {
+            o->dataChanged(o->createIndex(first, 0, first),
+                       o->createIndex(last, 1, last));
         },
         [](TimeSeries* o) {
             o->beginResetModel();

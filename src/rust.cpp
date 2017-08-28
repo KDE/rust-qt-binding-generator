@@ -52,6 +52,7 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
             indexDecl = " item: usize, valid: bool,";
         }
         r << QString(R"(,
+        data_changed: fn(*const %1QObject, usize, usize),
         begin_reset_model: fn(*const %1QObject),
         end_reset_model: fn(*const %1QObject),
         begin_insert_rows: fn(*const %1QObject,%2
@@ -89,6 +90,7 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
         r << QString(R"(    };
     let model = %1%2 {
         qobject: %3,
+        data_changed: data_changed,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,
@@ -185,6 +187,7 @@ impl %1Emitter {
 
 pub struct %1%2 {
     qobject: *const %1QObject,
+    data_changed: fn(*const %1QObject, usize, usize),
     begin_reset_model: fn(*const %1QObject),
     end_reset_model: fn(*const %1QObject),
     begin_insert_rows: fn(*const %1QObject,%5 usize, usize),
@@ -194,6 +197,9 @@ pub struct %1%2 {
 }
 
 impl %1%2 {
+    pub fn data_changed(&self,%3 first: usize, last: usize) {
+        (self.data_changed)(self.qobject, first, last);
+    }
     pub fn begin_reset_model(&self) {
         (self.begin_reset_model)(self.qobject);
     }

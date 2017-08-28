@@ -98,6 +98,7 @@ impl ProcessesEmitter {
 
 pub struct ProcessesUniformTree {
     qobject: *const ProcessesQObject,
+    data_changed: fn(*const ProcessesQObject, usize, usize),
     begin_reset_model: fn(*const ProcessesQObject),
     end_reset_model: fn(*const ProcessesQObject),
     begin_insert_rows: fn(*const ProcessesQObject, item: usize, valid: bool, usize, usize),
@@ -107,6 +108,9 @@ pub struct ProcessesUniformTree {
 }
 
 impl ProcessesUniformTree {
+    pub fn data_changed(&self, item: Option<usize>, first: usize, last: usize) {
+        (self.data_changed)(self.qobject, first, last);
+    }
     pub fn begin_reset_model(&self) {
         (self.begin_reset_model)(self.qobject);
     }
@@ -149,6 +153,7 @@ pub trait ProcessesTrait {
 #[no_mangle]
 pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
         new_data_ready: fn(*const ProcessesQObject, item: usize, valid: bool),
+        data_changed: fn(*const ProcessesQObject, usize, usize),
         begin_reset_model: fn(*const ProcessesQObject),
         end_reset_model: fn(*const ProcessesQObject),
         begin_insert_rows: fn(*const ProcessesQObject, item: usize, valid: bool,
@@ -166,6 +171,7 @@ pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
     };
     let model = ProcessesUniformTree {
         qobject: processes,
+        data_changed: data_changed,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,

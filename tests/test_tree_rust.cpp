@@ -174,6 +174,7 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     Persons::Private* persons_new(Persons*,
         void (*)(const Persons*, quintptr, bool),
+        void (*)(Persons*, quintptr, quintptr),
         void (*)(Persons*),
         void (*)(Persons*),
         void (*)(Persons*, option<quintptr>, int, int),
@@ -200,6 +201,12 @@ Persons::Persons(QObject *parent):
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](Persons* o, quintptr first, quintptr last) {
+            quintptr frow = persons_row(o->m_d, first);
+            quintptr lrow = persons_row(o->m_d, first);
+            o->dataChanged(o->createIndex(frow, 0, first),
+                       o->createIndex(lrow, 0, last));
         },
         [](Persons* o) {
             o->beginResetModel();

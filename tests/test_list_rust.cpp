@@ -81,7 +81,7 @@ int Persons::rowCount(const QModelIndex &parent) const
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
 {
     if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
-        return createIndex(row, column, (quintptr)0);
+        return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
 }
@@ -156,6 +156,7 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     Persons::Private* persons_new(Persons*,
         void (*)(const Persons*),
+        void (*)(Persons*, quintptr, quintptr),
         void (*)(Persons*),
         void (*)(Persons*),
         void (*)(Persons*, int, int),
@@ -177,6 +178,10 @@ Persons::Persons(QObject *parent):
     m_d(persons_new(this,
         [](const Persons* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](Persons* o, quintptr first, quintptr last) {
+            o->dataChanged(o->createIndex(first, 0, first),
+                       o->createIndex(last, 0, last));
         },
         [](Persons* o) {
             o->beginResetModel();

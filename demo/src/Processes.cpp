@@ -212,6 +212,7 @@ bool Processes::setData(const QModelIndex &index, const QVariant &value, int rol
 extern "C" {
     Processes::Private* processes_new(Processes*,
         void (*)(const Processes*, quintptr, bool),
+        void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
         void (*)(Processes*, option<quintptr>, int, int),
@@ -238,6 +239,12 @@ Processes::Processes(QObject *parent):
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](Processes* o, quintptr first, quintptr last) {
+            quintptr frow = processes_row(o->m_d, first);
+            quintptr lrow = processes_row(o->m_d, first);
+            o->dataChanged(o->createIndex(frow, 0, first),
+                       o->createIndex(lrow, 2, last));
         },
         [](Processes* o) {
             o->beginResetModel();

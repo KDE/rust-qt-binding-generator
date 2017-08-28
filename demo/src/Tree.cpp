@@ -229,6 +229,7 @@ bool Tree::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     Tree::Private* tree_new(Tree*, void (*)(Tree*),
         void (*)(const Tree*, quintptr, bool),
+        void (*)(Tree*, quintptr, quintptr),
         void (*)(Tree*),
         void (*)(Tree*),
         void (*)(Tree*, option<quintptr>, int, int),
@@ -259,6 +260,12 @@ Tree::Tree(QObject *parent):
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](Tree* o, quintptr first, quintptr last) {
+            quintptr frow = tree_row(o->m_d, first);
+            quintptr lrow = tree_row(o->m_d, first);
+            o->dataChanged(o->createIndex(frow, 0, first),
+                       o->createIndex(lrow, 4, last));
         },
         [](Tree* o) {
             o->beginResetModel();

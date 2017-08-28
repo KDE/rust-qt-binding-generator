@@ -96,7 +96,7 @@ int FibonacciList::rowCount(const QModelIndex &parent) const
 QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
 {
     if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
-        return createIndex(row, column, (quintptr)0);
+        return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
 }
@@ -161,6 +161,7 @@ bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int
 extern "C" {
     FibonacciList::Private* fibonacci_list_new(FibonacciList*,
         void (*)(const FibonacciList*),
+        void (*)(FibonacciList*, quintptr, quintptr),
         void (*)(FibonacciList*),
         void (*)(FibonacciList*),
         void (*)(FibonacciList*, int, int),
@@ -214,6 +215,10 @@ FibonacciList::FibonacciList(QObject *parent):
     m_d(fibonacci_list_new(this,
         [](const FibonacciList* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](FibonacciList* o, quintptr first, quintptr last) {
+            o->dataChanged(o->createIndex(first, 0, first),
+                       o->createIndex(last, 0, last));
         },
         [](FibonacciList* o) {
             o->beginResetModel();

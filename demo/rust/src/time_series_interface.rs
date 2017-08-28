@@ -69,6 +69,7 @@ impl TimeSeriesEmitter {
 
 pub struct TimeSeriesList {
     qobject: *const TimeSeriesQObject,
+    data_changed: fn(*const TimeSeriesQObject, usize, usize),
     begin_reset_model: fn(*const TimeSeriesQObject),
     end_reset_model: fn(*const TimeSeriesQObject),
     begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
@@ -78,6 +79,9 @@ pub struct TimeSeriesList {
 }
 
 impl TimeSeriesList {
+    pub fn data_changed(&self, first: usize, last: usize) {
+        (self.data_changed)(self.qobject, first, last);
+    }
     pub fn begin_reset_model(&self) {
         (self.begin_reset_model)(self.qobject);
     }
@@ -114,6 +118,7 @@ pub trait TimeSeriesTrait {
 #[no_mangle]
 pub extern "C" fn time_series_new(time_series: *mut TimeSeriesQObject,
         new_data_ready: fn(*const TimeSeriesQObject),
+        data_changed: fn(*const TimeSeriesQObject, usize, usize),
         begin_reset_model: fn(*const TimeSeriesQObject),
         end_reset_model: fn(*const TimeSeriesQObject),
         begin_insert_rows: fn(*const TimeSeriesQObject,
@@ -131,6 +136,7 @@ pub extern "C" fn time_series_new(time_series: *mut TimeSeriesQObject,
     };
     let model = TimeSeriesList {
         qobject: time_series,
+        data_changed: data_changed,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,

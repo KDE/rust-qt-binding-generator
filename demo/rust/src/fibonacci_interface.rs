@@ -140,6 +140,7 @@ impl FibonacciListEmitter {
 
 pub struct FibonacciListList {
     qobject: *const FibonacciListQObject,
+    data_changed: fn(*const FibonacciListQObject, usize, usize),
     begin_reset_model: fn(*const FibonacciListQObject),
     end_reset_model: fn(*const FibonacciListQObject),
     begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
@@ -149,6 +150,9 @@ pub struct FibonacciListList {
 }
 
 impl FibonacciListList {
+    pub fn data_changed(&self, first: usize, last: usize) {
+        (self.data_changed)(self.qobject, first, last);
+    }
     pub fn begin_reset_model(&self) {
         (self.begin_reset_model)(self.qobject);
     }
@@ -182,6 +186,7 @@ pub trait FibonacciListTrait {
 #[no_mangle]
 pub extern "C" fn fibonacci_list_new(fibonacci_list: *mut FibonacciListQObject,
         new_data_ready: fn(*const FibonacciListQObject),
+        data_changed: fn(*const FibonacciListQObject, usize, usize),
         begin_reset_model: fn(*const FibonacciListQObject),
         end_reset_model: fn(*const FibonacciListQObject),
         begin_insert_rows: fn(*const FibonacciListQObject,
@@ -199,6 +204,7 @@ pub extern "C" fn fibonacci_list_new(fibonacci_list: *mut FibonacciListQObject,
     };
     let model = FibonacciListList {
         qobject: fibonacci_list,
+        data_changed: data_changed,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,

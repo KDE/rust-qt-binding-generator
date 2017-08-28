@@ -98,6 +98,7 @@ impl PersonsEmitter {
 
 pub struct PersonsList {
     qobject: *const PersonsQObject,
+    data_changed: fn(*const PersonsQObject, usize, usize),
     begin_reset_model: fn(*const PersonsQObject),
     end_reset_model: fn(*const PersonsQObject),
     begin_insert_rows: fn(*const PersonsQObject, usize, usize),
@@ -107,6 +108,9 @@ pub struct PersonsList {
 }
 
 impl PersonsList {
+    pub fn data_changed(&self, first: usize, last: usize) {
+        (self.data_changed)(self.qobject, first, last);
+    }
     pub fn begin_reset_model(&self) {
         (self.begin_reset_model)(self.qobject);
     }
@@ -141,6 +145,7 @@ pub trait PersonsTrait {
 #[no_mangle]
 pub extern "C" fn persons_new(persons: *mut PersonsQObject,
         new_data_ready: fn(*const PersonsQObject),
+        data_changed: fn(*const PersonsQObject, usize, usize),
         begin_reset_model: fn(*const PersonsQObject),
         end_reset_model: fn(*const PersonsQObject),
         begin_insert_rows: fn(*const PersonsQObject,
@@ -158,6 +163,7 @@ pub extern "C" fn persons_new(persons: *mut PersonsQObject,
     };
     let model = PersonsList {
         qobject: persons,
+        data_changed: data_changed,
         begin_reset_model: begin_reset_model,
         end_reset_model: end_reset_model,
         begin_insert_rows: begin_insert_rows,

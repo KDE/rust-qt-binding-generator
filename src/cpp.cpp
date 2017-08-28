@@ -116,7 +116,7 @@ int %1::rowCount(const QModelIndex &parent) const
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
 {
     if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < %3) {
-        return createIndex(row, column, (quintptr)0);
+        return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
 }
@@ -391,6 +391,7 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
         void (*)(const %1*),
+        void (*)(%1*, quintptr, quintptr),
         void (*)(%1*),
         void (*)(%1*),
         void (*)(%1*, int, int),
@@ -401,6 +402,7 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
         void (*)(const %1*, quintptr, bool),
+        void (*)(%1*, quintptr, quintptr),
         void (*)(%1*),
         void (*)(%1*),
         void (*)(%1*, option<quintptr>, int, int),
@@ -430,6 +432,10 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](const %1* o) {
             emit o->newDataReady(QModelIndex());
         },
+        [](%1* o, quintptr first, quintptr last) {
+            o->dataChanged(o->createIndex(first, 0, first),
+                       o->createIndex(last, %2, last));
+        },
         [](%1* o) {
             o->beginResetModel();
         },
@@ -448,7 +454,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](%1* o) {
             o->endRemoveRows();
         }
-)").arg(o.name);
+)").arg(o.name,     QString::number(o.columnCount - 1));
     }
     if (o.type == ObjectType::UniformTree) {
         cpp << QString(R"(,
@@ -459,6 +465,12 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](%1* o, quintptr first, quintptr last) {
+            quintptr frow = %2_row(o->m_d, first);
+            quintptr lrow = %2_row(o->m_d, first);
+            o->dataChanged(o->createIndex(frow, 0, first),
+                       o->createIndex(lrow, %3, last));
         },
         [](%1* o) {
             o->beginResetModel();
@@ -488,7 +500,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](%1* o) {
             o->endRemoveRows();
         }
-)").arg(o.name, lcname);
+)").arg(o.name, lcname, QString::number(o.columnCount - 1));
     }
 }
 
@@ -532,7 +544,6 @@ void initializeMembersEmpty(QTextStream& cpp, const Object& o, const Configurati
         }
     }
 }
-
 
 void initializeMembersZero(QTextStream& cpp, const Object& o, const Configuration& conf)
 {
