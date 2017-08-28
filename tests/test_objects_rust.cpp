@@ -92,8 +92,8 @@ Group::Group(QObject *parent):
         innerObjectDescriptionChanged)),
     m_ownsPrivate(true)
 {
-    m_person->m_object->m_d = person_object_get(m_person->m_d);
     m_person->m_d = group_person_get(m_d);
+    m_person->m_object->m_d = person_object_get(m_person->m_d);
 }
 
 Group::~Group() {

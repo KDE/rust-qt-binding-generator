@@ -548,10 +548,10 @@ void initializeMembers(QTextStream& cpp, const QString& prefix, const Object& o,
 {
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
-            initializeMembers(cpp, "m_" + p.name + "->",
-                    conf.findObject(p.type.name), conf);
             cpp << QString("    %1m_%2->m_d = %3_%2_get(%1m_d);\n")
                    .arg(prefix, p.name, snakeCase(o.name));
+            initializeMembers(cpp, "m_" + p.name + "->",
+                    conf.findObject(p.type.name), conf);
         }
     }
 }
