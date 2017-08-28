@@ -167,7 +167,7 @@ fn insert_row(model:  &ProcessesUniformTree, parent: pid_t, row: usize,
 }
 
 fn sync_row(model: &ProcessesUniformTree, pid: pid_t,
-        a: &mut Process, b: &Process) {
+        a: &mut Process, b: &Process) -> f32 {
     let mut changed = false;
     if a.name != b.name {
         a.name.clone_from(&b.name);
@@ -192,15 +192,17 @@ fn sync_row(model: &ProcessesUniformTree, pid: pid_t,
     if changed {
         model.data_changed(pid as usize, pid as usize);
     }
+    b.cpu_usage
 }
 
 fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
         amap: &mut HashMap<pid_t, ProcessItem>,
-        bmap: &mut HashMap<pid_t, ProcessItem>) {
+        bmap: &mut HashMap<pid_t, ProcessItem>) -> f32 {
     let mut a = 0;
     let mut b = 0;
     let mut alen = amap[&parent].tasks.len();
     let blen = bmap[&parent].tasks.len();
+    let mut cpu_total = bmap[&parent].process.cpu_usage;
 
     while a < alen && b < blen {
         let apid = amap[&parent].tasks[a];
@@ -210,13 +212,15 @@ fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
             alen -= 1;
         } else if apid > bpid { // a process has appeared
             insert_row(model, parent, a, amap, bpid, bmap);
+            cpu_total += amap[&bpid].process.cpu_usage;
             a += 1;
             alen += 1;
             b += 1;
         } else {
-            sync_row(model, apid,  &mut amap.get_mut(&apid).unwrap().process,
+            cpu_total += sync_row(model, apid,
+                    &mut amap.get_mut(&apid).unwrap().process,
                     &bmap[&apid].process);
-            sync_tree(model, apid, amap, bmap);
+            cpu_total += sync_tree(model, apid, amap, bmap);
             a += 1;
             b += 1;
         }
@@ -232,7 +236,12 @@ fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
         remove_row(model, parent, a, amap);
         alen -= 1;
     }
+    if cpu_total !=  bmap[&parent].process.cpu_usage {
+        amap.get_mut(&parent).unwrap().process.cpu_usage = cpu_total;
+        model.data_changed(parent as usize, parent as usize);
+    }
     assert_eq!(a, b);
+    cpu_total
 }
 
 impl ProcessesTrait for Processes {
