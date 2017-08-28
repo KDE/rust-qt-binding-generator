@@ -10,6 +10,10 @@
         "Processes": {
             "type": "UniformTree",
             "properties": {
+                "active": {
+                    "type": "bool",
+                    "write": true
+                }
             },
             "itemProperties": {
                 "pid": {

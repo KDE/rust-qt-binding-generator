@@ -123,6 +123,9 @@ ApplicationWindow {
                     onClicked: {
                         processSelection.select(index, ItemSelectionModel.ToggleCurrent);
                     }
+                    Component.onCompleted: {
+                        processes.active = Qt.binding(function() { return visible; });
+                    }
                     width: parent.width
                     anchors.top: processFilterInput.bottom
                     anchors.bottom: parent.bottom
@@ -138,12 +141,12 @@ ApplicationWindow {
                         role: "name"
                     }
                     TableViewColumn {
-                        title: "pid"
-                        role: "pid"
+                        title: "cpu"
+                        role: "cpuUsage"
                     }
                     TableViewColumn {
-                        title: "cpu"
-                        role: "cpu"
+                        title: "memory"
+                        role: "memory"
                     }
                     onSortIndicatorColumnChanged: sort()
                     onSortIndicatorOrderChanged: sort()

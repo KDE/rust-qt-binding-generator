@@ -15,10 +15,13 @@ public:
 private:
     Private * m_d;
     bool m_ownsPrivate;
+    Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged FINAL)
     explicit Processes(bool owned, QObject *parent);
 public:
     explicit Processes(QObject *parent = nullptr);
     ~Processes();
+    bool active() const;
+    void setActive(bool v);
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -36,5 +39,6 @@ signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 signals:
+    void activeChanged();
 };
 #endif // PROCESSES_H

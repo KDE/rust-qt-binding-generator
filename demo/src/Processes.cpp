@@ -44,6 +44,10 @@ namespace {
         int row;
         quintptr id;
     };
+    inline void processesActiveChanged(Processes* o)
+    {
+        emit o->activeChanged();
+    }
 
 }
 typedef void (*qstring_set)(QString*, qstring_t*);
@@ -210,7 +214,7 @@ bool Processes::setData(const QModelIndex &index, const QVariant &value, int rol
     return set;
 }
 extern "C" {
-    Processes::Private* processes_new(Processes*,
+    Processes::Private* processes_new(Processes*, void (*)(Processes*),
         void (*)(const Processes*, quintptr, bool),
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
@@ -220,6 +224,8 @@ extern "C" {
         void (*)(Processes*, option<quintptr>, int, int),
         void (*)(Processes*));
     void processes_free(Processes::Private*);
+    bool processes_active_get(const Processes::Private*);
+    void processes_active_set(Processes::Private*, bool);
 };
 
 Processes::Processes(bool /*owned*/, QObject *parent):
@@ -232,6 +238,7 @@ Processes::Processes(bool /*owned*/, QObject *parent):
 Processes::Processes(QObject *parent):
     QAbstractItemModel(parent),
     m_d(processes_new(this,
+        processesActiveChanged,
         [](const Processes* o, quintptr id, bool valid) {
             if (valid) {
                 int row = processes_row(o->m_d, id);
@@ -286,4 +293,11 @@ Processes::~Processes() {
     if (m_ownsPrivate) {
         processes_free(m_d);
     }
+}
+bool Processes::active() const
+{
+    return processes_active_get(m_d);
+}
+void Processes::setActive(bool v) {
+    processes_active_set(m_d, v);
 }

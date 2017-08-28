@@ -79,6 +79,7 @@ pub struct ProcessesQObject {}
 #[derive (Clone)]
 pub struct ProcessesEmitter {
     qobject: Arc<Mutex<*const ProcessesQObject>>,
+    active_changed: fn(*const ProcessesQObject),
     new_data_ready: fn(*const ProcessesQObject, item: usize, valid: bool),
 }
 
@@ -87,6 +88,12 @@ unsafe impl Send for ProcessesEmitter {}
 impl ProcessesEmitter {
     fn clear(&self) {
         *self.qobject.lock().unwrap() = null();
+    }
+    pub fn active_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.active_changed)(ptr);
+        }
     }
     pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
@@ -134,6 +141,8 @@ impl ProcessesUniformTree {
 pub trait ProcessesTrait {
     fn create(emit: ProcessesEmitter, model: ProcessesUniformTree) -> Self;
     fn emit(&self) -> &ProcessesEmitter;
+    fn get_active(&self) -> bool;
+    fn set_active(&mut self, value: bool);
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool { false }
     fn fetch_more(&mut self, Option<usize>) {}
@@ -152,6 +161,7 @@ pub trait ProcessesTrait {
 
 #[no_mangle]
 pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
+        active_changed: fn(*const ProcessesQObject),
         new_data_ready: fn(*const ProcessesQObject, item: usize, valid: bool),
         data_changed: fn(*const ProcessesQObject, usize, usize),
         begin_reset_model: fn(*const ProcessesQObject),
@@ -167,6 +177,7 @@ pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
         -> *mut Processes {
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(Mutex::new(processes)),
+        active_changed: active_changed,
         new_data_ready: new_data_ready,
     };
     let model = ProcessesUniformTree {
@@ -186,6 +197,16 @@ pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
 #[no_mangle]
 pub unsafe extern "C" fn processes_free(ptr: *mut Processes) {
     Box::from_raw(ptr).emit().clear();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn processes_active_get(ptr: *const Processes) -> bool {
+    (&*ptr).get_active()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn processes_active_set(ptr: *mut Processes, v: bool) {
+    (&mut *ptr).set_active(v);
 }
 
 #[no_mangle]

@@ -22,7 +22,8 @@ pub struct Processes {
     emit: ProcessesEmitter,
     model: ProcessesUniformTree,
     p: ProcessTree,
-    incoming: Arc<Mutex<Option<ProcessTree>>>
+    incoming: Arc<Mutex<Option<ProcessTree>>>,
+    active: bool
 }
 
 fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t,Process>) {
@@ -250,7 +251,8 @@ impl ProcessesTrait for Processes {
             emit: emit.clone(),
             model: model,
             p: ProcessTree::default(),
-            incoming: Arc::new(Mutex::new(None))
+            incoming: Arc::new(Mutex::new(None)),
+            active: true
         };
         update_thread(emit, p.incoming.clone());
         p
@@ -276,7 +278,7 @@ impl ProcessesTrait for Processes {
         self.get(item).process.parent.map(|pid| pid as usize)
     }
     fn can_fetch_more(&self, item: Option<usize>) -> bool {
-        if item.is_some() {
+        if item.is_some() || !self.active {
             return false;
         }
         if let Ok(ref incoming) = self.incoming.try_lock() {
@@ -286,7 +288,7 @@ impl ProcessesTrait for Processes {
         }
     }
     fn fetch_more(&mut self, item: Option<usize>) {
-        if item.is_some() {
+        if item.is_some() || !self.active {
             return;
         }
         let new = if let Ok(ref mut incoming) = self.incoming.try_lock() {
@@ -333,5 +335,11 @@ impl ProcessesTrait for Processes {
     }
     fn cmd(&self, item: usize) -> String {
         self.process(item).cmd.join(" ")
+    }
+    fn get_active(&self) -> bool {
+        self.active
+    }
+    fn set_active(&mut self, active: bool) {
+        self.active = active
     }
 }
