@@ -204,16 +204,18 @@ parseConfiguration(const QString& path) {
     c.hFile = QFileInfo(c.cppFile.dir(), c.cppFile.completeBaseName() + ".h");
     const QJsonObject& object = o.value("objects").toObject();
     for (const QString& key: object.keys()) {
-        Object o = parseObject(key, object[key].toObject());
-        c.objects.append(o);
         bindingTypeProperties().append({
             .type = BindingType::Object,
-            .name = o.name,
-            .cppSetType = o.name,
-            .cSetType = o.name,
-            .rustType = o.name,
+            .name = key,
+            .cppSetType = key,
+            .cSetType = key,
+            .rustType = key,
             .rustTypeInit = "",
         });
+    }
+    for (const QString& key: object.keys()) {
+        Object o = parseObject(key, object[key].toObject());
+        c.objects.append(o);
     }
     const QJsonObject rust = o.value("rust").toObject();
     c.rustdir = QDir(base.filePath(rust.value("dir").toString()));

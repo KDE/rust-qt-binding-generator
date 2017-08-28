@@ -59,25 +59,69 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
     *v = *val;
 }
 extern "C" {
+    Group::Private* group_new(Group*, Person*, InnerObject*, void (*)(InnerObject*));
+    void group_free(Group::Private*);
+    Person::Private* group_person_get(const Group::Private*);
+};
+
+extern "C" {
     InnerObject::Private* inner_object_new(InnerObject*, void (*)(InnerObject*));
     void inner_object_free(InnerObject::Private*);
     void inner_object_description_get(const InnerObject::Private*, QString*, qstring_set);
     void inner_object_description_set(InnerObject::Private*, qstring_t);
 };
+
 extern "C" {
     Person::Private* person_new(Person*, InnerObject*, void (*)(InnerObject*));
     void person_free(Person::Private*);
     InnerObject::Private* person_object_get(const Person::Private*);
 };
+
+Group::Group(bool /*owned*/, QObject *parent):
+    QObject(parent),
+    m_person(new Person(false, this)),
+    m_d(0),
+    m_ownsPrivate(false)
+{
+}
+
+Group::Group(QObject *parent):
+    QObject(parent),
+    m_person(new Person(false, this)),
+    m_d(group_new(this, m_person, m_person->m_object,
+        innerObjectDescriptionChanged)),
+    m_ownsPrivate(true)
+{
+    m_person->m_object->m_d = person_object_get(m_person->m_d);
+    m_person->m_d = group_person_get(m_d);
+}
+
+Group::~Group() {
+    if (m_ownsPrivate) {
+        group_free(m_d);
+    }
+}
+const Person* Group::person() const
+{
+    return m_person;
+}
+Person* Group::person()
+{
+    return m_person;
+}
 InnerObject::InnerObject(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 InnerObject::InnerObject(QObject *parent):
     QObject(parent),
     m_d(inner_object_new(this,
         innerObjectDescriptionChanged)),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
 }
 
 InnerObject::~InnerObject() {
@@ -98,14 +142,18 @@ Person::Person(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_object(new InnerObject(false, this)),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 Person::Person(QObject *parent):
     QObject(parent),
     m_object(new InnerObject(false, this)),
     m_d(person_new(this, m_object,
         innerObjectDescriptionChanged)),
-    m_ownsPrivate(true) {
-    m_object->m_d = person_object_get(this->m_d);
+    m_ownsPrivate(true)
+{
+    m_object->m_d = person_object_get(m_d);
 }
 
 Person::~Person() {

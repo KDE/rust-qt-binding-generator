@@ -767,7 +767,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
             }
         }
     }
-    r << "}\n";
+    r << "}\n\n";
 }
 
 void writeRustImplementation(const Configuration& conf) {

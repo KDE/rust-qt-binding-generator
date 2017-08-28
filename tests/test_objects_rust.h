@@ -4,11 +4,35 @@
 
 #include <QObject>
 #include <QAbstractItemModel>
+
+class Group;
+class InnerObject;
 class Person;
+
+class Group : public QObject
+{
+    Q_OBJECT
+    friend class Person;
+public:
+    class Private;
+private:
+    Person* const m_person;
+    Private * m_d;
+    bool m_ownsPrivate;
+    Q_PROPERTY(Person* person READ person FINAL)
+    explicit Group(bool owned, QObject *parent);
+public:
+    explicit Group(QObject *parent = nullptr);
+    ~Group();
+    const Person* person() const;
+    Person* person();
+signals:
+};
 
 class InnerObject : public QObject
 {
     Q_OBJECT
+    friend class Group;
     friend class Person;
 public:
     class Private;
@@ -29,7 +53,7 @@ signals:
 class Person : public QObject
 {
     Q_OBJECT
-    friend class Person;
+    friend class Group;
 public:
     class Private;
 private:

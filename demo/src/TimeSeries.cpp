@@ -189,10 +189,14 @@ extern "C" {
         void (*)(TimeSeries*));
     void time_series_free(TimeSeries::Private*);
 };
+
 TimeSeries::TimeSeries(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 TimeSeries::TimeSeries(QObject *parent):
     QAbstractItemModel(parent),
     m_d(time_series_new(this,
@@ -218,7 +222,8 @@ TimeSeries::TimeSeries(QObject *parent):
             o->endRemoveRows();
         }
 )),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
     connect(this, &TimeSeries::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);

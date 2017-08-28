@@ -220,10 +220,14 @@ extern "C" {
         void (*)(Processes*));
     void processes_free(Processes::Private*);
 };
+
 Processes::Processes(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 Processes::Processes(QObject *parent):
     QAbstractItemModel(parent),
     m_d(processes_new(this,
@@ -264,7 +268,8 @@ Processes::Processes(QObject *parent):
             o->endRemoveRows();
         }
 )),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
     connect(this, &Processes::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);

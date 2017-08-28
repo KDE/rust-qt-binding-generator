@@ -69,6 +69,7 @@ extern "C" {
     void fibonacci_input_set(Fibonacci::Private*, uint);
     quint64 fibonacci_result_get(const Fibonacci::Private*);
 };
+
 extern "C" {
     quint64 fibonacci_list_data_result(const FibonacciList::Private*, int);
     void fibonacci_list_sort(FibonacciList::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
@@ -168,16 +169,21 @@ extern "C" {
         void (*)(FibonacciList*));
     void fibonacci_list_free(FibonacciList::Private*);
 };
+
 Fibonacci::Fibonacci(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 Fibonacci::Fibonacci(QObject *parent):
     QObject(parent),
     m_d(fibonacci_new(this,
         fibonacciInputChanged,
         fibonacciResultChanged)),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
 }
 
 Fibonacci::~Fibonacci() {
@@ -199,7 +205,10 @@ quint64 Fibonacci::result() const
 FibonacciList::FibonacciList(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 FibonacciList::FibonacciList(QObject *parent):
     QAbstractItemModel(parent),
     m_d(fibonacci_list_new(this,
@@ -225,7 +234,8 @@ FibonacciList::FibonacciList(QObject *parent):
             o->endRemoveRows();
         }
 )),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
     connect(this, &FibonacciList::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);

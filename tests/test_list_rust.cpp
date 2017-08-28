@@ -164,10 +164,14 @@ extern "C" {
         void (*)(Persons*));
     void persons_free(Persons::Private*);
 };
+
 Persons::Persons(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 Persons::Persons(QObject *parent):
     QAbstractItemModel(parent),
     m_d(persons_new(this,
@@ -193,7 +197,8 @@ Persons::Persons(QObject *parent):
             o->endRemoveRows();
         }
 )),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
     connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
     }, Qt::QueuedConnection);

@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
+class Processes;
+
 class Processes : public QAbstractItemModel
 {
     Q_OBJECT

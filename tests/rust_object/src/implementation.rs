@@ -26,3 +26,4 @@ impl PersonTrait for Person {
         self.emit.user_name_changed();
     }
     }
+

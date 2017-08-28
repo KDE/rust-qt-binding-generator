@@ -64,15 +64,20 @@ extern "C" {
     void person_user_name_get(const Person::Private*, QString*, qstring_set);
     void person_user_name_set(Person::Private*, qstring_t);
 };
+
 Person::Person(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 Person::Person(QObject *parent):
     QObject(parent),
     m_d(person_new(this,
         personUserNameChanged)),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
 }
 
 Person::~Person() {

@@ -3,6 +3,29 @@
 #![allow(dead_code)]
 use interface::*;
 
+pub struct Group {
+    emit: GroupEmitter,
+    person: Person,
+}
+
+impl GroupTrait for Group {
+    fn create(emit: GroupEmitter, person: Person) -> Group {
+        Group {
+            emit: emit,
+            person: person,
+        }
+    }
+    fn emit(&self) -> &GroupEmitter {
+        &self.emit
+    }
+    fn get_person(&self) -> &Person {
+        &self.person
+    }
+    fn get_mut_person(&mut self) -> &mut Person {
+        &mut self.person
+    }
+}
+
 pub struct InnerObject {
     emit: InnerObjectEmitter,
     description: String,
@@ -26,6 +49,7 @@ impl InnerObjectTrait for InnerObject {
         self.emit.description_changed();
     }
     }
+
 pub struct Person {
     emit: PersonEmitter,
     object: InnerObject,
@@ -48,3 +72,4 @@ impl PersonTrait for Person {
         &mut self.object
     }
 }
+

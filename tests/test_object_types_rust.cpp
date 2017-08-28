@@ -108,10 +108,14 @@ extern "C" {
     quint32 object_uinteger_get(const Object::Private*);
     void object_uinteger_set(Object::Private*, uint);
 };
+
 Object::Object(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_d(0),
-    m_ownsPrivate(false) {}
+    m_ownsPrivate(false)
+{
+}
+
 Object::Object(QObject *parent):
     QObject(parent),
     m_d(object_new(this,
@@ -123,7 +127,8 @@ Object::Object(QObject *parent):
         objectStringChanged,
         objectU64Changed,
         objectUintegerChanged)),
-    m_ownsPrivate(true) {
+    m_ownsPrivate(true)
+{
 }
 
 Object::~Object() {

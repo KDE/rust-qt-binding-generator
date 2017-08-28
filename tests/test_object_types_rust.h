@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
+class Object;
+
 class Object : public QObject
 {
     Q_OBJECT

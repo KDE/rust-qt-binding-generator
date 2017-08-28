@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
+class Tree;
+
 class Tree : public QAbstractItemModel
 {
     Q_OBJECT

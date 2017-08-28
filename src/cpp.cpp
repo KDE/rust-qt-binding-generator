@@ -325,7 +325,7 @@ class %1 : public %3
     Q_OBJEC%2
 )").arg(o.name, "T", baseType(o));
     for (auto object: conf.objects) {
-        if (object.containsObject()) {
+        if (object.containsObject() && o.name != object.name) {
             h << "    friend class " << object.name << ";\n";
         }
     }
@@ -414,12 +414,13 @@ QString changedF(const Object& o, const Property& p) {
     return lowerInitial(o.name) + upperInitial(p.name) + "Changed";
 }
 
-void constructorArgs(QTextStream& cpp, const Object& o, const Configuration& conf) {
+void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, const Configuration& conf) {
     const QString lcname(snakeCase(o.name));
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
-            cpp << ", m_" << p.name;
-            constructorArgs(cpp, conf.findObject(p.type.name), conf);
+            cpp << ", " << prefix << "m_" << p.name;
+            constructorArgs(cpp, "m_" + p.name + "->",
+                    conf.findObject(p.type.name), conf);
         } else {
             cpp << ",\n        " << changedF(o, p);
         }
@@ -521,6 +522,40 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
     }
 }
 
+void initializeMembersEmpty(QTextStream& cpp, const Object& o, const Configuration& conf)
+{
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            initializeMembersEmpty(cpp, conf.findObject(p.type.name), conf);
+            cpp << QString("    %1m_%2(new %3(false, this)),\n")
+                   .arg(p.name, p.type.name);
+        }
+    }
+}
+
+
+void initializeMembersZero(QTextStream& cpp, const Object& o, const Configuration& conf)
+{
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            cpp << QString("    m_%1(new %2(false, this)),\n")
+                   .arg(p.name, p.type.name);
+        }
+    }
+}
+
+void initializeMembers(QTextStream& cpp, const QString& prefix, const Object& o, const Configuration& conf)
+{
+    for (const Property& p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            initializeMembers(cpp, "m_" + p.name + "->",
+                    conf.findObject(p.type.name), conf);
+            cpp << QString("    %1m_%2->m_d = %3_%2_get(%1m_d);\n")
+                   .arg(prefix, p.name, snakeCase(o.name));
+        }
+    }
+}
+
 void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf) {
     const QString lcname(snakeCase(o.name));
     cpp << QString("%1::%1(bool /*owned*/, QObject *parent):\n    %2(parent),")
@@ -531,24 +566,14 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
                    .arg(p.name, p.type.name);
         }
     }
-    cpp << "    m_d(0),\n    m_ownsPrivate(false) {}\n";
+    cpp << "    m_d(0),\n    m_ownsPrivate(false)\n{\n}\n\n";
     cpp << QString("%1::%1(QObject *parent):\n    %2(parent),")
             .arg(o.name, baseType(o)) << endl;
-    for (const Property& p: o.properties) {
-        if (p.type.type == BindingType::Object) {
-            cpp << QString("    m_%1(new %2(false, this)),\n")
-                   .arg(p.name, p.type.name);
-        }
-    }
+    initializeMembersZero(cpp, o, conf);
     cpp << QString("    m_d(%1_new(this").arg(lcname);
-    constructorArgs(cpp, o, conf);
-    cpp << ")),\n    m_ownsPrivate(true) {\n";
-    for (const Property& p: o.properties) {
-        if (p.type.type == BindingType::Object) {
-            cpp << QString("    m_%1->m_d = %2_%1_get(this->m_d);\n")
-                   .arg(p.name, snakeCase(o.name));
-        }
-    }
+    constructorArgs(cpp, "", o, conf);
+    cpp << ")),\n    m_ownsPrivate(true)\n{\n";
+    initializeMembers(cpp, "", o, conf);
     if (o.type != ObjectType::Object) {
         cpp << QString(R"(    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
         fetchMore(i);
@@ -612,12 +637,11 @@ void writeHeader(const Configuration& conf) {
 
 #include <QObject>
 #include <QAbstractItemModel>
+
 )").arg(guard);
 
     for (auto object: conf.objects) {
-        if (object.containsObject()) {
-            h << "class " << object.name << ";\n";
-        }
+        h << "class " << object.name << ";\n";
     }
     for (auto object: conf.objects) {
         writeHeaderObject(h, object, conf);
@@ -706,7 +730,7 @@ void set_qbytearray(QByteArray* v, qbytearray_t* val) {
 
         cpp << "extern \"C\" {\n";
         writeObjectCDecl(cpp, object, conf);
-        cpp << "};" << endl;
+        cpp << "};\n" << endl;
     }
 
     for (auto object: conf.objects) {

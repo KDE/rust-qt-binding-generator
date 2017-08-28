@@ -5,6 +5,9 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
+class Fibonacci;
+class FibonacciList;
+
 class Fibonacci : public QObject
 {
     Q_OBJECT

@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
+class TimeSeries;
+
 class TimeSeries : public QAbstractItemModel
 {
     Q_OBJECT

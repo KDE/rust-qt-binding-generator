@@ -89,3 +89,4 @@ impl ObjectTrait for Object {
         self.emit.uinteger_changed();
     }
     }
+

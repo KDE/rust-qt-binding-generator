@@ -38,6 +38,61 @@ impl<'a> From<&'a String> for QString {
     }
 }
 
+pub struct GroupQObject {}
+
+#[derive (Clone)]
+pub struct GroupEmitter {
+    qobject: Arc<Mutex<*const GroupQObject>>,
+}
+
+unsafe impl Send for GroupEmitter {}
+
+impl GroupEmitter {
+    fn clear(&self) {
+        *self.qobject.lock().unwrap() = null();
+    }
+}
+
+pub trait GroupTrait {
+    fn create(emit: GroupEmitter,
+        person: Person) -> Self;
+    fn emit(&self) -> &GroupEmitter;
+    fn get_person(&self) -> &Person;
+    fn get_mut_person(&mut self) -> &mut Person;
+}
+
+#[no_mangle]
+pub extern "C" fn group_new(group: *mut GroupQObject, person: *mut PersonQObject, object: *mut InnerObjectQObject,
+        description_changed: fn(*const InnerObjectQObject))
+        -> *mut Group {
+    let object_emit = InnerObjectEmitter {
+        qobject: Arc::new(Mutex::new(object)),
+        description_changed: description_changed,
+    };
+    let d_object = InnerObject::create(object_emit);
+    let person_emit = PersonEmitter {
+        qobject: Arc::new(Mutex::new(person)),
+    };
+    let d_person = Person::create(person_emit,
+        d_object);
+    let group_emit = GroupEmitter {
+        qobject: Arc::new(Mutex::new(group)),
+    };
+    let d_group = Group::create(group_emit,
+        d_person);
+    Box::into_raw(Box::new(d_group))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn group_free(ptr: *mut Group) {
+    Box::from_raw(ptr).emit().clear();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn group_person_get(ptr: *mut Group) -> *mut Person {
+    (&mut *ptr).get_mut_person()
+}
+
 pub struct InnerObjectQObject {}
 
 #[derive (Clone)]
