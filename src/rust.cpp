@@ -197,7 +197,7 @@ pub struct %1%2 {
 }
 
 impl %1%2 {
-    pub fn data_changed(&self,%3 first: usize, last: usize) {
+    pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
     pub fn begin_reset_model(&self) {

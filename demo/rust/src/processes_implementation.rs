@@ -166,6 +166,34 @@ fn insert_row(model:  &ProcessesUniformTree, parent: pid_t, row: usize,
     model.end_insert_rows();
 }
 
+fn sync_row(model: &ProcessesUniformTree, pid: pid_t,
+        a: &mut Process, b: &Process) {
+    let mut changed = false;
+    if a.name != b.name {
+        a.name.clone_from(&b.name);
+        changed = true;
+    }
+    if a.cpu_usage != b.cpu_usage {
+        a.cpu_usage = b.cpu_usage;
+        changed = true;
+    }
+    if a.cmd != b.cmd {
+        a.cmd.clone_from(&b.cmd);
+        changed = true;
+    }
+    if a.exe != b.exe {
+        a.exe.clone_from(&b.exe);
+        changed = true;
+    }
+    if a.memory != b.memory {
+        a.memory = b.memory;
+        changed = true;
+    }
+    if changed {
+        model.data_changed(pid as usize, pid as usize);
+    }
+}
+
 fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
         amap: &mut HashMap<pid_t, ProcessItem>,
         bmap: &mut HashMap<pid_t, ProcessItem>) {
@@ -186,6 +214,8 @@ fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
             alen += 1;
             b += 1;
         } else {
+            sync_row(model, apid,  &mut amap.get_mut(&apid).unwrap().process,
+                    &bmap[&apid].process);
             sync_tree(model, apid, amap, bmap);
             a += 1;
             b += 1;

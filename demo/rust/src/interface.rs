@@ -138,7 +138,7 @@ pub struct TreeUniformTree {
 }
 
 impl TreeUniformTree {
-    pub fn data_changed(&self, item: Option<usize>, first: usize, last: usize) {
+    pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
     pub fn begin_reset_model(&self) {
