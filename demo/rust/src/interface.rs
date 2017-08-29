@@ -16,17 +16,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -88,7 +91,7 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -99,7 +102,7 @@ pub struct QModelIndex {
 
 pub struct TreeQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct TreeEmitter {
     qobject: Arc<Mutex<*const TreeQObject>>,
     path_changed: fn(*const TreeQObject),
@@ -121,7 +124,7 @@ impl TreeEmitter {
     pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-             (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
         }
     }
 }
@@ -167,7 +170,9 @@ pub trait TreeTrait {
     fn get_path(&self) -> Option<String>;
     fn set_path(&mut self, value: Option<String>);
     fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool { false }
+    fn can_fetch_more(&self, Option<usize>) -> bool {
+        false
+    }
     fn fetch_more(&mut self, Option<usize>) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn index(&self, item: Option<usize>, row: usize) -> usize;
@@ -182,21 +187,18 @@ pub trait TreeTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn tree_new(tree: *mut TreeQObject,
-        path_changed: fn(*const TreeQObject),
-        new_data_ready: fn(*const TreeQObject, item: usize, valid: bool),
-        data_changed: fn(*const TreeQObject, usize, usize),
-        begin_reset_model: fn(*const TreeQObject),
-        end_reset_model: fn(*const TreeQObject),
-        begin_insert_rows: fn(*const TreeQObject, item: usize, valid: bool,
-            usize,
-            usize),
-        end_insert_rows: fn(*const TreeQObject),
-        begin_remove_rows: fn(*const TreeQObject, item: usize, valid: bool,
-            usize,
-            usize),
-        end_remove_rows: fn(*const TreeQObject))
-        -> *mut Tree {
+pub extern "C" fn tree_new(
+    tree: *mut TreeQObject,
+    path_changed: fn(*const TreeQObject),
+    new_data_ready: fn(*const TreeQObject, item: usize, valid: bool),
+    data_changed: fn(*const TreeQObject, usize, usize),
+    begin_reset_model: fn(*const TreeQObject),
+    end_reset_model: fn(*const TreeQObject),
+    begin_insert_rows: fn(*const TreeQObject, item: usize, valid: bool, usize, usize),
+    end_insert_rows: fn(*const TreeQObject),
+    begin_remove_rows: fn(*const TreeQObject, item: usize, valid: bool, usize, usize),
+    end_remove_rows: fn(*const TreeQObject),
+) -> *mut Tree {
     let tree_emit = TreeEmitter {
         qobject: Arc::new(Mutex::new(tree)),
         path_changed: path_changed,
@@ -222,9 +224,11 @@ pub unsafe extern "C" fn tree_free(ptr: *mut Tree) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_path_get(ptr: *const Tree,
-        p: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn tree_path_get(
+    ptr: *const Tree,
+    p: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).get_path();
     if let Some(data) = data {
         set(p, QString::from(&data));
@@ -241,7 +245,11 @@ pub unsafe extern "C" fn tree_path_set_none(ptr: *mut Tree) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_row_count(ptr: *const Tree, item: usize, valid: bool) -> c_int {
+pub unsafe extern "C" fn tree_row_count(
+    ptr: *const Tree,
+    item: usize,
+    valid: bool,
+) -> c_int {
     if valid {
         (&*ptr).row_count(Some(item)) as c_int
     } else {
@@ -249,7 +257,11 @@ pub unsafe extern "C" fn tree_row_count(ptr: *const Tree, item: usize, valid: bo
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_can_fetch_more(ptr: *const Tree, item: usize, valid: bool) -> bool {
+pub unsafe extern "C" fn tree_can_fetch_more(
+    ptr: *const Tree,
+    item: usize,
+    valid: bool,
+) -> bool {
     if valid {
         (&*ptr).can_fetch_more(Some(item))
     } else {
@@ -265,11 +277,20 @@ pub unsafe extern "C" fn tree_fetch_more(ptr: *mut Tree, item: usize, valid: boo
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_sort(ptr: *mut Tree, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn tree_sort(
+    ptr: *mut Tree,
+    column: u8,
+    order: SortOrder
+) {
     (&mut *ptr).sort(column, order)
 }
 #[no_mangle]
-pub unsafe extern "C" fn tree_index(ptr: *const Tree, item: usize, valid: bool, row: c_int) -> usize {
+pub unsafe extern "C" fn tree_index(
+    ptr: *const Tree,
+    item: usize,
+    valid: bool,
+    row: c_int,
+) -> usize {
     if !valid {
         (&*ptr).index(None, row as usize)
     } else {
@@ -279,9 +300,15 @@ pub unsafe extern "C" fn tree_index(ptr: *const Tree, item: usize, valid: bool, 
 #[no_mangle]
 pub unsafe extern "C" fn tree_parent(ptr: *const Tree, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
-        QModelIndex{row: (&*ptr).row(parent) as c_int, internal_id: parent}
+        QModelIndex {
+            row: (&*ptr).row(parent) as c_int,
+            internal_id: parent,
+        }
     } else {
-        QModelIndex{row: -1, internal_id: 0}
+        QModelIndex {
+            row: -1,
+            internal_id: 0,
+        }
     }
 }
 #[no_mangle]
@@ -290,25 +317,31 @@ pub unsafe extern "C" fn tree_row(ptr: *const Tree, item: usize) -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_icon(ptr: *const Tree, item: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QByteArray)) {
+pub unsafe extern "C" fn tree_data_file_icon(
+    ptr: *const Tree, item: usize,
+    d: *mut c_void,
+    set: fn(*mut c_void, QByteArray),
+) {
     let data = (&*ptr).file_icon(item);
     set(d, QByteArray::from(&data));
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_name(ptr: *const Tree, item: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn tree_data_file_name(
+    ptr: *const Tree, item: usize,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).file_name(item);
     set(d, QString::from(&data));
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn tree_data_file_path(ptr: *const Tree, item: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn tree_data_file_path(
+    ptr: *const Tree, item: usize,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).file_path(item);
     if let Some(data) = data {
         set(d, QString::from(&data));

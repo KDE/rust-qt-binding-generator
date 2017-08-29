@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 use interface::*;
 
-#[derive (Default, Clone)]
+#[derive(Default, Clone)]
 struct PersonsItem {
     user_name: String,
 }

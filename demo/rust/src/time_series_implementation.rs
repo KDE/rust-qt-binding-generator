@@ -1,6 +1,6 @@
 use time_series_interface::*;
 
-#[derive (Default, Clone)]
+#[derive(Default, Clone)]
 struct TimeSeriesItem {
     input: u32,
     result: u32,
@@ -17,12 +17,12 @@ impl TimeSeriesTrait for TimeSeries {
         let mut series = TimeSeries {
             emit: emit,
             model: model,
-            list: Vec::new()
+            list: Vec::new(),
         };
         for i in 0..100 {
             series.list.push(TimeSeriesItem {
                 input: i,
-                result: 2 * i
+                result: 2 * i,
             });
         }
         series

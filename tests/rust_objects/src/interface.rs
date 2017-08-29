@@ -40,7 +40,7 @@ impl<'a> From<&'a String> for QString {
 
 pub struct GroupQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct GroupEmitter {
     qobject: Arc<Mutex<*const GroupQObject>>,
 }
@@ -62,9 +62,12 @@ pub trait GroupTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn group_new(group: *mut GroupQObject, person: *mut PersonQObject, object: *mut InnerObjectQObject,
-        description_changed: fn(*const InnerObjectQObject))
-        -> *mut Group {
+pub extern "C" fn group_new(
+    group: *mut GroupQObject,
+    person: *mut PersonQObject,
+    object: *mut InnerObjectQObject,
+    description_changed: fn(*const InnerObjectQObject),
+) -> *mut Group {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(Mutex::new(object)),
         description_changed: description_changed,
@@ -95,7 +98,7 @@ pub unsafe extern "C" fn group_person_get(ptr: *mut Group) -> *mut Person {
 
 pub struct InnerObjectQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct InnerObjectEmitter {
     qobject: Arc<Mutex<*const InnerObjectQObject>>,
     description_changed: fn(*const InnerObjectQObject),
@@ -123,9 +126,10 @@ pub trait InnerObjectTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn inner_object_new(inner_object: *mut InnerObjectQObject,
-        description_changed: fn(*const InnerObjectQObject))
-        -> *mut InnerObject {
+pub extern "C" fn inner_object_new(
+    inner_object: *mut InnerObjectQObject,
+    description_changed: fn(*const InnerObjectQObject),
+) -> *mut InnerObject {
     let inner_object_emit = InnerObjectEmitter {
         qobject: Arc::new(Mutex::new(inner_object)),
         description_changed: description_changed,
@@ -140,9 +144,11 @@ pub unsafe extern "C" fn inner_object_free(ptr: *mut InnerObject) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn inner_object_description_get(ptr: *const InnerObject,
-        p: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn inner_object_description_get(
+    ptr: *const InnerObject,
+    p: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).get_description();
     set(p, QString::from(&data));
 }
@@ -154,7 +160,7 @@ pub unsafe extern "C" fn inner_object_description_set(ptr: *mut InnerObject, v: 
 
 pub struct PersonQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct PersonEmitter {
     qobject: Arc<Mutex<*const PersonQObject>>,
 }
@@ -176,9 +182,11 @@ pub trait PersonTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn person_new(person: *mut PersonQObject, object: *mut InnerObjectQObject,
-        description_changed: fn(*const InnerObjectQObject))
-        -> *mut Person {
+pub extern "C" fn person_new(
+    person: *mut PersonQObject,
+    object: *mut InnerObjectQObject,
+    description_changed: fn(*const InnerObjectQObject),
+) -> *mut Person {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(Mutex::new(object)),
         description_changed: description_changed,

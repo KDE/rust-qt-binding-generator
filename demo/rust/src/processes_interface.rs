@@ -16,17 +16,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -65,7 +68,7 @@ impl<'a> From<&'a String> for QString {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -76,7 +79,7 @@ pub struct QModelIndex {
 
 pub struct ProcessesQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct ProcessesEmitter {
     qobject: Arc<Mutex<*const ProcessesQObject>>,
     active_changed: fn(*const ProcessesQObject),
@@ -98,7 +101,7 @@ impl ProcessesEmitter {
     pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-             (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
         }
     }
 }
@@ -144,7 +147,9 @@ pub trait ProcessesTrait {
     fn get_active(&self) -> bool;
     fn set_active(&mut self, value: bool);
     fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool { false }
+    fn can_fetch_more(&self, Option<usize>) -> bool {
+        false
+    }
     fn fetch_more(&mut self, Option<usize>) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn index(&self, item: Option<usize>, row: usize) -> usize;
@@ -160,21 +165,18 @@ pub trait ProcessesTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn processes_new(processes: *mut ProcessesQObject,
-        active_changed: fn(*const ProcessesQObject),
-        new_data_ready: fn(*const ProcessesQObject, item: usize, valid: bool),
-        data_changed: fn(*const ProcessesQObject, usize, usize),
-        begin_reset_model: fn(*const ProcessesQObject),
-        end_reset_model: fn(*const ProcessesQObject),
-        begin_insert_rows: fn(*const ProcessesQObject, item: usize, valid: bool,
-            usize,
-            usize),
-        end_insert_rows: fn(*const ProcessesQObject),
-        begin_remove_rows: fn(*const ProcessesQObject, item: usize, valid: bool,
-            usize,
-            usize),
-        end_remove_rows: fn(*const ProcessesQObject))
-        -> *mut Processes {
+pub extern "C" fn processes_new(
+    processes: *mut ProcessesQObject,
+    active_changed: fn(*const ProcessesQObject),
+    new_data_ready: fn(*const ProcessesQObject, item: usize, valid: bool),
+    data_changed: fn(*const ProcessesQObject, usize, usize),
+    begin_reset_model: fn(*const ProcessesQObject),
+    end_reset_model: fn(*const ProcessesQObject),
+    begin_insert_rows: fn(*const ProcessesQObject, item: usize, valid: bool, usize, usize),
+    end_insert_rows: fn(*const ProcessesQObject),
+    begin_remove_rows: fn(*const ProcessesQObject, item: usize, valid: bool, usize, usize),
+    end_remove_rows: fn(*const ProcessesQObject),
+) -> *mut Processes {
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(Mutex::new(processes)),
         active_changed: active_changed,
@@ -210,7 +212,11 @@ pub unsafe extern "C" fn processes_active_set(ptr: *mut Processes, v: bool) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn processes_row_count(ptr: *const Processes, item: usize, valid: bool) -> c_int {
+pub unsafe extern "C" fn processes_row_count(
+    ptr: *const Processes,
+    item: usize,
+    valid: bool,
+) -> c_int {
     if valid {
         (&*ptr).row_count(Some(item)) as c_int
     } else {
@@ -218,7 +224,11 @@ pub unsafe extern "C" fn processes_row_count(ptr: *const Processes, item: usize,
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn processes_can_fetch_more(ptr: *const Processes, item: usize, valid: bool) -> bool {
+pub unsafe extern "C" fn processes_can_fetch_more(
+    ptr: *const Processes,
+    item: usize,
+    valid: bool,
+) -> bool {
     if valid {
         (&*ptr).can_fetch_more(Some(item))
     } else {
@@ -234,11 +244,20 @@ pub unsafe extern "C" fn processes_fetch_more(ptr: *mut Processes, item: usize, 
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn processes_sort(ptr: *mut Processes, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn processes_sort(
+    ptr: *mut Processes,
+    column: u8,
+    order: SortOrder
+) {
     (&mut *ptr).sort(column, order)
 }
 #[no_mangle]
-pub unsafe extern "C" fn processes_index(ptr: *const Processes, item: usize, valid: bool, row: c_int) -> usize {
+pub unsafe extern "C" fn processes_index(
+    ptr: *const Processes,
+    item: usize,
+    valid: bool,
+    row: c_int,
+) -> usize {
     if !valid {
         (&*ptr).index(None, row as usize)
     } else {
@@ -248,9 +267,15 @@ pub unsafe extern "C" fn processes_index(ptr: *const Processes, item: usize, val
 #[no_mangle]
 pub unsafe extern "C" fn processes_parent(ptr: *const Processes, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
-        QModelIndex{row: (&*ptr).row(parent) as c_int, internal_id: parent}
+        QModelIndex {
+            row: (&*ptr).row(parent) as c_int,
+            internal_id: parent,
+        }
     } else {
-        QModelIndex{row: -1, internal_id: 0}
+        QModelIndex {
+            row: -1,
+            internal_id: 0,
+        }
     }
 }
 #[no_mangle]
@@ -259,9 +284,11 @@ pub unsafe extern "C" fn processes_row(ptr: *const Processes, item: usize) -> c_
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn processes_data_cmd(ptr: *const Processes, item: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn processes_data_cmd(
+    ptr: *const Processes, item: usize,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).cmd(item);
     set(d, QString::from(&data));
 }
@@ -282,9 +309,11 @@ pub unsafe extern "C" fn processes_data_memory(ptr: *const Processes, item: usiz
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn processes_data_name(ptr: *const Processes, item: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn processes_data_name(
+    ptr: *const Processes, item: usize,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).name(item);
     set(d, QString::from(&data));
 }

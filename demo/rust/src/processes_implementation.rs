@@ -8,14 +8,14 @@ use std::{thread, time};
 struct ProcessItem {
     row: usize,
     tasks: Vec<pid_t>,
-    process: Process
+    process: Process,
 }
 
-#[derive (Default)]
+#[derive(Default)]
 struct ProcessTree {
     top: Vec<pid_t>,
     processes: HashMap<pid_t, ProcessItem>,
-    cpusum: f32
+    cpusum: f32,
 }
 
 pub struct Processes {
@@ -23,10 +23,10 @@ pub struct Processes {
     model: ProcessesUniformTree,
     p: ProcessTree,
     incoming: Arc<Mutex<Option<ProcessTree>>>,
-    active: bool
+    active: bool,
 }
 
-fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t,Process>) {
+fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t, Process>) {
     for (pid, process) in processes {
         assert_eq!(process.pid, *pid);
         if !parent.is_none() {
@@ -36,15 +36,20 @@ fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t,Proc
     }
 }
 
-fn collect_processes(tasks: &HashMap<pid_t,Process>,
-        mut processes: &mut HashMap<pid_t, ProcessItem>) -> f32 {
+fn collect_processes(
+    tasks: &HashMap<pid_t, Process>,
+    mut processes: &mut HashMap<pid_t, ProcessItem>,
+) -> f32 {
     let mut cpusum = 0.0;
     for process in tasks.values() {
-        processes.insert(process.pid, ProcessItem {
-            row: 0,
-            tasks: Vec::new(),
-            process: process.clone()
-        });
+        processes.insert(
+            process.pid,
+            ProcessItem {
+                row: 0,
+                tasks: Vec::new(),
+                process: process.clone(),
+            },
+        );
         let s = collect_processes(&process.tasks, &mut processes);
         cpusum += process.cpu_usage + s;
     }
@@ -118,8 +123,11 @@ impl Processes {
     }
 }
 
-fn move_process(pid: pid_t, amap: &mut HashMap<pid_t, ProcessItem>,
-        bmap: &mut HashMap<pid_t, ProcessItem>) {
+fn move_process(
+    pid: pid_t,
+    amap: &mut HashMap<pid_t, ProcessItem>,
+    bmap: &mut HashMap<pid_t, ProcessItem>,
+) {
     if let Some(e) = bmap.remove(&pid) {
         amap.insert(pid, e);
         let ts = amap[&pid].tasks.clone();
@@ -129,11 +137,19 @@ fn move_process(pid: pid_t, amap: &mut HashMap<pid_t, ProcessItem>,
     }
 }
 
-fn remove_row(model: &ProcessesUniformTree, parent: pid_t, row: usize,
-        map: &mut HashMap<pid_t, ProcessItem>) {
+fn remove_row(
+    model: &ProcessesUniformTree,
+    parent: pid_t,
+    row: usize,
+    map: &mut HashMap<pid_t, ProcessItem>,
+) {
     let pid = map[&parent].tasks[row];
-    println!("removing {} '{}' {}", pid, map[&pid].process.exe,
-                map[&pid].process.cmd.join(" "));
+    println!(
+        "removing {} '{}' {}",
+        pid,
+        map[&pid].process.exe,
+        map[&pid].process.cmd.join(" ")
+    );
     model.begin_remove_rows(Some(parent as usize), row, row);
     map.remove(&pid);
     let len = {
@@ -148,11 +164,20 @@ fn remove_row(model: &ProcessesUniformTree, parent: pid_t, row: usize,
     model.end_remove_rows();
 }
 
-fn insert_row(model:  &ProcessesUniformTree, parent: pid_t, row: usize,
-        map: &mut HashMap<pid_t, ProcessItem>, pid: pid_t,
-        source: &mut HashMap<pid_t, ProcessItem>) {
-    println!("adding {} '{}' {}", pid, source[&pid].process.exe,
-            source[&pid].process.cmd.join(" "));
+fn insert_row(
+    model: &ProcessesUniformTree,
+    parent: pid_t,
+    row: usize,
+    map: &mut HashMap<pid_t, ProcessItem>,
+    pid: pid_t,
+    source: &mut HashMap<pid_t, ProcessItem>,
+) {
+    println!(
+        "adding {} '{}' {}",
+        pid,
+        source[&pid].process.exe,
+        source[&pid].process.cmd.join(" ")
+    );
     model.begin_insert_rows(Some(parent as usize), row, row);
     move_process(pid, map, source);
     let len = {
@@ -167,8 +192,7 @@ fn insert_row(model:  &ProcessesUniformTree, parent: pid_t, row: usize,
     model.end_insert_rows();
 }
 
-fn sync_row(model: &ProcessesUniformTree, pid: pid_t,
-        a: &mut Process, b: &Process) -> f32 {
+fn sync_row(model: &ProcessesUniformTree, pid: pid_t, a: &mut Process, b: &Process) -> f32 {
     let mut changed = false;
     if a.name != b.name {
         a.name.clone_from(&b.name);
@@ -196,9 +220,12 @@ fn sync_row(model: &ProcessesUniformTree, pid: pid_t,
     b.cpu_usage
 }
 
-fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
-        amap: &mut HashMap<pid_t, ProcessItem>,
-        bmap: &mut HashMap<pid_t, ProcessItem>) -> f32 {
+fn sync_tree(
+    model: &ProcessesUniformTree,
+    parent: pid_t,
+    amap: &mut HashMap<pid_t, ProcessItem>,
+    bmap: &mut HashMap<pid_t, ProcessItem>,
+) -> f32 {
     let mut a = 0;
     let mut b = 0;
     let mut alen = amap[&parent].tasks.len();
@@ -208,19 +235,24 @@ fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
     while a < alen && b < blen {
         let apid = amap[&parent].tasks[a];
         let bpid = bmap[&parent].tasks[b];
-        if apid < bpid { // a process has disappeared
+        if apid < bpid {
+            // a process has disappeared
             remove_row(model, parent, a, amap);
             alen -= 1;
-        } else if apid > bpid { // a process has appeared
+        } else if apid > bpid {
+            // a process has appeared
             insert_row(model, parent, a, amap, bpid, bmap);
             cpu_total += amap[&bpid].process.cpu_usage;
             a += 1;
             alen += 1;
             b += 1;
         } else {
-            cpu_total += sync_row(model, apid,
-                    &mut amap.get_mut(&apid).unwrap().process,
-                    &bmap[&apid].process);
+            cpu_total += sync_row(
+                model,
+                apid,
+                &mut amap.get_mut(&apid).unwrap().process,
+                &bmap[&apid].process,
+            );
             cpu_total += sync_tree(model, apid, amap, bmap);
             a += 1;
             b += 1;
@@ -237,7 +269,7 @@ fn sync_tree(model: &ProcessesUniformTree, parent: pid_t,
         remove_row(model, parent, a, amap);
         alen -= 1;
     }
-    if cpu_total !=  bmap[&parent].process.cpu_usage {
+    if cpu_total != bmap[&parent].process.cpu_usage {
         amap.get_mut(&parent).unwrap().process.cpu_usage = cpu_total;
         model.data_changed(parent as usize, parent as usize);
     }
@@ -252,7 +284,7 @@ impl ProcessesTrait for Processes {
             model: model,
             p: ProcessTree::default(),
             incoming: Arc::new(Mutex::new(None)),
-            active: true
+            active: true,
         };
         update_thread(emit, p.incoming.clone());
         p
@@ -305,8 +337,7 @@ impl ProcessesTrait for Processes {
             } else {
                 let top = self.p.top.clone();
                 for pid in top {
-                    sync_tree(&self.model, pid, &mut self.p.processes,
-                        &mut new.processes);
+                    sync_tree(&self.model, pid, &mut self.p.processes, &mut new.processes);
                 }
             }
         }

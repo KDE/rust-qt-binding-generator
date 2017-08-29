@@ -16,17 +16,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -65,7 +68,7 @@ impl<'a> From<&'a String> for QString {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -76,7 +79,7 @@ pub struct QModelIndex {
 
 pub struct PersonsQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct PersonsEmitter {
     qobject: Arc<Mutex<*const PersonsQObject>>,
     new_data_ready: fn(*const PersonsQObject),
@@ -135,7 +138,9 @@ pub trait PersonsTrait {
     fn create(emit: PersonsEmitter, model: PersonsList) -> Self;
     fn emit(&self) -> &PersonsEmitter;
     fn row_count(&self) -> usize;
-    fn can_fetch_more(&self) -> bool { false }
+    fn can_fetch_more(&self) -> bool {
+        false
+    }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn user_name(&self, item: usize) -> String;
@@ -143,20 +148,17 @@ pub trait PersonsTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn persons_new(persons: *mut PersonsQObject,
-        new_data_ready: fn(*const PersonsQObject),
-        data_changed: fn(*const PersonsQObject, usize, usize),
-        begin_reset_model: fn(*const PersonsQObject),
-        end_reset_model: fn(*const PersonsQObject),
-        begin_insert_rows: fn(*const PersonsQObject,
-            usize,
-            usize),
-        end_insert_rows: fn(*const PersonsQObject),
-        begin_remove_rows: fn(*const PersonsQObject,
-            usize,
-            usize),
-        end_remove_rows: fn(*const PersonsQObject))
-        -> *mut Persons {
+pub extern "C" fn persons_new(
+    persons: *mut PersonsQObject,
+    new_data_ready: fn(*const PersonsQObject),
+    data_changed: fn(*const PersonsQObject, usize, usize),
+    begin_reset_model: fn(*const PersonsQObject),
+    end_reset_model: fn(*const PersonsQObject),
+    begin_insert_rows: fn(*const PersonsQObject, usize, usize),
+    end_insert_rows: fn(*const PersonsQObject),
+    begin_remove_rows: fn(*const PersonsQObject, usize, usize),
+    end_remove_rows: fn(*const PersonsQObject),
+) -> *mut Persons {
     let persons_emit = PersonsEmitter {
         qobject: Arc::new(Mutex::new(persons)),
         new_data_ready: new_data_ready,
@@ -193,19 +195,28 @@ pub unsafe extern "C" fn persons_fetch_more(ptr: *mut Persons) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn persons_sort(ptr: *mut Persons, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn persons_sort(
+    ptr: *mut Persons,
+    column: u8,
+    order: SortOrder,
+) {
     (&mut *ptr).sort(column, order)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn persons_data_user_name(ptr: *const Persons, row: c_int,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn persons_data_user_name(
+    ptr: *const Persons, row: c_int,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).user_name(row as usize);
     set(d, QString::from(&data));
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn persons_set_data_user_name(ptr: *mut Persons, row: c_int, v: QStringIn) -> bool {
+pub unsafe extern "C" fn persons_set_data_user_name(
+    ptr: *mut Persons, row: c_int,
+    v: QStringIn,
+) -> bool {
     (&mut *ptr).set_user_name(row as usize, v.convert())
 }

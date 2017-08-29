@@ -16,17 +16,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -36,7 +39,7 @@ impl<T> From<Option<T>> for COption<T> where T: Default {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -47,7 +50,7 @@ pub struct QModelIndex {
 
 pub struct TimeSeriesQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct TimeSeriesEmitter {
     qobject: Arc<Mutex<*const TimeSeriesQObject>>,
     new_data_ready: fn(*const TimeSeriesQObject),
@@ -106,7 +109,9 @@ pub trait TimeSeriesTrait {
     fn create(emit: TimeSeriesEmitter, model: TimeSeriesList) -> Self;
     fn emit(&self) -> &TimeSeriesEmitter;
     fn row_count(&self) -> usize;
-    fn can_fetch_more(&self) -> bool { false }
+    fn can_fetch_more(&self) -> bool {
+        false
+    }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn input(&self, item: usize) -> u32;
@@ -116,20 +121,17 @@ pub trait TimeSeriesTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn time_series_new(time_series: *mut TimeSeriesQObject,
-        new_data_ready: fn(*const TimeSeriesQObject),
-        data_changed: fn(*const TimeSeriesQObject, usize, usize),
-        begin_reset_model: fn(*const TimeSeriesQObject),
-        end_reset_model: fn(*const TimeSeriesQObject),
-        begin_insert_rows: fn(*const TimeSeriesQObject,
-            usize,
-            usize),
-        end_insert_rows: fn(*const TimeSeriesQObject),
-        begin_remove_rows: fn(*const TimeSeriesQObject,
-            usize,
-            usize),
-        end_remove_rows: fn(*const TimeSeriesQObject))
-        -> *mut TimeSeries {
+pub extern "C" fn time_series_new(
+    time_series: *mut TimeSeriesQObject,
+    new_data_ready: fn(*const TimeSeriesQObject),
+    data_changed: fn(*const TimeSeriesQObject, usize, usize),
+    begin_reset_model: fn(*const TimeSeriesQObject),
+    end_reset_model: fn(*const TimeSeriesQObject),
+    begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
+    end_insert_rows: fn(*const TimeSeriesQObject),
+    begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
+    end_remove_rows: fn(*const TimeSeriesQObject),
+) -> *mut TimeSeries {
     let time_series_emit = TimeSeriesEmitter {
         qobject: Arc::new(Mutex::new(time_series)),
         new_data_ready: new_data_ready,
@@ -166,7 +168,11 @@ pub unsafe extern "C" fn time_series_fetch_more(ptr: *mut TimeSeries) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn time_series_sort(ptr: *mut TimeSeries, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn time_series_sort(
+    ptr: *mut TimeSeries,
+    column: u8,
+    order: SortOrder,
+) {
     (&mut *ptr).sort(column, order)
 }
 
@@ -176,7 +182,10 @@ pub unsafe extern "C" fn time_series_data_input(ptr: *const TimeSeries, row: c_i
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn time_series_set_data_input(ptr: *mut TimeSeries, row: c_int, v: u32) -> bool {
+pub unsafe extern "C" fn time_series_set_data_input(
+    ptr: *mut TimeSeries, row: c_int,
+    v: u32,
+) -> bool {
     (&mut *ptr).set_input(row as usize, v)
 }
 
@@ -186,6 +195,9 @@ pub unsafe extern "C" fn time_series_data_result(ptr: *const TimeSeries, row: c_
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn time_series_set_data_result(ptr: *mut TimeSeries, row: c_int, v: u32) -> bool {
+pub unsafe extern "C" fn time_series_set_data_result(
+    ptr: *mut TimeSeries, row: c_int,
+    v: u32,
+) -> bool {
     (&mut *ptr).set_result(row as usize, v)
 }

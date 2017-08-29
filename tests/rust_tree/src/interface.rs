@@ -16,17 +16,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -65,7 +68,7 @@ impl<'a> From<&'a String> for QString {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -76,7 +79,7 @@ pub struct QModelIndex {
 
 pub struct PersonsQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct PersonsEmitter {
     qobject: Arc<Mutex<*const PersonsQObject>>,
     new_data_ready: fn(*const PersonsQObject, item: usize, valid: bool),
@@ -91,7 +94,7 @@ impl PersonsEmitter {
     pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-             (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
         }
     }
 }
@@ -135,7 +138,9 @@ pub trait PersonsTrait {
     fn create(emit: PersonsEmitter, model: PersonsUniformTree) -> Self;
     fn emit(&self) -> &PersonsEmitter;
     fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool { false }
+    fn can_fetch_more(&self, Option<usize>) -> bool {
+        false
+    }
     fn fetch_more(&mut self, Option<usize>) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn index(&self, item: Option<usize>, row: usize) -> usize;
@@ -146,20 +151,17 @@ pub trait PersonsTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn persons_new(persons: *mut PersonsQObject,
-        new_data_ready: fn(*const PersonsQObject, item: usize, valid: bool),
-        data_changed: fn(*const PersonsQObject, usize, usize),
-        begin_reset_model: fn(*const PersonsQObject),
-        end_reset_model: fn(*const PersonsQObject),
-        begin_insert_rows: fn(*const PersonsQObject, item: usize, valid: bool,
-            usize,
-            usize),
-        end_insert_rows: fn(*const PersonsQObject),
-        begin_remove_rows: fn(*const PersonsQObject, item: usize, valid: bool,
-            usize,
-            usize),
-        end_remove_rows: fn(*const PersonsQObject))
-        -> *mut Persons {
+pub extern "C" fn persons_new(
+    persons: *mut PersonsQObject,
+    new_data_ready: fn(*const PersonsQObject, item: usize, valid: bool),
+    data_changed: fn(*const PersonsQObject, usize, usize),
+    begin_reset_model: fn(*const PersonsQObject),
+    end_reset_model: fn(*const PersonsQObject),
+    begin_insert_rows: fn(*const PersonsQObject, item: usize, valid: bool, usize, usize),
+    end_insert_rows: fn(*const PersonsQObject),
+    begin_remove_rows: fn(*const PersonsQObject, item: usize, valid: bool, usize, usize),
+    end_remove_rows: fn(*const PersonsQObject),
+) -> *mut Persons {
     let persons_emit = PersonsEmitter {
         qobject: Arc::new(Mutex::new(persons)),
         new_data_ready: new_data_ready,
@@ -184,7 +186,11 @@ pub unsafe extern "C" fn persons_free(ptr: *mut Persons) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn persons_row_count(ptr: *const Persons, item: usize, valid: bool) -> c_int {
+pub unsafe extern "C" fn persons_row_count(
+    ptr: *const Persons,
+    item: usize,
+    valid: bool,
+) -> c_int {
     if valid {
         (&*ptr).row_count(Some(item)) as c_int
     } else {
@@ -192,7 +198,11 @@ pub unsafe extern "C" fn persons_row_count(ptr: *const Persons, item: usize, val
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn persons_can_fetch_more(ptr: *const Persons, item: usize, valid: bool) -> bool {
+pub unsafe extern "C" fn persons_can_fetch_more(
+    ptr: *const Persons,
+    item: usize,
+    valid: bool,
+) -> bool {
     if valid {
         (&*ptr).can_fetch_more(Some(item))
     } else {
@@ -208,11 +218,20 @@ pub unsafe extern "C" fn persons_fetch_more(ptr: *mut Persons, item: usize, vali
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn persons_sort(ptr: *mut Persons, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn persons_sort(
+    ptr: *mut Persons,
+    column: u8,
+    order: SortOrder
+) {
     (&mut *ptr).sort(column, order)
 }
 #[no_mangle]
-pub unsafe extern "C" fn persons_index(ptr: *const Persons, item: usize, valid: bool, row: c_int) -> usize {
+pub unsafe extern "C" fn persons_index(
+    ptr: *const Persons,
+    item: usize,
+    valid: bool,
+    row: c_int,
+) -> usize {
     if !valid {
         (&*ptr).index(None, row as usize)
     } else {
@@ -222,9 +241,15 @@ pub unsafe extern "C" fn persons_index(ptr: *const Persons, item: usize, valid: 
 #[no_mangle]
 pub unsafe extern "C" fn persons_parent(ptr: *const Persons, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
-        QModelIndex{row: (&*ptr).row(parent) as c_int, internal_id: parent}
+        QModelIndex {
+            row: (&*ptr).row(parent) as c_int,
+            internal_id: parent,
+        }
     } else {
-        QModelIndex{row: -1, internal_id: 0}
+        QModelIndex {
+            row: -1,
+            internal_id: 0,
+        }
     }
 }
 #[no_mangle]
@@ -233,14 +258,19 @@ pub unsafe extern "C" fn persons_row(ptr: *const Persons, item: usize) -> c_int 
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn persons_data_user_name(ptr: *const Persons, item: usize,
-        d: *mut c_void,
-        set: fn(*mut c_void, QString)) {
+pub unsafe extern "C" fn persons_data_user_name(
+    ptr: *const Persons, item: usize,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
     let data = (&*ptr).user_name(item);
     set(d, QString::from(&data));
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn persons_set_data_user_name(ptr: *mut Persons, item: usize, v: QStringIn) -> bool {
+pub unsafe extern "C" fn persons_set_data_user_name(
+    ptr: *mut Persons, item: usize,
+    v: QStringIn,
+) -> bool {
     (&mut *ptr).set_user_name(item, v.convert())
 }

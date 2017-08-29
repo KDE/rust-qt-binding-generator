@@ -48,7 +48,7 @@ impl InnerObjectTrait for InnerObject {
         self.description = value;
         self.emit.description_changed();
     }
-    }
+}
 
 pub struct Person {
     emit: PersonEmitter,

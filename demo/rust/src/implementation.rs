@@ -12,7 +12,7 @@ use std::collections::HashMap;
 pub struct DirEntry {
     name: OsString,
     metadata: Option<Metadata>,
-    path: Option<PathBuf>
+    path: Option<PathBuf>,
 }
 
 type Incoming<T> = Arc<Mutex<HashMap<usize, Vec<T>>>>;
@@ -22,11 +22,11 @@ impl Item for DirEntry {
         DirEntry {
             name: OsString::from(name),
             metadata: metadata(name).ok(),
-            path: None
+            path: None,
         }
     }
     fn can_fetch_more(&self) -> bool {
-        self.metadata.as_ref().map_or(false, |m|m.is_dir())
+        self.metadata.as_ref().map_or(false, |m| m.is_dir())
     }
     fn file_name(&self) -> String {
         self.name.to_string_lossy().to_string()
@@ -41,11 +41,9 @@ impl Item for DirEntry {
         0
     }
     fn file_size(&self) -> Option<u64> {
-        self.metadata.as_ref().map(|m|m.len())
+        self.metadata.as_ref().map(|m| m.len())
     }
-    fn retrieve(id: usize, parents: Vec<&DirEntry>,
-            q: Incoming<Self>,
-            emit: TreeEmitter) {
+    fn retrieve(id: usize, parents: Vec<&DirEntry>, q: Incoming<Self>, emit: TreeEmitter) {
         let mut v = Vec::new();
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         thread::spawn(move || {
@@ -54,7 +52,7 @@ impl Item for DirEntry {
                     let de = DirEntry {
                         name: i.file_name(),
                         metadata: i.metadata().ok(),
-                        path: Some(i.path())
+                        path: Some(i.path()),
                     };
                     v.push(de);
                 }
@@ -74,7 +72,7 @@ impl Default for DirEntry {
         DirEntry {
             name: OsString::new(),
             metadata: None,
-            path: None
+            path: None,
         }
     }
 }
@@ -107,7 +105,10 @@ pub struct RGeneralItemModel<T: Item> {
     incoming: Incoming<T>,
 }
 
-impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
+impl<T: Item> RGeneralItemModel<T>
+where
+    T: Sync + Send,
+{
     fn reset(&mut self) {
         self.model.begin_reset_model();
         self.entries.clear();
@@ -150,8 +151,11 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
                         new_entries.push(e);
                     }
                     if new_entries.len() > 0 {
-                        self.model.begin_insert_rows(Some(id), 0,
-                            (new_entries.len() - 1));
+                        self.model.begin_insert_rows(
+                            Some(id),
+                            0,
+                            (new_entries.len() - 1),
+                        );
                     }
                 }
                 self.entries[id].children = Some(children);
@@ -173,14 +177,17 @@ impl<T: Item> RGeneralItemModel<T> where T: Sync + Send {
     }
 }
 
-impl<T: Item> TreeTrait for RGeneralItemModel<T> where T: Sync + Send {
+impl<T: Item> TreeTrait for RGeneralItemModel<T>
+where
+    T: Sync + Send,
+{
     fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self {
         let mut tree = RGeneralItemModel {
             emit: emit,
             model: model,
             entries: Vec::new(),
             path: None,
-            incoming: Arc::new(Mutex::new(HashMap::new()))
+            incoming: Arc::new(Mutex::new(HashMap::new())),
         };
         tree.reset();
         tree

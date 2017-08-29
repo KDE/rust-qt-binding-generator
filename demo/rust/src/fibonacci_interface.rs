@@ -16,17 +16,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -36,7 +39,7 @@ impl<T> From<Option<T>> for COption<T> where T: Default {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -47,7 +50,7 @@ pub struct QModelIndex {
 
 pub struct FibonacciQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct FibonacciEmitter {
     qobject: Arc<Mutex<*const FibonacciQObject>>,
     input_changed: fn(*const FibonacciQObject),
@@ -83,10 +86,11 @@ pub trait FibonacciTrait {
 }
 
 #[no_mangle]
-pub extern "C" fn fibonacci_new(fibonacci: *mut FibonacciQObject,
-        input_changed: fn(*const FibonacciQObject),
-        result_changed: fn(*const FibonacciQObject))
-        -> *mut Fibonacci {
+pub extern "C" fn fibonacci_new(
+    fibonacci: *mut FibonacciQObject,
+    input_changed: fn(*const FibonacciQObject),
+    result_changed: fn(*const FibonacciQObject),
+) -> *mut Fibonacci {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(Mutex::new(fibonacci)),
         input_changed: input_changed,
@@ -118,7 +122,7 @@ pub unsafe extern "C" fn fibonacci_result_get(ptr: *const Fibonacci) -> u64 {
 
 pub struct FibonacciListQObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct FibonacciListEmitter {
     qobject: Arc<Mutex<*const FibonacciListQObject>>,
     new_data_ready: fn(*const FibonacciListQObject),
@@ -177,27 +181,26 @@ pub trait FibonacciListTrait {
     fn create(emit: FibonacciListEmitter, model: FibonacciListList) -> Self;
     fn emit(&self) -> &FibonacciListEmitter;
     fn row_count(&self) -> usize;
-    fn can_fetch_more(&self) -> bool { false }
+    fn can_fetch_more(&self) -> bool {
+        false
+    }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn result(&self, item: usize) -> u64;
 }
 
 #[no_mangle]
-pub extern "C" fn fibonacci_list_new(fibonacci_list: *mut FibonacciListQObject,
-        new_data_ready: fn(*const FibonacciListQObject),
-        data_changed: fn(*const FibonacciListQObject, usize, usize),
-        begin_reset_model: fn(*const FibonacciListQObject),
-        end_reset_model: fn(*const FibonacciListQObject),
-        begin_insert_rows: fn(*const FibonacciListQObject,
-            usize,
-            usize),
-        end_insert_rows: fn(*const FibonacciListQObject),
-        begin_remove_rows: fn(*const FibonacciListQObject,
-            usize,
-            usize),
-        end_remove_rows: fn(*const FibonacciListQObject))
-        -> *mut FibonacciList {
+pub extern "C" fn fibonacci_list_new(
+    fibonacci_list: *mut FibonacciListQObject,
+    new_data_ready: fn(*const FibonacciListQObject),
+    data_changed: fn(*const FibonacciListQObject, usize, usize),
+    begin_reset_model: fn(*const FibonacciListQObject),
+    end_reset_model: fn(*const FibonacciListQObject),
+    begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
+    end_insert_rows: fn(*const FibonacciListQObject),
+    begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
+    end_remove_rows: fn(*const FibonacciListQObject),
+) -> *mut FibonacciList {
     let fibonacci_list_emit = FibonacciListEmitter {
         qobject: Arc::new(Mutex::new(fibonacci_list)),
         new_data_ready: new_data_ready,
@@ -234,7 +237,11 @@ pub unsafe extern "C" fn fibonacci_list_fetch_more(ptr: *mut FibonacciList) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn fibonacci_list_sort(ptr: *mut FibonacciList, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn fibonacci_list_sort(
+    ptr: *mut FibonacciList,
+    column: u8,
+    order: SortOrder,
+) {
     (&mut *ptr).sort(column, order)
 }
 

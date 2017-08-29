@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 fn fibonacci(input: u32) -> usize {
     if input <= 1 {
-        return input as usize
+        return input as usize;
     }
     let mut i = 0;
     let mut sum = 0;

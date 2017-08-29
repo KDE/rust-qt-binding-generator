@@ -29,21 +29,21 @@ QString rustTypeInit(const T& p)
 }
 
 void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, const Configuration& conf) {
-    r << QString("%2: *mut %1QObject").arg(o.name, name);
+    r << QString("    %2: *mut %1QObject").arg(o.name, name);
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
-            r << QString(", ");
+            r << QString(",\n");
             rConstructorArgsDecl(r, p.name, conf.findObject(p.type.name), conf);
         } else {
-            r << QString(",\n        %2_changed: fn(*const %1QObject)")
+            r << QString(",\n    %2_changed: fn(*const %1QObject)")
                 .arg(o.name, snakeCase(p.name));
         }
     }
     if (o.type == ObjectType::List) {
-        r << QString(",\n        new_data_ready: fn(*const %1QObject)")
+        r << QString(",\n    new_data_ready: fn(*const %1QObject)")
             .arg(o.name);
     } else if (o.type == ObjectType::UniformTree) {
-        r << QString(",\n        new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
+        r << QString(",\n    new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
             .arg(o.name);
     }
     if (o.type != ObjectType::Object) {
@@ -52,17 +52,13 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
             indexDecl = " item: usize, valid: bool,";
         }
         r << QString(R"(,
-        data_changed: fn(*const %1QObject, usize, usize),
-        begin_reset_model: fn(*const %1QObject),
-        end_reset_model: fn(*const %1QObject),
-        begin_insert_rows: fn(*const %1QObject,%2
-            usize,
-            usize),
-        end_insert_rows: fn(*const %1QObject),
-        begin_remove_rows: fn(*const %1QObject,%2
-            usize,
-            usize),
-        end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl);
+    data_changed: fn(*const %1QObject, usize, usize),
+    begin_reset_model: fn(*const %1QObject),
+    end_reset_model: fn(*const %1QObject),
+    begin_insert_rows: fn(*const %1QObject,%2 usize, usize),
+    end_insert_rows: fn(*const %1QObject),
+    begin_remove_rows: fn(*const %1QObject,%2 usize, usize),
+    end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl);
     }
 }
 
@@ -114,7 +110,7 @@ void writeRustInterfaceObject(QTextStream& r, const Object& o, const Configurati
     r << QString(R"(
 pub struct %1QObject {}
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct %1Emitter {
     qobject: Arc<Mutex<*const %1QObject>>,
 )").arg(o.name);
@@ -165,7 +161,7 @@ impl %1Emitter {
         r << R"(    pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-             (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
         }
     }
 )";
@@ -247,13 +243,17 @@ pub trait %1Trait {
     }
     if (o.type == ObjectType::List) {
         r << R"(    fn row_count(&self) -> usize;
-    fn can_fetch_more(&self) -> bool { false }
+    fn can_fetch_more(&self) -> bool {
+        false
+    }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
 )";
     } else if (o.type == ObjectType::UniformTree) {
         r << R"(    fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool { false }
+    fn can_fetch_more(&self, Option<usize>) -> bool {
+        false
+    }
     fn fetch_more(&mut self, Option<usize>) {}
     fn sort(&mut self, u8, SortOrder) {}
     fn index(&self, item: Option<usize>, row: usize) -> usize;
@@ -275,9 +275,10 @@ pub trait %1Trait {
     r << QString(R"(}
 
 #[no_mangle]
-pub extern "C" fn %1_new()").arg(lcname);
+pub extern "C" fn %1_new(
+)").arg(lcname);
     rConstructorArgsDecl(r, lcname, o, conf);
-    r << QString(")\n        -> *mut %1 {\n").arg(o.name);
+    r << QString(",\n) -> *mut %1 {\n").arg(o.name);
     rConstructorArgs(r, lcname, o, conf);
     r << QString(R"(    Box::into_raw(Box::new(d_%2))
 }
@@ -301,9 +302,11 @@ pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
         } else if (p.type.isComplex() && !p.optional) {
             r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_get(ptr: *const %1,
-        p: *mut c_void,
-        set: fn(*mut c_void, %4)) {
+pub unsafe extern "C" fn %2_get(
+    ptr: *const %1,
+    p: *mut c_void,
+    set: fn(*mut c_void, %4),
+) {
     let data = (&*ptr).get_%3();
     set(p, %4::from(&data));
 }
@@ -320,9 +323,11 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
         } else if (p.type.isComplex()) {
             r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_get(ptr: *const %1,
-        p: *mut c_void,
-        set: fn(*mut c_void, %4)) {
+pub unsafe extern "C" fn %2_get(
+    ptr: *const %1,
+    p: *mut c_void,
+    set: fn(*mut c_void, %4),
+) {
     let data = (&*ptr).get_%3();
     if let Some(data) = data {
         set(p, %4::from(&data));
@@ -374,14 +379,22 @@ pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1) {
     (&mut *ptr).fetch_more()
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn %2_sort(
+    ptr: *mut %1,
+    column: u8,
+    order: SortOrder,
+) {
     (&mut *ptr).sort(column, order)
 }
 )").arg(o.name, lcname);
     } else if (o.type == ObjectType::UniformTree) {
         r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_row_count(ptr: *const %1, item: usize, valid: bool) -> c_int {
+pub unsafe extern "C" fn %2_row_count(
+    ptr: *const %1,
+    item: usize,
+    valid: bool,
+) -> c_int {
     if valid {
         (&*ptr).row_count(Some(item)) as c_int
     } else {
@@ -389,7 +402,11 @@ pub unsafe extern "C" fn %2_row_count(ptr: *const %1, item: usize, valid: bool) 
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1, item: usize, valid: bool) -> bool {
+pub unsafe extern "C" fn %2_can_fetch_more(
+    ptr: *const %1,
+    item: usize,
+    valid: bool,
+) -> bool {
     if valid {
         (&*ptr).can_fetch_more(Some(item))
     } else {
@@ -405,11 +422,20 @@ pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1, item: usize, valid: bool) {
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_sort(ptr: *mut %1, column: u8, order: SortOrder) {
+pub unsafe extern "C" fn %2_sort(
+    ptr: *mut %1,
+    column: u8,
+    order: SortOrder
+) {
     (&mut *ptr).sort(column, order)
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_index(ptr: *const %1, item: usize, valid: bool, row: c_int) -> usize {
+pub unsafe extern "C" fn %2_index(
+    ptr: *const %1,
+    item: usize,
+    valid: bool,
+    row: c_int,
+) -> usize {
     if !valid {
         (&*ptr).index(None, row as usize)
     } else {
@@ -419,9 +445,15 @@ pub unsafe extern "C" fn %2_index(ptr: *const %1, item: usize, valid: bool, row:
 #[no_mangle]
 pub unsafe extern "C" fn %2_parent(ptr: *const %1, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
-        QModelIndex{row: (&*ptr).row(parent) as c_int, internal_id: parent}
+        QModelIndex {
+            row: (&*ptr).row(parent) as c_int,
+            internal_id: parent,
+        }
     } else {
-        QModelIndex{row: -1, internal_id: 0}
+        QModelIndex {
+            row: -1,
+            internal_id: 0,
+        }
     }
 }
 #[no_mangle]
@@ -441,9 +473,11 @@ pub unsafe extern "C" fn %2_row(ptr: *const %1, item: usize) -> c_int {
             if (ip.type.isComplex() && !ip.optional) {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_data_%3(ptr: *const %1%5,
-        d: *mut c_void,
-        set: fn(*mut c_void, %4)) {
+pub unsafe extern "C" fn %2_data_%3(
+    ptr: *const %1%5,
+    d: *mut c_void,
+    set: fn(*mut c_void, %4),
+) {
     let data = (&*ptr).%3(%6);
     set(d, %4::from(&data));
 }
@@ -451,9 +485,11 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1%5,
             } else if (ip.type.isComplex()) {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_data_%3(ptr: *const %1%5,
-        d: *mut c_void,
-        set: fn(*mut c_void, %4)) {
+pub unsafe extern "C" fn %2_data_%3(
+    ptr: *const %1%5,
+    d: *mut c_void,
+    set: fn(*mut c_void, %4),
+) {
     let data = (&*ptr).%3(%6);
     if let Some(data) = data {
         set(d, %4::from(&data));
@@ -480,7 +516,10 @@ pub unsafe extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
                 }
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_set_data_%3(ptr: *mut %1%4, v: %6) -> bool {
+pub unsafe extern "C" fn %2_set_data_%3(
+    ptr: *mut %1%4,
+    v: %6,
+) -> bool {
     (&mut *ptr).set_%3(%5, %7)
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, type, val);
@@ -535,17 +574,20 @@ pub struct COption<T> {
     some: bool,
 }
 
-impl<T> From<Option<T>> for COption<T> where T: Default {
-    fn from(t: Option<T>) -> COption <T> {
+impl<T> From<Option<T>> for COption<T>
+where
+    T: Default,
+{
+    fn from(t: Option<T>) -> COption<T> {
         if let Some(v) = t {
             COption {
                 data: v,
-                some: true
+                some: true,
             }
         } else {
             COption {
                 data: T::default(),
-                some: false
+                some: false,
             }
         }
     }
@@ -616,7 +658,7 @@ impl<'a> From<&'a Vec<u8>> for QByteArray {
 #[repr(C)]
 pub enum SortOrder {
     Ascending = 0,
-    Descending = 1
+    Descending = 1,
 }
 
 #[repr(C)]
@@ -653,7 +695,7 @@ use %1::*;
 void writeRustImplementationObject(QTextStream& r, const Object& o) {
     const QString lcname(snakeCase(o.name));
     if (o.type != ObjectType::Object) {
-        r << "#[derive (Default, Clone)]\n";
+        r << "#[derive(Default, Clone)]\n";
         r << QString("struct %1Item {\n").arg(o.name);
         for (auto ip: o.itemProperties) {
             const QString lc(snakeCase(ip.name));
@@ -732,7 +774,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         self.%1 = value;
         self.emit.%1_changed();
     }
-    )").arg(lc, rustType(p));
+)").arg(lc, rustType(p));
             }
         }
     }
