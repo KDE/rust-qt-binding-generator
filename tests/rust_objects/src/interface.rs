@@ -29,6 +29,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -121,7 +130,7 @@ impl InnerObjectEmitter {
 pub trait InnerObjectTrait {
     fn create(emit: InnerObjectEmitter) -> Self;
     fn emit(&self) -> &InnerObjectEmitter;
-    fn get_description(&self) -> String;
+    fn get_description(&self) -> &str;
     fn set_description(&mut self, value: String);
 }
 
@@ -150,7 +159,7 @@ pub unsafe extern "C" fn inner_object_description_get(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).get_description();
-    set(p, QString::from(&data));
+    set(p, data.into());
 }
 
 #[no_mangle]

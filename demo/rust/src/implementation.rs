@@ -13,6 +13,7 @@ pub struct DirEntry {
     name: OsString,
     metadata: Option<Metadata>,
     path: Option<PathBuf>,
+    icon: Vec<u8>,
 }
 
 type Incoming<T> = Arc<Mutex<HashMap<usize, Vec<T>>>>;
@@ -23,6 +24,7 @@ impl Item for DirEntry {
             name: OsString::from(name),
             metadata: metadata(name).ok(),
             path: None,
+            icon: Vec::new()
         }
     }
     fn can_fetch_more(&self) -> bool {
@@ -43,6 +45,9 @@ impl Item for DirEntry {
     fn file_size(&self) -> Option<u64> {
         self.metadata.as_ref().map(|m| m.len())
     }
+    fn icon(&self) -> &[u8] {
+        &self.icon
+    }
     fn retrieve(id: usize, parents: Vec<&DirEntry>, q: Incoming<Self>, emit: TreeEmitter) {
         let mut v = Vec::new();
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
@@ -53,6 +58,7 @@ impl Item for DirEntry {
                         name: i.file_name(),
                         metadata: i.metadata().ok(),
                         path: Some(i.path()),
+                        icon: Vec::new(),
                     };
                     v.push(de);
                 }
@@ -73,6 +79,7 @@ impl Default for DirEntry {
             name: OsString::new(),
             metadata: None,
             path: None,
+            icon: Vec::new(),
         }
     }
 }
@@ -86,6 +93,7 @@ pub trait Item: Default {
     fn file_permissions(&self) -> i32;
     fn file_type(&self) -> i32;
     fn file_size(&self) -> Option<u64>;
+    fn icon(&self) -> &[u8];
 }
 
 pub type Tree = RGeneralItemModel<DirEntry>;
@@ -195,8 +203,8 @@ where
     fn emit(&self) -> &TreeEmitter {
         &self.emit
     }
-    fn get_path(&self) -> Option<String> {
-        self.path.clone()
+    fn get_path(&self) -> Option<&str> {
+        self.path.as_ref().map(|s|&s[..])
     }
     fn set_path(&mut self, value: Option<String>) {
         if self.path != value {
@@ -261,8 +269,8 @@ where
         self.get(item).data.file_permissions()
     }
     #[allow(unused_variables)]
-    fn file_icon(&self, item: usize) -> Vec<u8> {
-        Vec::new()
+    fn file_icon(&self, item: usize) -> &[u8] {
+        self.get(item).data.icon()
     }
     fn file_path(&self, item: usize) -> Option<String> {
         self.get(item).data.file_path()

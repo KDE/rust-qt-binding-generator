@@ -41,6 +41,7 @@ struct Property {
     BindingTypeProperties type;
     bool write;
     bool optional;
+    bool rustByValue;
 };
 
 struct ItemProperty {
@@ -48,6 +49,7 @@ struct ItemProperty {
     BindingTypeProperties type;
     bool write;
     bool optional;
+    bool rustByValue;
     QList<QList<Qt::ItemDataRole>> roles;
 };
 

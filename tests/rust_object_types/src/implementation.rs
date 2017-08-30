@@ -39,8 +39,8 @@ impl ObjectTrait for Object {
         self.boolean = value;
         self.emit.boolean_changed();
     }
-    fn get_bytearray(&self) -> Vec<u8> {
-        self.bytearray.clone()
+    fn get_bytearray(&self) -> &[u8] {
+        &self.bytearray
     }
     fn set_bytearray(&mut self, value: Vec<u8>) {
         self.bytearray = value;
@@ -53,22 +53,22 @@ impl ObjectTrait for Object {
         self.integer = value;
         self.emit.integer_changed();
     }
-    fn get_optional_bytearray(&self) -> Option<Vec<u8>> {
-        self.optional_bytearray.clone()
+    fn get_optional_bytearray(&self) -> Option<&[u8]> {
+        self.optional_bytearray.as_ref().map(|p|&p[..])
     }
     fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>) {
         self.optional_bytearray = value;
         self.emit.optional_bytearray_changed();
     }
-    fn get_optional_string(&self) -> Option<String> {
-        self.optional_string.clone()
+    fn get_optional_string(&self) -> Option<&str> {
+        self.optional_string.as_ref().map(|p|&p[..])
     }
     fn set_optional_string(&mut self, value: Option<String>) {
         self.optional_string = value;
         self.emit.optional_string_changed();
     }
-    fn get_string(&self) -> String {
-        self.string.clone()
+    fn get_string(&self) -> &str {
+        &self.string
     }
     fn set_string(&mut self, value: String) {
         self.string = value;

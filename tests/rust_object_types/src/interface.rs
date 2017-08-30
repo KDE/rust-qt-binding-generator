@@ -55,6 +55,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -78,8 +87,8 @@ impl QByteArray {
     }
 }
 
-impl<'a> From<&'a Vec<u8>> for QByteArray {
-    fn from(value: &'a Vec<u8>) -> QByteArray {
+impl<'a> From<&'a [u8]> for QByteArray {
+    fn from(value: &'a [u8]) -> QByteArray {
         QByteArray {
             len: value.len() as c_int,
             data: value.as_ptr(),
@@ -163,15 +172,15 @@ pub trait ObjectTrait {
     fn emit(&self) -> &ObjectEmitter;
     fn get_boolean(&self) -> bool;
     fn set_boolean(&mut self, value: bool);
-    fn get_bytearray(&self) -> Vec<u8>;
+    fn get_bytearray(&self) -> &[u8];
     fn set_bytearray(&mut self, value: Vec<u8>);
     fn get_integer(&self) -> i32;
     fn set_integer(&mut self, value: i32);
-    fn get_optional_bytearray(&self) -> Option<Vec<u8>>;
+    fn get_optional_bytearray(&self) -> Option<&[u8]>;
     fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>);
-    fn get_optional_string(&self) -> Option<String>;
+    fn get_optional_string(&self) -> Option<&str>;
     fn set_optional_string(&mut self, value: Option<String>);
-    fn get_string(&self) -> String;
+    fn get_string(&self) -> &str;
     fn set_string(&mut self, value: String);
     fn get_u64(&self) -> u64;
     fn set_u64(&mut self, value: u64);
@@ -228,7 +237,7 @@ pub unsafe extern "C" fn object_bytearray_get(
     set: fn(*mut c_void, QByteArray),
 ) {
     let data = (&*ptr).get_bytearray();
-    set(p, QByteArray::from(&data));
+    set(p, data.into());
 }
 
 #[no_mangle]
@@ -254,7 +263,7 @@ pub unsafe extern "C" fn object_optional_bytearray_get(
 ) {
     let data = (&*ptr).get_optional_bytearray();
     if let Some(data) = data {
-        set(p, QByteArray::from(&data));
+        set(p, data.into());
     }
 }
 
@@ -275,7 +284,7 @@ pub unsafe extern "C" fn object_optional_string_get(
 ) {
     let data = (&*ptr).get_optional_string();
     if let Some(data) = data {
-        set(p, QString::from(&data));
+        set(p, data.into());
     }
 }
 
@@ -295,7 +304,7 @@ pub unsafe extern "C" fn object_string_get(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).get_string();
-    set(p, QString::from(&data));
+    set(p, data.into());
 }
 
 #[no_mangle]

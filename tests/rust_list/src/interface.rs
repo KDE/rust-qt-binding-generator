@@ -55,6 +55,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -143,7 +152,7 @@ pub trait PersonsTrait {
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-    fn user_name(&self, item: usize) -> String;
+    fn user_name(&self, item: usize) -> &str;
     fn set_user_name(&mut self, item: usize, String) -> bool;
 }
 
@@ -210,7 +219,7 @@ pub unsafe extern "C" fn persons_data_user_name(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).user_name(row as usize);
-    set(d, QString::from(&data));
+    set(d, (data).into());
 }
 
 #[no_mangle]

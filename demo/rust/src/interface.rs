@@ -55,6 +55,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -78,8 +87,8 @@ impl QByteArray {
     }
 }
 
-impl<'a> From<&'a Vec<u8>> for QByteArray {
-    fn from(value: &'a Vec<u8>) -> QByteArray {
+impl<'a> From<&'a [u8]> for QByteArray {
+    fn from(value: &'a [u8]) -> QByteArray {
         QByteArray {
             len: value.len() as c_int,
             data: value.as_ptr(),
@@ -167,7 +176,7 @@ impl TreeUniformTree {
 pub trait TreeTrait {
     fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self;
     fn emit(&self) -> &TreeEmitter;
-    fn get_path(&self) -> Option<String>;
+    fn get_path(&self) -> Option<&str>;
     fn set_path(&mut self, value: Option<String>);
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
@@ -178,7 +187,7 @@ pub trait TreeTrait {
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, item: usize) -> Option<usize>;
     fn row(&self, item: usize) -> usize;
-    fn file_icon(&self, item: usize) -> Vec<u8>;
+    fn file_icon(&self, item: usize) -> &[u8];
     fn file_name(&self, item: usize) -> String;
     fn file_path(&self, item: usize) -> Option<String>;
     fn file_permissions(&self, item: usize) -> i32;
@@ -231,7 +240,7 @@ pub unsafe extern "C" fn tree_path_get(
 ) {
     let data = (&*ptr).get_path();
     if let Some(data) = data {
-        set(p, QString::from(&data));
+        set(p, data.into());
     }
 }
 
@@ -323,7 +332,7 @@ pub unsafe extern "C" fn tree_data_file_icon(
     set: fn(*mut c_void, QByteArray),
 ) {
     let data = (&*ptr).file_icon(item);
-    set(d, QByteArray::from(&data));
+    set(d, (data).into());
 }
 
 #[no_mangle]
@@ -333,7 +342,7 @@ pub unsafe extern "C" fn tree_data_file_name(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).file_name(item);
-    set(d, QString::from(&data));
+    set(d, (&data).into());
 }
 
 #[no_mangle]

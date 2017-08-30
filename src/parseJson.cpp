@@ -12,7 +12,7 @@ BindingTypeProperties simpleType(BindingType type, const char* name, const char*
         .cppSetType = name,
         .cSetType = name,
         .rustType = name,
-        .rustTypeInit = init,
+        .rustTypeInit = init
     };
 }
 
@@ -105,6 +105,7 @@ parseProperty(const QString& name, const QJsonObject& json) {
     p.type = parseBindingType(json.value("type").toString());
     p.write = json.value("write").toBool();
     p.optional = json.value("optional").toBool();
+    p.rustByValue = json.value("rustByValue").toBool();
     return p;
 }
 
@@ -129,6 +130,7 @@ parseItemProperty(const QString& name, const QJsonObject& json) {
     ip.type = parseBindingType(json.value("type").toString());
     ip.write = json.value("write").toBool();
     ip.optional = json.value("optional").toBool();
+    ip.rustByValue = json.value("rustByValue").toBool();
     QJsonArray roles = json.value("roles").toArray();
     for (auto r: roles) {
         QList<Qt::ItemDataRole> l;

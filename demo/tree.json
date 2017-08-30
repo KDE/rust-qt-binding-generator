@@ -18,7 +18,8 @@
             "itemProperties": {
                 "fileName": {
                     "type": "QString",
-                    "roles": [ ["display"] ]
+                    "roles": [ ["display"] ],
+                    "rustByValue": true
                 },
                 "fileIcon": {
                     "type": "QByteArray",
@@ -32,7 +33,8 @@
                 "filePath": {
                     "type": "QString",
                     "optional": true,
-                    "roles": [ [], [], ["display"] ]
+                    "roles": [ [], [], ["display"] ],
+                    "rustByValue": true
                 },
                 "filePermissions": {
                     "type": "qint32",

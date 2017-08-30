@@ -55,6 +55,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -159,7 +168,7 @@ pub trait ProcessesTrait {
     fn cpu_percentage(&self, item: usize) -> u8;
     fn cpu_usage(&self, item: usize) -> f32;
     fn memory(&self, item: usize) -> u64;
-    fn name(&self, item: usize) -> String;
+    fn name(&self, item: usize) -> &str;
     fn pid(&self, item: usize) -> u32;
     fn uid(&self, item: usize) -> u32;
 }
@@ -290,7 +299,7 @@ pub unsafe extern "C" fn processes_data_cmd(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).cmd(item);
-    set(d, QString::from(&data));
+    set(d, (&data).into());
 }
 
 #[no_mangle]
@@ -315,7 +324,7 @@ pub unsafe extern "C" fn processes_data_name(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).name(item);
-    set(d, QString::from(&data));
+    set(d, (data).into());
 }
 
 #[no_mangle]

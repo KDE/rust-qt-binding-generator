@@ -38,7 +38,8 @@
                     "type": "quint8"
                 },
                 "cmd": {
-                    "type": "QString"
+                    "type": "QString",
+                    "rustByValue": true
                 }
             }
         }

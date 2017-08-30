@@ -29,6 +29,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -63,7 +72,7 @@ impl PersonEmitter {
 pub trait PersonTrait {
     fn create(emit: PersonEmitter) -> Self;
     fn emit(&self) -> &PersonEmitter;
-    fn get_user_name(&self) -> String;
+    fn get_user_name(&self) -> &str;
     fn set_user_name(&mut self, value: String);
 }
 
@@ -92,7 +101,7 @@ pub unsafe extern "C" fn person_user_name_get(
     set: fn(*mut c_void, QString),
 ) {
     let data = (&*ptr).get_user_name();
-    set(p, QString::from(&data));
+    set(p, data.into());
 }
 
 #[no_mangle]

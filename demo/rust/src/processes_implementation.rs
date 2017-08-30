@@ -361,8 +361,8 @@ impl ProcessesTrait for Processes {
     fn memory(&self, item: usize) -> u64 {
         self.process(item).memory
     }
-    fn name(&self, item: usize) -> String {
-        self.process(item).name.clone()
+    fn name(&self, item: usize) -> &str {
+        &self.process(item).name
     }
     fn cmd(&self, item: usize) -> String {
         self.process(item).cmd.join(" ")

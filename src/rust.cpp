@@ -11,6 +11,25 @@ QString rustType(const T& p)
 }
 
 template <typename T>
+QString rustReturnType(const T& p)
+{
+    QString type = p.type.rustType;
+    if (type == "String" && !p.rustByValue) {
+        type = "str";
+    }
+    if (type == "Vec<u8>" && !p.rustByValue) {
+        type = "[u8]";
+    }
+    if (p.type.isComplex() && !p.rustByValue) {
+        type = "&" + type;
+    }
+    if (p.optional) {
+        return "Option<" + type + ">";
+    }
+    return type;
+}
+
+template <typename T>
 QString rustCType(const T& p)
 {
     if (p.optional) {
@@ -235,7 +254,7 @@ pub trait %1Trait {
             r << QString("    fn get_%1(&self) -> &%2;\n").arg(lc, rustType(p));
             r << QString("    fn get_mut_%1(&mut self) -> &mut %2;\n").arg(lc, rustType(p));
         } else {
-            r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustType(p));
+            r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustReturnType(p));
             if (p.write) {
                 r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
             }
@@ -264,7 +283,7 @@ pub trait %1Trait {
     if (o.type != ObjectType::Object) {
         for (auto ip: o.itemProperties) {
             r << QString("    fn %1(&self, item: usize) -> %2;\n")
-                    .arg(snakeCase(ip.name), rustType(ip));
+                    .arg(snakeCase(ip.name), rustReturnType(ip));
             if (ip.write) {
                 r << QString("    fn set_%1(&mut self, item: usize, %2) -> bool;\n")
                     .arg(snakeCase(ip.name), rustType(ip));
@@ -308,9 +327,10 @@ pub unsafe extern "C" fn %2_get(
     set: fn(*mut c_void, %4),
 ) {
     let data = (&*ptr).get_%3();
-    set(p, %4::from(&data));
+    set(p, %5data.into());
 }
-)").arg(o.name, base, snakeCase(p.name), p.type.name);
+)").arg(o.name, base, snakeCase(p.name), p.type.name,
+                p.rustByValue ?"&" :"");
             if (p.write) {
                 const QString type = p.type.name == "QString" ? "QStringIn" : p.type.name;
                 r << QString(R"(
@@ -330,10 +350,11 @@ pub unsafe extern "C" fn %2_get(
 ) {
     let data = (&*ptr).get_%3();
     if let Some(data) = data {
-        set(p, %4::from(&data));
+        set(p, %5data.into());
     }
 }
-)").arg(o.name, base, snakeCase(p.name), p.type.name);
+)").arg(o.name, base, snakeCase(p.name), p.type.name,
+                p.rustByValue ?"&" :"");
             if (p.write) {
                 const QString type = p.type.name == "QString" ? "QStringIn" : p.type.name;
                 r << QString(R"(
@@ -479,9 +500,10 @@ pub unsafe extern "C" fn %2_data_%3(
     set: fn(*mut c_void, %4),
 ) {
     let data = (&*ptr).%3(%6);
-    set(d, %4::from(&data));
+    set(d, (%7data).into());
 }
-)").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index,
+                ip.rustByValue ?"&" :"");
             } else if (ip.type.isComplex()) {
                 r << QString(R"(
 #[no_mangle]
@@ -616,6 +638,15 @@ impl QStringIn {
     }
 }
 
+impl<'a> From<&'a str> for QString {
+    fn from(string: &'a str) -> QString {
+        QString {
+            len: string.len() as c_int,
+            data: string.as_ptr(),
+        }
+    }
+}
+
 impl<'a> From<&'a String> for QString {
     fn from(string: &'a String) -> QString {
         QString {
@@ -642,8 +673,8 @@ impl QByteArray {
     }
 }
 
-impl<'a> From<&'a Vec<u8>> for QByteArray {
-    fn from(value: &'a Vec<u8>) -> QByteArray {
+impl<'a> From<&'a [u8]> for QByteArray {
+    fn from(value: &'a [u8]) -> QByteArray {
         QByteArray {
             len: value.len() as c_int,
             data: value.as_ptr(),
@@ -760,11 +791,21 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     fn get_mut_%1(&mut self) -> &mut %2 {
         &mut self.%1
     }
-)").arg(lc, rustType(p));
+)").arg(lc, rustReturnType(p));
         } else {
-            r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustType(p));
+            r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustReturnType(p));
             if (p.type.isComplex()) {
-                r << QString("        self.%1.clone()\n").arg(lc);
+                if (p.optional) {
+/*
+                    if (rustType(p) == "Option<String>") {
+                        r << QString("        self.%1.as_ref().map(|p|p.as_str())\n").arg(lc);
+                    } else {
+                    }
+*/
+                    r << QString("        self.%1.as_ref().map(|p|&p[..])\n").arg(lc);
+                } else {
+                    r << QString("        &self.%1\n").arg(lc);
+                }
             } else {
                 r << QString("        self.%1\n").arg(lc);
             }
@@ -803,8 +844,12 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         for (auto ip: o.itemProperties) {
             const QString lc(snakeCase(ip.name));
             r << QString("    fn %1(&self, item: usize) -> %2 {\n")
-                    .arg(lc, rustType(ip));
-            r << "        self.list[item]." << lc << ".clone()\n";
+                    .arg(lc, rustReturnType(ip));
+            if (ip.type.isComplex()) {
+                r << "        &self.list[item]." << lc << "\n";
+            } else {
+                r << "        self.list[item]." << lc << "\n";
+            }
             r << "    }\n";
             if (ip.write) {
                 r << QString("    fn set_%1(&mut self, item: usize, v: %2) -> bool {\n")

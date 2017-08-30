@@ -18,8 +18,8 @@ impl PersonTrait for Person {
     fn emit(&self) -> &PersonEmitter {
         &self.emit
     }
-    fn get_user_name(&self) -> String {
-        self.user_name.clone()
+    fn get_user_name(&self) -> &str {
+        &self.user_name
     }
     fn set_user_name(&mut self, value: String) {
         self.user_name = value;

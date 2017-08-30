@@ -28,8 +28,8 @@ impl PersonsTrait for Persons {
     fn row_count(&self) -> usize {
         self.list.len()
     }
-    fn user_name(&self, item: usize) -> String {
-        self.list[item].user_name.clone()
+    fn user_name(&self, item: usize) -> &str {
+        &self.list[item].user_name
     }
     fn set_user_name(&mut self, item: usize, v: String) -> bool {
         self.list[item].user_name = v;

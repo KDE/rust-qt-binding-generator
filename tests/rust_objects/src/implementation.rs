@@ -41,8 +41,8 @@ impl InnerObjectTrait for InnerObject {
     fn emit(&self) -> &InnerObjectEmitter {
         &self.emit
     }
-    fn get_description(&self) -> String {
-        self.description.clone()
+    fn get_description(&self) -> &str {
+        &self.description
     }
     fn set_description(&mut self, value: String) {
         self.description = value;
