@@ -3,8 +3,7 @@
     "rust": {
         "dir": "rust_objects",
         "interfaceModule": "interface",
-        "implementationModule": "implementation",
-        "typesModule": "types"
+        "implementationModule": "implementation"
     },
     "objects": {
         "InnerObject": {

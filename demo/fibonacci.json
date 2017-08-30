@@ -3,8 +3,7 @@
     "rust": {
         "dir": "rust",
         "interfaceModule": "fibonacci_interface",
-        "implementationModule": "fibonacci_implementation",
-        "typesModule": "fibonacci_types"
+        "implementationModule": "fibonacci_implementation"
     },
     "objects": {
         "Fibonacci": {

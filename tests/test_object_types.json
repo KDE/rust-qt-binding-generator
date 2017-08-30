@@ -3,8 +3,7 @@
     "rust": {
         "dir": "rust_object_types",
         "interfaceModule": "interface",
-        "implementationModule": "implementation",
-        "typesModule": "types"
+        "implementationModule": "implementation"
     },
     "objects": {
         "Object": {

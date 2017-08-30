@@ -3,8 +3,7 @@
     "rust": {
         "dir": "rust",
         "interfaceModule": "time_series_interface",
-        "implementationModule": "time_series_implementation",
-        "typesModule": "time_series_types"
+        "implementationModule": "time_series_implementation"
     },
     "objects": {
         "TimeSeries": {

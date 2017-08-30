@@ -3,8 +3,7 @@
     "rust": {
         "dir": "rust",
         "interfaceModule": "processes_interface",
-        "implementationModule": "processes_implementation",
-        "typesModule": "processes_types"
+        "implementationModule": "processes_implementation"
     },
     "objects": {
         "Processes": {
