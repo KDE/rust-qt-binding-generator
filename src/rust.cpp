@@ -252,7 +252,7 @@ pub trait %1Trait {
         const QString lc(snakeCase(p.name));
         if (p.type.type == BindingType::Object) {
             r << QString("    fn %1(&self) -> &%2;\n").arg(lc, rustType(p));
-            r << QString("    fn get_mut_%1(&mut self) -> &mut %2;\n").arg(lc, rustType(p));
+            r << QString("    fn %1_mut(&mut self) -> &mut %2;\n").arg(lc, rustType(p));
         } else {
             r << QString("    fn %1(&self) -> %2;\n").arg(lc, rustReturnType(p));
             if (p.write) {
@@ -314,7 +314,7 @@ pub unsafe extern "C" fn %2_free(ptr: *mut %1) {
             r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
-    (&mut *ptr).get_mut_%3()
+    (&mut *ptr).%3_mut()
 }
 )").arg(o.name, base, snakeCase(p.name), rustType(p));
 
@@ -788,7 +788,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
             r << QString(R"(    fn %1(&self) -> &%2 {
         &self.%1
     }
-    fn get_mut_%1(&mut self) -> &mut %2 {
+    fn %1_mut(&mut self) -> &mut %2 {
         &mut self.%1
     }
 )").arg(lc, rustReturnType(p));

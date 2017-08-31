@@ -67,7 +67,7 @@ pub trait GroupTrait {
         person: Person) -> Self;
     fn emit(&self) -> &GroupEmitter;
     fn person(&self) -> &Person;
-    fn get_mut_person(&mut self) -> &mut Person;
+    fn person_mut(&mut self) -> &mut Person;
 }
 
 #[no_mangle]
@@ -102,7 +102,7 @@ pub unsafe extern "C" fn group_free(ptr: *mut Group) {
 
 #[no_mangle]
 pub unsafe extern "C" fn group_person_get(ptr: *mut Group) -> *mut Person {
-    (&mut *ptr).get_mut_person()
+    (&mut *ptr).person_mut()
 }
 
 pub struct InnerObjectQObject {}
@@ -187,7 +187,7 @@ pub trait PersonTrait {
         object: InnerObject) -> Self;
     fn emit(&self) -> &PersonEmitter;
     fn object(&self) -> &InnerObject;
-    fn get_mut_object(&mut self) -> &mut InnerObject;
+    fn object_mut(&mut self) -> &mut InnerObject;
 }
 
 #[no_mangle]
@@ -216,5 +216,5 @@ pub unsafe extern "C" fn person_free(ptr: *mut Person) {
 
 #[no_mangle]
 pub unsafe extern "C" fn person_object_get(ptr: *mut Person) -> *mut InnerObject {
-    (&mut *ptr).get_mut_object()
+    (&mut *ptr).object_mut()
 }

@@ -21,7 +21,7 @@ impl GroupTrait for Group {
     fn person(&self) -> &Person {
         &self.person
     }
-    fn get_mut_person(&mut self) -> &mut Person {
+    fn person_mut(&mut self) -> &mut Person {
         &mut self.person
     }
 }
@@ -68,7 +68,7 @@ impl PersonTrait for Person {
     fn object(&self) -> &InnerObject {
         &self.object
     }
-    fn get_mut_object(&mut self) -> &mut InnerObject {
+    fn object_mut(&mut self) -> &mut InnerObject {
         &mut self.object
     }
 }
