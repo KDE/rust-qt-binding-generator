@@ -123,8 +123,10 @@ ApplicationWindow {
                     onClicked: {
                         processSelection.select(index, ItemSelectionModel.ToggleCurrent);
                     }
-                    Component.onCompleted: {
-                        processes.active = Qt.binding(function() { return visible; });
+                    Binding {
+                        target: demo.processes
+                        property: "active"
+                        value: visible
                     }
                     width: parent.width
                     anchors.top: processFilterInput.bottom
