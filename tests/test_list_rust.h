@@ -32,9 +32,14 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     QHash<int, QByteArray> roleNames() const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
+private:
+    QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
+    void initHeaderData();
 signals:
 };
 #endif // TEST_LIST_RUST_H

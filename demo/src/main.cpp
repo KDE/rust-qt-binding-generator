@@ -1,7 +1,4 @@
-#include "Tree.h"
-#include "Fibonacci.h"
-#include "TimeSeries.h"
-#include "Processes.h"
+#include "Bindings.h"
 #include "SortedModel.h"
 
 #ifdef QT_CHARTS_LIB
@@ -39,15 +36,11 @@
 
 #include <cstdlib>
 
-struct Models {
+struct Model {
     QStringListModel styles;
-    Fibonacci fibonacci;
-    FibonacciList fibonacciList;
-    Tree fileSystem;
+    Demo demo;
     SortedModel sortedFileSystem;
-    Processes processes;
     SortedModel sortedProcesses;
-    TimeSeries timeSeries;
 };
 
 void setStyle(QWidget* w, QStyle* style) {
@@ -80,20 +73,18 @@ void copyWindowGeometry(QWidget* w, QQmlContext* c) {
     }
 }
 
-void createQtQuick(const QString& name, const QString& qml, Models* models,
+void createQtQuick(const QString& name, const QString& qml, Model* model,
             QWidget* widgets, const QString& initialTab) {
     QQmlApplicationEngine* engine = new QQmlApplicationEngine();
     QQmlContext* c = engine->rootContext();
-    c->setContextProperty("styles", &models->styles);
-    c->setContextProperty("fibonacci", &models->fibonacci);
-    c->setContextProperty("fibonacciList", &models->fibonacciList);
-    c->setContextProperty("sortedFileSystem", &models->sortedFileSystem);
-    c->setContextProperty("processes", &models->sortedProcesses);
-    c->setContextProperty("timeSeries", &models->timeSeries);
+    c->setContextProperty("styles", &model->styles);
+    c->setContextProperty("demo", &model->demo);
+    c->setContextProperty("sortedFileSystem", &model->sortedFileSystem);
+    c->setContextProperty("processes", &model->sortedProcesses);
 
     c->setContextProperty("widgets", widgets);
     c->setContextProperty("qtquickIndex",
-        QVariant(models->styles.stringList().indexOf(name)));
+        QVariant(model->styles.stringList().indexOf(name)));
     c->setContextProperty("initialTab", initialTab);
     copyWindowGeometry(widgets, engine->rootContext());
     engine->load(QUrl(qml));
@@ -101,9 +92,9 @@ void createQtQuick(const QString& name, const QString& qml, Models* models,
 
 #endif
 
-QComboBox* createStyleComboBox(Models* models) {
+QComboBox* createStyleComboBox(Model* model) {
     QComboBox* box = new QComboBox();
-    box->setModel(&models->styles);
+    box->setModel(&model->styles);
     auto styles = QStyleFactory::keys();
     QString currentStyle = QApplication::style()->objectName().toLower();
     for (auto v: styles) {
@@ -121,10 +112,10 @@ QComboBox* createStyleComboBox(Models* models) {
     return box;
 }
 
-QWidget* createStyleTab(Models* models, QWidget* tabs, QComboBox* box,
+QWidget* createStyleTab(Model* model, QWidget* tabs, QComboBox* box,
         const QString& initialTab) {
     QRect windowRect;
-    auto f = [windowRect, box, tabs, models, initialTab](const QString &text) mutable {
+    auto f = [windowRect, box, tabs, model, initialTab](const QString &text) mutable {
         QWindow* window = getWindow(tabs);
         bool visible = tabs->isVisible();
         if (text.startsWith("QWidgets ")) {
@@ -148,16 +139,16 @@ QWidget* createStyleTab(Models* models, QWidget* tabs, QComboBox* box,
 #ifdef QTQUICKCONTROLS2
             if (text == "QtQuick Controls 2") {
                 createQtQuick("QtQuick Controls 2", "qrc:///demo-qtquick2.qml",
-                    models, box, initialTab);
+                    model, box, initialTab);
             } else
 #endif
-            createQtQuick("QtQuick", "qrc:///demo.qml", models, box, initialTab);
+            createQtQuick("QtQuick", "qrc:///demo.qml", model, box, initialTab);
 #endif
         }
     };
     box->connect(box, &QComboBox::currentTextChanged, box, f);
 
-    QSvgWidget* logo = new QSvgWidget("/home/oever/src/rust_qt_binding_generator/logo.svg");
+    QSvgWidget* logo = new QSvgWidget(":/logo.svg");
     logo->setFixedSize(logo->renderer()->defaultSize());
 
     QWidget* tab = new QWidget;
@@ -168,9 +159,9 @@ QWidget* createStyleTab(Models* models, QWidget* tabs, QComboBox* box,
     return tab;
 }
 
-QWidget* createObjectTab(Models* models) {
+QWidget* createObjectTab(Model* model) {
     QWidget* view = new QWidget;
-    Fibonacci* fibonacci = &models->fibonacci;
+    Fibonacci* fibonacci = model->demo.fibonacci();
 
     QLineEdit* input = new QLineEdit;
     input->setPlaceholderText("Your number");
@@ -198,31 +189,31 @@ QWidget* createObjectTab(Models* models) {
     return view;
 }
 
-QWidget* createListTab(Models* models) {
+QWidget* createListTab(Model* model) {
     QListView* view = new QListView();
-    view->setModel(&models->fibonacciList);
+    view->setModel(model->demo.fibonacciList());
     return view;
 }
 
-QWidget* createTreeTab(Models* models) {
+QWidget* createTreeTab(Model* model) {
     QTreeView* view = new QTreeView();
     view->setUniformRowHeights(true);
     view->setSortingEnabled(true);
-    view->setModel(&models->sortedFileSystem);
-    auto root = models->sortedFileSystem.index(0, 0);
+    view->setModel(&model->sortedFileSystem);
+    auto root = model->sortedFileSystem.index(0, 0);
     view->expand(root);
     view->sortByColumn(0, Qt::AscendingOrder);
     view->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     return view;
 }
 
-QWidget* createProcessesTab(Models* models) {
+QWidget* createProcessesTab(Model* model) {
     QTreeView* view = new QTreeView();
     view->setUniformRowHeights(true);
     view->setSortingEnabled(true);
-    view->setModel(&models->sortedProcesses);
+    view->setModel(&model->sortedProcesses);
     // expand when the model is populated
-    view->connect(&models->sortedProcesses, &QAbstractItemModel::rowsInserted,
+    view->connect(&model->sortedProcesses, &QAbstractItemModel::rowsInserted,
         view, [view](const QModelIndex& index) {
         if (!index.isValid()) {
             view->expandAll();
@@ -237,14 +228,14 @@ QWidget* createProcessesTab(Models* models) {
 
 using namespace QtCharts;
 
-QWidget* createChartTab(Models* models) {
+QWidget* createChartTab(Model* model) {
     QLineSeries *series = new QLineSeries();
     series->setName("Line 1");
     QVXYModelMapper *mapper = new QVXYModelMapper(series);
     mapper->setXColumn(0);
     mapper->setYColumn(1);
     mapper->setSeries(series);
-    mapper->setModel(&models->timeSeries);
+    mapper->setModel(model->demo.timeSeries());
 
     QChart* chart = new QChart;
     chart->addSeries(series);
@@ -263,7 +254,7 @@ QWidget* createChartTab(Models* models) {
 
     QWidget* view = new QWidget;
     QTableView* data = new QTableView;
-    data->setModel(&models->timeSeries);
+    data->setModel(model->demo.timeSeries());
     QChartView *chartView = new QChartView(chart);
 
     QHBoxLayout *layout = new QHBoxLayout;
@@ -274,18 +265,22 @@ QWidget* createChartTab(Models* models) {
 }
 #endif
 
-void createWidgets(Models* models, const QString& initialStyle,
+void createWidgets(Model* model, const QString& initialStyle,
         const QString& initialTab) {
     QTabWidget* tabs = new QTabWidget();
 
-    QComboBox* box = createStyleComboBox(models);
-    tabs->addTab(createStyleTab(models, tabs, box, initialTab), "style");
-    tabs->addTab(createObjectTab(models), "object");
-    tabs->addTab(createListTab(models), "list");
-    tabs->addTab(createTreeTab(models), "tree");
-    tabs->addTab(createProcessesTab(models), "processes");
+    QComboBox* box = createStyleComboBox(model);
+    tabs->addTab(createStyleTab(model, tabs, box, initialTab), "style");
+    tabs->addTab(createObjectTab(model), "object");
+    tabs->addTab(createListTab(model), "list");
+    tabs->addTab(createTreeTab(model), "tree");
+    const int procTab = tabs->addTab(createProcessesTab(model), "processes");
+    tabs->connect(tabs, &QTabWidget::currentChanged, model->demo.processes(),
+        [model, procTab](int current) {
+            model->demo.processes()->setActive(current == procTab);
+        });
 #ifdef QT_CHARTS_LIB
-    tabs->addTab(createChartTab(models), "chart");
+    tabs->addTab(createChartTab(model), "chart");
 #endif
     tabs->setMinimumSize(QSize(500, 500));
     tabs->show();
@@ -326,14 +321,14 @@ int main (int argc, char *argv[])
     parser.addOption(initialTabOption);
     parser.process(app);
 
-    Models models;
-    models.fileSystem.setPath("/");
-    models.sortedFileSystem.setSourceModel(&models.fileSystem);
-    models.sortedFileSystem.setDynamicSortFilter(true);
-    models.sortedProcesses.setSourceModel(&models.processes);
-    models.sortedProcesses.setDynamicSortFilter(true);
+    Model model;
+    model.demo.fileSystemTree()->setPath("/");
+    model.sortedFileSystem.setSourceModel(model.demo.fileSystemTree());
+    model.sortedFileSystem.setDynamicSortFilter(true);
+    model.sortedProcesses.setSourceModel(model.demo.processes());
+    model.sortedProcesses.setDynamicSortFilter(true);
 
-    createWidgets(&models, parser.value(initialStyleOption),
+    createWidgets(&model, parser.value(initialStyleOption),
                            parser.value(initialTabOption));
 
     return app.exec();

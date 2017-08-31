@@ -48,7 +48,7 @@ QString rustTypeInit(const T& p)
 }
 
 void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, const Configuration& conf) {
-    r << QString("    %2: *mut %1QObject").arg(o.name, name);
+    r << QString("    %2: *mut %1QObject").arg(o.name, snakeCase(name));
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
             r << QString(",\n");
@@ -59,11 +59,11 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
         }
     }
     if (o.type == ObjectType::List) {
-        r << QString(",\n    new_data_ready: fn(*const %1QObject)")
-            .arg(o.name);
+        r << QString(",\n    %2_new_data_ready: fn(*const %1QObject)")
+            .arg(o.name, snakeCase(o.name));
     } else if (o.type == ObjectType::UniformTree) {
-        r << QString(",\n    new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
-            .arg(o.name);
+        r << QString(",\n    %2_new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
+            .arg(o.name, snakeCase(o.name));
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl;
@@ -71,13 +71,14 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
             indexDecl = " item: usize, valid: bool,";
         }
         r << QString(R"(,
-    data_changed: fn(*const %1QObject, usize, usize),
-    begin_reset_model: fn(*const %1QObject),
-    end_reset_model: fn(*const %1QObject),
-    begin_insert_rows: fn(*const %1QObject,%2 usize, usize),
-    end_insert_rows: fn(*const %1QObject),
-    begin_remove_rows: fn(*const %1QObject,%2 usize, usize),
-    end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl);
+    %3_data_changed: fn(*const %1QObject, usize, usize),
+    %3_begin_reset_model: fn(*const %1QObject),
+    %3_end_reset_model: fn(*const %1QObject),
+    %3_begin_insert_rows: fn(*const %1QObject,%2 usize, usize),
+    %3_end_insert_rows: fn(*const %1QObject),
+    %3_begin_remove_rows: fn(*const %1QObject,%2 usize, usize),
+    %3_end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl,
+        snakeCase(o.name));
     }
 }
 
@@ -90,13 +91,14 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
     }
     r << QString(R"(    let %2_emit = %1Emitter {
         qobject: Arc::new(Mutex::new(%2)),
-)").arg(o.name, name);
+)").arg(o.name, snakeCase(name));
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) continue;
         r << QString("        %1_changed: %1_changed,\n").arg(snakeCase(p.name));
     }
     if (o.type != ObjectType::Object) {
-        r << QString("        new_data_ready: new_data_ready,\n");
+        r << QString("        new_data_ready: %1_new_data_ready,\n")
+            .arg(snakeCase(o.name));
     }
     QString model = "";
     if (o.type != ObjectType::Object) {
@@ -105,20 +107,20 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
         r << QString(R"(    };
     let model = %1%2 {
         qobject: %3,
-        data_changed: data_changed,
-        begin_reset_model: begin_reset_model,
-        end_reset_model: end_reset_model,
-        begin_insert_rows: begin_insert_rows,
-        end_insert_rows: end_insert_rows,
-        begin_remove_rows: begin_remove_rows,
-        end_remove_rows: end_remove_rows,
-)").arg(o.name, type, name);
+        data_changed: %4_data_changed,
+        begin_reset_model: %4_begin_reset_model,
+        end_reset_model: %4_end_reset_model,
+        begin_insert_rows: %4_begin_insert_rows,
+        end_insert_rows: %4_end_insert_rows,
+        begin_remove_rows: %4_begin_remove_rows,
+        end_remove_rows: %4_end_remove_rows,
+)").arg(o.name, type, snakeCase(name), snakeCase(o.name));
     }
     r << QString("    };\n    let d_%3 = %1::create(%3_emit%2")
-         .arg(o.name, model, name);
+         .arg(o.name, model, snakeCase(name));
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
-            r << ",\n        d_" << p.name;
+            r << ",\n        d_" << snakeCase(p.name);
         }
     }
     r << ");\n";
@@ -560,8 +562,11 @@ pub unsafe extern "C" fn %2_set_data_%3_none(ptr: *mut %1, row: c_int%4) -> bool
 
 QString rustFile(const QDir rustdir, const QString& module) {
     QDir src(rustdir.absoluteFilePath("src"));
-    QString path = src.absoluteFilePath(module + ".rs");
-    return path;
+    QString modulePath = src.absoluteFilePath(module + "/mod.rs");
+    if (QFile::exists(modulePath)) {
+        return modulePath;
+    }
+    return src.absoluteFilePath(module + ".rs");
 }
 
 void writeRustTypes(const Configuration& conf, QTextStream& r) {

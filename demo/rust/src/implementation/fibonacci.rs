@@ -1,5 +1,5 @@
 use std::thread;
-use fibonacci_interface::*;
+use interface::*;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;

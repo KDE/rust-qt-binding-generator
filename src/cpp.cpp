@@ -49,9 +49,14 @@ void writeHeaderItemModel(QTextStream& h) {
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     QHash<int, QByteArray> roleNames() const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
+private:
+    QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
+    void initHeaderData();
 )");
 }
 
@@ -270,6 +275,23 @@ QVariant %1::data(const QModelIndex &index, int role) const
     }
     cpp << "    return names;\n";
     cpp << QString(R"(}
+QVariant %1::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (orientation != Qt::Horizontal) {
+        return QVariant();
+    }
+    return m_headerData.value(qMakePair(section, (Qt::ItemDataRole)role), role == Qt::DisplayRole ?QString::number(section + 1) :QVariant());
+}
+
+bool %1::setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
+{
+    if (orientation != Qt::Horizontal) {
+        return false;
+    }
+    m_headerData.insert(qMakePair(section, (Qt::ItemDataRole)role), value);
+    return true;
+}
+
 bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 )").arg(o.name);
@@ -545,7 +567,7 @@ void initializeMembersEmpty(QTextStream& cpp, const Object& o, const Configurati
     }
 }
 
-void initializeMembersZero(QTextStream& cpp, const Object& o, const Configuration& conf)
+void initializeMembersZero(QTextStream& cpp, const Object& o)
 {
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
@@ -559,11 +581,25 @@ void initializeMembers(QTextStream& cpp, const QString& prefix, const Object& o,
 {
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
-            cpp << QString("    %1m_%2->m_d = %3_%2_get(%1m_d);\n")
-                   .arg(prefix, p.name, snakeCase(o.name));
+            cpp << QString("    %1m_%2->m_d = %3_%4_get(%1m_d);\n")
+                   .arg(prefix, p.name, snakeCase(o.name), snakeCase(p.name));
             initializeMembers(cpp, "m_" + p.name + "->",
                     conf.findObject(p.type.name), conf);
         }
+    }
+}
+
+void connect(QTextStream& cpp, const QString& d, const Object& o, const Configuration& conf) {
+    for (auto p: o.properties) {
+        if (p.type.type == BindingType::Object) {
+            connect(cpp, d + "->m_" + p.name, conf.findObject(p.type.name), conf);
+        }
+    }
+    if (o.type != ObjectType::Object) {
+        cpp << QString(R"(    connect(%2, &%1::newDataReady, %2, [this](const QModelIndex& i) {
+        %2->fetchMore(i);
+    }, Qt::QueuedConnection);
+)").arg(o.name, d);
     }
 }
 
@@ -577,19 +613,20 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
                    .arg(p.name, p.type.name);
         }
     }
-    cpp << "    m_d(0),\n    m_ownsPrivate(false)\n{\n}\n\n";
-    cpp << QString("%1::%1(QObject *parent):\n    %2(parent),")
+    cpp << "    m_d(0),\n    m_ownsPrivate(false)\n{\n";
+    if (o.type != ObjectType::Object) {
+        cpp << "    initHeaderData();\n";
+    }
+    cpp << QString("}\n\n%1::%1(QObject *parent):\n    %2(parent),")
             .arg(o.name, baseType(o)) << endl;
-    initializeMembersZero(cpp, o, conf);
+    initializeMembersZero(cpp, o);
     cpp << QString("    m_d(%1_new(this").arg(lcname);
     constructorArgs(cpp, "", o, conf);
     cpp << ")),\n    m_ownsPrivate(true)\n{\n";
     initializeMembers(cpp, "", o, conf);
+    connect(cpp, "this", o, conf);
     if (o.type != ObjectType::Object) {
-        cpp << QString(R"(    connect(this, &%1::newDataReady, this, [this](const QModelIndex& i) {
-        fetchMore(i);
-    }, Qt::QueuedConnection);
-)").arg(o.name);
+        cpp << "    initHeaderData();\n";
     }
     cpp << QString(R"(}
 
@@ -600,18 +637,32 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
 }
 )").arg(o.name, lcname);
 
+    if (o.type != ObjectType::Object) {
+        cpp << QString("void %1::initHeaderData() {\n").arg(o.name);
+
+        for (int col = 0; col < o.columnCount; ++col) {
+            for (auto ip: o.itemProperties) {
+                auto roles = ip.roles.value(col);
+                if (roles.contains(Qt::DisplayRole)) {
+                    cpp << QString("    m_headerData.insert(qMakePair(%1, Qt::DisplayRole), QVariant(\"%2\"));\n").arg(QString::number(col), ip.name);
+                }
+            }
+        }
+        cpp << "    }\n";
+    }
+
     for (const Property& p: o.properties) {
         const QString base = QString("%1_%2").arg(lcname, snakeCase(p.name));
         if (p.type.type == BindingType::Object) {
             cpp << QString(R"(const %3* %1::%2() const
 {
-    return m_%4;
+    return m_%2;
 }
 %3* %1::%2()
 {
-    return m_%4;
+    return m_%2;
 }
-)").arg(o.name, p.name, p.type.name, snakeCase(p.name));
+)").arg(o.name, p.name, p.type.name);
         } else if (p.type.isComplex()) {
             cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type.name);
             cpp << "    " << p.type.name << " v;\n";

@@ -48,7 +48,7 @@ impl Item for DirEntry {
     fn icon(&self) -> &[u8] {
         &self.icon
     }
-    fn retrieve(id: usize, parents: Vec<&DirEntry>, q: Incoming<Self>, emit: TreeEmitter) {
+    fn retrieve(id: usize, parents: Vec<&DirEntry>, q: Incoming<Self>, emit: FileSystemTreeEmitter) {
         let mut v = Vec::new();
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
         thread::spawn(move || {
@@ -87,7 +87,7 @@ impl Default for DirEntry {
 pub trait Item: Default {
     fn create(name: &str) -> Self;
     fn can_fetch_more(&self) -> bool;
-    fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: TreeEmitter);
+    fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: FileSystemTreeEmitter);
     fn file_name(&self) -> String;
     fn file_path(&self) -> Option<String>;
     fn file_permissions(&self) -> i32;
@@ -96,7 +96,7 @@ pub trait Item: Default {
     fn icon(&self) -> &[u8];
 }
 
-pub type Tree = RGeneralItemModel<DirEntry>;
+pub type FileSystemTree = RGeneralItemModel<DirEntry>;
 
 struct Entry<T: Item> {
     parent: Option<usize>,
@@ -106,8 +106,8 @@ struct Entry<T: Item> {
 }
 
 pub struct RGeneralItemModel<T: Item> {
-    emit: TreeEmitter,
-    model: TreeUniformTree,
+    emit: FileSystemTreeEmitter,
+    model: FileSystemTreeUniformTree,
     entries: Vec<Entry<T>>,
     path: Option<String>,
     incoming: Incoming<T>,
@@ -185,11 +185,11 @@ where
     }
 }
 
-impl<T: Item> TreeTrait for RGeneralItemModel<T>
+impl<T: Item> FileSystemTreeTrait for RGeneralItemModel<T>
 where
     T: Sync + Send,
 {
-    fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self {
+    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeUniformTree) -> Self {
         let mut tree = RGeneralItemModel {
             emit: emit,
             model: model,
@@ -200,7 +200,7 @@ where
         tree.reset();
         tree
     }
-    fn emit(&self) -> &TreeEmitter {
+    fn emit(&self) -> &FileSystemTreeEmitter {
         &self.emit
     }
     fn path(&self) -> Option<&str> {

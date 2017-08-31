@@ -140,6 +140,23 @@ QHash<int, QByteArray> Persons::roleNames() const {
     names.insert(Qt::UserRole + 0, "userName");
     return names;
 }
+QVariant Persons::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (orientation != Qt::Horizontal) {
+        return QVariant();
+    }
+    return m_headerData.value(qMakePair(section, (Qt::ItemDataRole)role), role == Qt::DisplayRole ?QString::number(section + 1) :QVariant());
+}
+
+bool Persons::setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
+{
+    if (orientation != Qt::Horizontal) {
+        return false;
+    }
+    m_headerData.insert(qMakePair(section, (Qt::ItemDataRole)role), value);
+    return true;
+}
+
 bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     bool set = false;
@@ -171,6 +188,7 @@ Persons::Persons(bool /*owned*/, QObject *parent):
     m_d(0),
     m_ownsPrivate(false)
 {
+    initHeaderData();
 }
 
 Persons::Persons(QObject *parent):
@@ -205,8 +223,9 @@ Persons::Persons(QObject *parent):
     m_ownsPrivate(true)
 {
     connect(this, &Persons::newDataReady, this, [this](const QModelIndex& i) {
-        fetchMore(i);
+        this->fetchMore(i);
     }, Qt::QueuedConnection);
+    initHeaderData();
 }
 
 Persons::~Persons() {
@@ -214,3 +233,6 @@ Persons::~Persons() {
         persons_free(m_d);
     }
 }
+void Persons::initHeaderData() {
+    m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("userName"));
+    }

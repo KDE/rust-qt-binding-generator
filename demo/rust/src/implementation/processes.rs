@@ -1,9 +1,11 @@
-use processes_interface::*;
+use interface::*;
 use sysinfo::*;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use libc::pid_t;
-use std::{thread, time};
+use std::thread;
+use std::time::Duration;
+use std::sync::mpsc::{channel, Sender, Receiver, RecvTimeoutError};
 
 struct ProcessItem {
     row: usize,
@@ -18,12 +20,19 @@ struct ProcessTree {
     cpusum: f32,
 }
 
+enum ChangeState {
+    Active,
+    Inactive,
+    Quit
+}
+
 pub struct Processes {
     emit: ProcessesEmitter,
     model: ProcessesUniformTree,
     p: ProcessTree,
     incoming: Arc<Mutex<Option<ProcessTree>>>,
     active: bool,
+    channel: Sender<ChangeState>
 }
 
 fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t, Process>) {
@@ -101,13 +110,27 @@ fn update() -> ProcessTree {
     p
 }
 
-fn update_thread(emit: ProcessesEmitter, incoming: Arc<Mutex<Option<ProcessTree>>>) {
+fn update_thread(
+    emit: ProcessesEmitter,
+    incoming: Arc<Mutex<Option<ProcessTree>>>,
+    mut active: bool,
+    statusChannel: Receiver<ChangeState>,
+) {
     thread::spawn(move || {
-        let second = time::Duration::new(1, 0);
         loop {
-            *incoming.lock().unwrap() = Some(update());
-            emit.new_data_ready(None);
-            thread::sleep(second);
+            let mut timeout = Duration::from_secs(10000);
+            if active {
+                *incoming.lock().unwrap() = Some(update());
+                emit.new_data_ready(None);
+                timeout = Duration::from_secs(1);
+            }
+            match statusChannel.recv_timeout(timeout) {
+                Err(RecvTimeoutError::Timeout) => {},
+                Err(RecvTimeoutError::Disconnected) => { return; },
+                Ok(ChangeState::Active) => { active = true; },
+                Ok(ChangeState::Inactive) => { active = false; },
+                Ok(ChangeState::Quit) => { return; },
+            }
         }
     });
 }
@@ -279,14 +302,16 @@ fn sync_tree(
 
 impl ProcessesTrait for Processes {
     fn create(emit: ProcessesEmitter, model: ProcessesUniformTree) -> Processes {
+        let (tx, rx) = channel();
         let p = Processes {
             emit: emit.clone(),
             model: model,
             p: ProcessTree::default(),
             incoming: Arc::new(Mutex::new(None)),
-            active: true,
+            active: false,
+            channel: tx,
         };
-        update_thread(emit, p.incoming.clone());
+        update_thread(emit, p.incoming.clone(), p.active, rx);
         p
     }
     fn emit(&self) -> &ProcessesEmitter {
@@ -371,6 +396,19 @@ impl ProcessesTrait for Processes {
         self.active
     }
     fn set_active(&mut self, active: bool) {
-        self.active = active
+        if self.active != active {
+            self.active = active;
+            if active {
+                self.channel.send(ChangeState::Active);
+            } else {
+                self.channel.send(ChangeState::Inactive);
+            }
+        }
+    }
+}
+
+impl Drop for Processes {
+    fn drop(&mut self) {
+        self.channel.send(ChangeState::Quit);
     }
 }

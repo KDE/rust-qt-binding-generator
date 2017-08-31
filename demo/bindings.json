@@ -1,0 +1,143 @@
+{
+    "cppFile": "src/Bindings.cpp",
+    "rust": {
+        "dir": "rust",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation"
+    },
+    "objects": {
+        "Demo": {
+            "type": "Object",
+            "properties": {
+                "fileSystemTree": {
+                    "type": "FileSystemTree"
+                },
+                "fibonacci": {
+                    "type": "Fibonacci"
+                },
+                "fibonacciList": {
+                    "type": "FibonacciList"
+                },
+                "processes": {
+                    "type": "Processes"
+                },
+                "timeSeries": {
+                    "type": "TimeSeries"
+                }
+            }
+        },
+        "FileSystemTree": {
+            "type": "UniformTree",
+            "properties": {
+                "path": {
+                    "type": "QString",
+                    "write": true,
+                    "optional": true
+                }
+            },
+            "itemProperties": {
+                "fileName": {
+                    "type": "QString",
+                    "roles": [ ["display"] ],
+                    "rustByValue": true
+                },
+                "fileIcon": {
+                    "type": "QByteArray",
+                    "roles": [ ["decoration"] ]
+                },
+                "fileSize": {
+                    "type": "quint64",
+                    "optional": true,
+                    "roles": [ [], ["display"] ]
+                },
+                "filePath": {
+                    "type": "QString",
+                    "optional": true,
+                    "roles": [ [], [], ["display"] ],
+                    "rustByValue": true
+                },
+                "filePermissions": {
+                    "type": "qint32",
+                    "roles": [ [], [], [], ["display"] ]
+                },
+                "fileType": {
+                    "type": "qint32",
+                    "roles": [ [], [], [], [],["display"] ]
+                }
+            }
+        },
+        "Fibonacci": {
+            "type": "Object",
+            "properties": {
+                "input": {
+                    "type": "quint32",
+                    "write": true
+                },
+                "result": {
+                    "type": "quint64"
+                }
+            }
+        },
+        "FibonacciList": {
+            "type": "List",
+            "itemProperties": {
+                "result": {
+                    "type": "quint64",
+                    "roles": [ [ "display" ] ]
+                }
+            }
+        },
+        "Processes": {
+            "type": "UniformTree",
+            "properties": {
+                "active": {
+                    "type": "bool",
+                    "write": true
+                }
+            },
+            "itemProperties": {
+                "pid": {
+                    "type": "quint32",
+                    "roles": [ ["toolTip"] ]
+                },
+                "name": {
+                    "type": "QString",
+                    "roles": [ ["display"] ]
+                },
+                "cpuUsage": {
+                    "type": "float",
+                    "roles": [ [], ["display"] ]
+                },
+                "memory": {
+                    "type": "quint64",
+                    "roles": [ [], [], ["display"] ]
+                },
+                "uid": {
+                    "type": "quint32"
+                },
+                "cpuPercentage": {
+                    "type": "quint8"
+                },
+                "cmd": {
+                    "type": "QString",
+                    "rustByValue": true
+                }
+            }
+        },
+        "TimeSeries": {
+            "type": "List",
+            "itemProperties": {
+                "input": {
+                    "type": "quint32",
+                    "write": true,
+                    "roles": [ [ "display", "edit" ] ]
+                },
+                "result": {
+                    "type": "quint32",
+                    "write": true,
+                    "roles": [ [], [ "display", "edit" ] ]
+                }
+            }
+        }
+    }
+}

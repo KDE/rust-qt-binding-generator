@@ -162,28 +162,28 @@ pub trait PersonsTrait {
 #[no_mangle]
 pub extern "C" fn persons_new(
     persons: *mut PersonsQObject,
-    new_data_ready: fn(*const PersonsQObject, item: usize, valid: bool),
-    data_changed: fn(*const PersonsQObject, usize, usize),
-    begin_reset_model: fn(*const PersonsQObject),
-    end_reset_model: fn(*const PersonsQObject),
-    begin_insert_rows: fn(*const PersonsQObject, item: usize, valid: bool, usize, usize),
-    end_insert_rows: fn(*const PersonsQObject),
-    begin_remove_rows: fn(*const PersonsQObject, item: usize, valid: bool, usize, usize),
-    end_remove_rows: fn(*const PersonsQObject),
+    persons_new_data_ready: fn(*const PersonsQObject, item: usize, valid: bool),
+    persons_data_changed: fn(*const PersonsQObject, usize, usize),
+    persons_begin_reset_model: fn(*const PersonsQObject),
+    persons_end_reset_model: fn(*const PersonsQObject),
+    persons_begin_insert_rows: fn(*const PersonsQObject, item: usize, valid: bool, usize, usize),
+    persons_end_insert_rows: fn(*const PersonsQObject),
+    persons_begin_remove_rows: fn(*const PersonsQObject, item: usize, valid: bool, usize, usize),
+    persons_end_remove_rows: fn(*const PersonsQObject),
 ) -> *mut Persons {
     let persons_emit = PersonsEmitter {
         qobject: Arc::new(Mutex::new(persons)),
-        new_data_ready: new_data_ready,
+        new_data_ready: persons_new_data_ready,
     };
     let model = PersonsUniformTree {
         qobject: persons,
-        data_changed: data_changed,
-        begin_reset_model: begin_reset_model,
-        end_reset_model: end_reset_model,
-        begin_insert_rows: begin_insert_rows,
-        end_insert_rows: end_insert_rows,
-        begin_remove_rows: begin_remove_rows,
-        end_remove_rows: end_remove_rows,
+        data_changed: persons_data_changed,
+        begin_reset_model: persons_begin_reset_model,
+        end_reset_model: persons_end_reset_model,
+        begin_insert_rows: persons_begin_insert_rows,
+        end_insert_rows: persons_end_insert_rows,
+        begin_remove_rows: persons_begin_remove_rows,
+        end_remove_rows: persons_end_remove_rows,
     };
     let d_persons = Persons::create(persons_emit, model);
     Box::into_raw(Box::new(d_persons))

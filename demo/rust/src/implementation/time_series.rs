@@ -1,4 +1,4 @@
-use time_series_interface::*;
+use interface::*;
 
 #[derive(Default, Clone)]
 struct TimeSeriesItem {
