@@ -43,16 +43,16 @@ ApplicationWindow {
                 id: fibonacciInput
                 placeholderText: "Your number"
                 validator: IntValidator {bottom: 0; top: 100;}
-                Component.onCompleted: { text = fibonacci.input }
-                onTextChanged: { fibonacci.input = parseInt(text, 10) }
+                Component.onCompleted: { text = demo.fibonacci.input }
+                onTextChanged: { demo.fibonacci.input = parseInt(text, 10) }
             }
             Text {
-                text: "The Fibonacci number: " + fibonacci.result
+                text: "The Fibonacci number: " + demo.fibonacci.result
             }
         }
         ListView {
             id: listView
-            model: fibonacciList
+            model: demo.fibonacciList
             delegate: Row {
                 Text { text: result }
             }
