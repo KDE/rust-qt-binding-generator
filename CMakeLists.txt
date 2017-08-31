@@ -17,6 +17,8 @@ endif()
 
 include(FeatureSummary)
 
+find_program(CARGO cargo)
+
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG
     REQUIRED COMPONENTS

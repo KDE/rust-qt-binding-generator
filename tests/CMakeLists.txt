@@ -21,7 +21,7 @@ function(rust_test NAME DIRECTORY)
 
     add_custom_command(
         OUTPUT "${DIR}/${RUST_TARGET_DIR}/librust.a"
-        COMMAND cargo build ${RUST_BUILD_FLAG}
+        COMMAND ${CARGO} build ${RUST_BUILD_FLAG}
         DEPENDS "${DIR}/src/lib.rs"
                 "${DIR}/src/implementation.rs"
                 "${DIR}/src/interface.rs"
@@ -52,7 +52,7 @@ function(rust_test NAME DIRECTORY)
 
     add_custom_command(
         OUTPUT "clean_${NAME}"
-        COMMAND cargo clean
+        COMMAND ${CARGO} clean
         WORKING_DIRECTORY "${DIR}"
     )
     add_custom_target("clean-${NAME}" DEPENDS "clean_${NAME}")
