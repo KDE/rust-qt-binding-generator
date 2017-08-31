@@ -170,21 +170,21 @@ impl ObjectEmitter {
 pub trait ObjectTrait {
     fn create(emit: ObjectEmitter) -> Self;
     fn emit(&self) -> &ObjectEmitter;
-    fn get_boolean(&self) -> bool;
+    fn boolean(&self) -> bool;
     fn set_boolean(&mut self, value: bool);
-    fn get_bytearray(&self) -> &[u8];
+    fn bytearray(&self) -> &[u8];
     fn set_bytearray(&mut self, value: Vec<u8>);
-    fn get_integer(&self) -> i32;
+    fn integer(&self) -> i32;
     fn set_integer(&mut self, value: i32);
-    fn get_optional_bytearray(&self) -> Option<&[u8]>;
+    fn optional_bytearray(&self) -> Option<&[u8]>;
     fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>);
-    fn get_optional_string(&self) -> Option<&str>;
+    fn optional_string(&self) -> Option<&str>;
     fn set_optional_string(&mut self, value: Option<String>);
-    fn get_string(&self) -> &str;
+    fn string(&self) -> &str;
     fn set_string(&mut self, value: String);
-    fn get_u64(&self) -> u64;
+    fn u64(&self) -> u64;
     fn set_u64(&mut self, value: u64);
-    fn get_uinteger(&self) -> u32;
+    fn uinteger(&self) -> u32;
     fn set_uinteger(&mut self, value: u32);
 }
 
@@ -222,7 +222,7 @@ pub unsafe extern "C" fn object_free(ptr: *mut Object) {
 
 #[no_mangle]
 pub unsafe extern "C" fn object_boolean_get(ptr: *const Object) -> bool {
-    (&*ptr).get_boolean()
+    (&*ptr).boolean()
 }
 
 #[no_mangle]
@@ -236,7 +236,7 @@ pub unsafe extern "C" fn object_bytearray_get(
     p: *mut c_void,
     set: fn(*mut c_void, QByteArray),
 ) {
-    let data = (&*ptr).get_bytearray();
+    let data = (&*ptr).bytearray();
     set(p, data.into());
 }
 
@@ -247,7 +247,7 @@ pub unsafe extern "C" fn object_bytearray_set(ptr: *mut Object, v: QByteArray) {
 
 #[no_mangle]
 pub unsafe extern "C" fn object_integer_get(ptr: *const Object) -> i32 {
-    (&*ptr).get_integer()
+    (&*ptr).integer()
 }
 
 #[no_mangle]
@@ -261,7 +261,7 @@ pub unsafe extern "C" fn object_optional_bytearray_get(
     p: *mut c_void,
     set: fn(*mut c_void, QByteArray),
 ) {
-    let data = (&*ptr).get_optional_bytearray();
+    let data = (&*ptr).optional_bytearray();
     if let Some(data) = data {
         set(p, data.into());
     }
@@ -282,7 +282,7 @@ pub unsafe extern "C" fn object_optional_string_get(
     p: *mut c_void,
     set: fn(*mut c_void, QString),
 ) {
-    let data = (&*ptr).get_optional_string();
+    let data = (&*ptr).optional_string();
     if let Some(data) = data {
         set(p, data.into());
     }
@@ -303,7 +303,7 @@ pub unsafe extern "C" fn object_string_get(
     p: *mut c_void,
     set: fn(*mut c_void, QString),
 ) {
-    let data = (&*ptr).get_string();
+    let data = (&*ptr).string();
     set(p, data.into());
 }
 
@@ -314,7 +314,7 @@ pub unsafe extern "C" fn object_string_set(ptr: *mut Object, v: QStringIn) {
 
 #[no_mangle]
 pub unsafe extern "C" fn object_u64_get(ptr: *const Object) -> u64 {
-    (&*ptr).get_u64()
+    (&*ptr).u64()
 }
 
 #[no_mangle]
@@ -324,7 +324,7 @@ pub unsafe extern "C" fn object_u64_set(ptr: *mut Object, v: u64) {
 
 #[no_mangle]
 pub unsafe extern "C" fn object_uinteger_get(ptr: *const Object) -> u32 {
-    (&*ptr).get_uinteger()
+    (&*ptr).uinteger()
 }
 
 #[no_mangle]

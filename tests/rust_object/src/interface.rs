@@ -72,7 +72,7 @@ impl PersonEmitter {
 pub trait PersonTrait {
     fn create(emit: PersonEmitter) -> Self;
     fn emit(&self) -> &PersonEmitter;
-    fn get_user_name(&self) -> &str;
+    fn user_name(&self) -> &str;
     fn set_user_name(&mut self, value: String);
 }
 
@@ -100,7 +100,7 @@ pub unsafe extern "C" fn person_user_name_get(
     p: *mut c_void,
     set: fn(*mut c_void, QString),
 ) {
-    let data = (&*ptr).get_user_name();
+    let data = (&*ptr).user_name();
     set(p, data.into());
 }
 

@@ -251,10 +251,10 @@ pub trait %1Trait {
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
         if (p.type.type == BindingType::Object) {
-            r << QString("    fn get_%1(&self) -> &%2;\n").arg(lc, rustType(p));
+            r << QString("    fn %1(&self) -> &%2;\n").arg(lc, rustType(p));
             r << QString("    fn get_mut_%1(&mut self) -> &mut %2;\n").arg(lc, rustType(p));
         } else {
-            r << QString("    fn get_%1(&self) -> %2;\n").arg(lc, rustReturnType(p));
+            r << QString("    fn %1(&self) -> %2;\n").arg(lc, rustReturnType(p));
             if (p.write) {
                 r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
             }
@@ -326,7 +326,7 @@ pub unsafe extern "C" fn %2_get(
     p: *mut c_void,
     set: fn(*mut c_void, %4),
 ) {
-    let data = (&*ptr).get_%3();
+    let data = (&*ptr).%3();
     set(p, %5data.into());
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name,
@@ -348,7 +348,7 @@ pub unsafe extern "C" fn %2_get(
     p: *mut c_void,
     set: fn(*mut c_void, %4),
 ) {
-    let data = (&*ptr).get_%3();
+    let data = (&*ptr).%3();
     if let Some(data) = data {
         set(p, %5data.into());
     }
@@ -372,7 +372,7 @@ pub unsafe extern "C" fn %2_set_none(ptr: *mut %1) {
             r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_get(ptr: *const %1) -> %4 {
-    (&*ptr).get_%3()
+    (&*ptr).%3()
 }
 )").arg(o.name, base, snakeCase(p.name), rustType(p));
             if (p.write) {
@@ -785,7 +785,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
         if (p.type.type == BindingType::Object) {
-            r << QString(R"(    fn get_%1(&self) -> &%2 {
+            r << QString(R"(    fn %1(&self) -> &%2 {
         &self.%1
     }
     fn get_mut_%1(&mut self) -> &mut %2 {
@@ -793,7 +793,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
 )").arg(lc, rustReturnType(p));
         } else {
-            r << QString("    fn get_%1(&self) -> %2 {\n").arg(lc, rustReturnType(p));
+            r << QString("    fn %1(&self) -> %2 {\n").arg(lc, rustReturnType(p));
             if (p.type.isComplex()) {
                 if (p.optional) {
 /*

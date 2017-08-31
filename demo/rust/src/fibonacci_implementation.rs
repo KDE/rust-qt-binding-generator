@@ -38,7 +38,7 @@ impl FibonacciTrait for Fibonacci {
     fn emit(&self) -> &FibonacciEmitter {
         &self.emit
     }
-    fn get_input(&self) -> u32 {
+    fn input(&self) -> u32 {
         self.input
     }
     fn set_input(&mut self, value: u32) {
@@ -54,7 +54,7 @@ impl FibonacciTrait for Fibonacci {
             emit.result_changed();
         });
     }
-    fn get_result(&self) -> u64 {
+    fn result(&self) -> u64 {
         self.result.fetch_add(0, Ordering::SeqCst) as u64
     }
 }

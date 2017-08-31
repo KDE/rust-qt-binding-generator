@@ -80,9 +80,9 @@ impl FibonacciEmitter {
 pub trait FibonacciTrait {
     fn create(emit: FibonacciEmitter) -> Self;
     fn emit(&self) -> &FibonacciEmitter;
-    fn get_input(&self) -> u32;
+    fn input(&self) -> u32;
     fn set_input(&mut self, value: u32);
-    fn get_result(&self) -> u64;
+    fn result(&self) -> u64;
 }
 
 #[no_mangle]
@@ -107,7 +107,7 @@ pub unsafe extern "C" fn fibonacci_free(ptr: *mut Fibonacci) {
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_input_get(ptr: *const Fibonacci) -> u32 {
-    (&*ptr).get_input()
+    (&*ptr).input()
 }
 
 #[no_mangle]
@@ -117,7 +117,7 @@ pub unsafe extern "C" fn fibonacci_input_set(ptr: *mut Fibonacci, v: u32) {
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_result_get(ptr: *const Fibonacci) -> u64 {
-    (&*ptr).get_result()
+    (&*ptr).result()
 }
 
 pub struct FibonacciListQObject {}

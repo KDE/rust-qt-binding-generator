@@ -176,7 +176,7 @@ impl TreeUniformTree {
 pub trait TreeTrait {
     fn create(emit: TreeEmitter, model: TreeUniformTree) -> Self;
     fn emit(&self) -> &TreeEmitter;
-    fn get_path(&self) -> Option<&str>;
+    fn path(&self) -> Option<&str>;
     fn set_path(&mut self, value: Option<String>);
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
@@ -238,7 +238,7 @@ pub unsafe extern "C" fn tree_path_get(
     p: *mut c_void,
     set: fn(*mut c_void, QString),
 ) {
-    let data = (&*ptr).get_path();
+    let data = (&*ptr).path();
     if let Some(data) = data {
         set(p, data.into());
     }

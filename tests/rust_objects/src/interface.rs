@@ -66,7 +66,7 @@ pub trait GroupTrait {
     fn create(emit: GroupEmitter,
         person: Person) -> Self;
     fn emit(&self) -> &GroupEmitter;
-    fn get_person(&self) -> &Person;
+    fn person(&self) -> &Person;
     fn get_mut_person(&mut self) -> &mut Person;
 }
 
@@ -130,7 +130,7 @@ impl InnerObjectEmitter {
 pub trait InnerObjectTrait {
     fn create(emit: InnerObjectEmitter) -> Self;
     fn emit(&self) -> &InnerObjectEmitter;
-    fn get_description(&self) -> &str;
+    fn description(&self) -> &str;
     fn set_description(&mut self, value: String);
 }
 
@@ -158,7 +158,7 @@ pub unsafe extern "C" fn inner_object_description_get(
     p: *mut c_void,
     set: fn(*mut c_void, QString),
 ) {
-    let data = (&*ptr).get_description();
+    let data = (&*ptr).description();
     set(p, data.into());
 }
 
@@ -186,7 +186,7 @@ pub trait PersonTrait {
     fn create(emit: PersonEmitter,
         object: InnerObject) -> Self;
     fn emit(&self) -> &PersonEmitter;
-    fn get_object(&self) -> &InnerObject;
+    fn object(&self) -> &InnerObject;
     fn get_mut_object(&mut self) -> &mut InnerObject;
 }
 

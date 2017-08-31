@@ -18,7 +18,7 @@ impl GroupTrait for Group {
     fn emit(&self) -> &GroupEmitter {
         &self.emit
     }
-    fn get_person(&self) -> &Person {
+    fn person(&self) -> &Person {
         &self.person
     }
     fn get_mut_person(&mut self) -> &mut Person {
@@ -41,7 +41,7 @@ impl InnerObjectTrait for InnerObject {
     fn emit(&self) -> &InnerObjectEmitter {
         &self.emit
     }
-    fn get_description(&self) -> &str {
+    fn description(&self) -> &str {
         &self.description
     }
     fn set_description(&mut self, value: String) {
@@ -65,7 +65,7 @@ impl PersonTrait for Person {
     fn emit(&self) -> &PersonEmitter {
         &self.emit
     }
-    fn get_object(&self) -> &InnerObject {
+    fn object(&self) -> &InnerObject {
         &self.object
     }
     fn get_mut_object(&mut self) -> &mut InnerObject {

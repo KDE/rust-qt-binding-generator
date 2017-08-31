@@ -203,7 +203,7 @@ where
     fn emit(&self) -> &TreeEmitter {
         &self.emit
     }
-    fn get_path(&self) -> Option<&str> {
+    fn path(&self) -> Option<&str> {
         self.path.as_ref().map(|s|&s[..])
     }
     fn set_path(&mut self, value: Option<String>) {

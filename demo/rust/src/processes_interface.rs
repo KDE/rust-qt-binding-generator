@@ -153,7 +153,7 @@ impl ProcessesUniformTree {
 pub trait ProcessesTrait {
     fn create(emit: ProcessesEmitter, model: ProcessesUniformTree) -> Self;
     fn emit(&self) -> &ProcessesEmitter;
-    fn get_active(&self) -> bool;
+    fn active(&self) -> bool;
     fn set_active(&mut self, value: bool);
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
@@ -212,7 +212,7 @@ pub unsafe extern "C" fn processes_free(ptr: *mut Processes) {
 
 #[no_mangle]
 pub unsafe extern "C" fn processes_active_get(ptr: *const Processes) -> bool {
-    (&*ptr).get_active()
+    (&*ptr).active()
 }
 
 #[no_mangle]

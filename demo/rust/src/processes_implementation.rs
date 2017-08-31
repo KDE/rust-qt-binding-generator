@@ -367,7 +367,7 @@ impl ProcessesTrait for Processes {
     fn cmd(&self, item: usize) -> String {
         self.process(item).cmd.join(" ")
     }
-    fn get_active(&self) -> bool {
+    fn active(&self) -> bool {
         self.active
     }
     fn set_active(&mut self, active: bool) {
