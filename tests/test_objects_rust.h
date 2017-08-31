@@ -19,7 +19,7 @@ private:
     Person* const m_person;
     Private * m_d;
     bool m_ownsPrivate;
-    Q_PROPERTY(Person* person READ person FINAL)
+    Q_PROPERTY(Person* person READ person NOTIFY personChanged FINAL)
     explicit Group(bool owned, QObject *parent);
 public:
     explicit Group(QObject *parent = nullptr);
@@ -27,6 +27,7 @@ public:
     const Person* person() const;
     Person* person();
 signals:
+    void personChanged();
 };
 
 class InnerObject : public QObject
@@ -60,7 +61,7 @@ private:
     InnerObject* const m_object;
     Private * m_d;
     bool m_ownsPrivate;
-    Q_PROPERTY(InnerObject* object READ object FINAL)
+    Q_PROPERTY(InnerObject* object READ object NOTIFY objectChanged FINAL)
     explicit Person(bool owned, QObject *parent);
 public:
     explicit Person(QObject *parent = nullptr);
@@ -68,5 +69,6 @@ public:
     const InnerObject* object() const;
     InnerObject* object();
 signals:
+    void objectChanged();
 };
 #endif // TEST_OBJECTS_RUST_H

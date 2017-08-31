@@ -365,11 +365,10 @@ private:
 )";
     for (auto p: o.properties) {
         bool obj = p.type.type == BindingType::Object;
-        h << QString("    Q_PROPERTY(%1 %2 READ %2 %3%4FINAL)")
+        h << QString("    Q_PROPERTY(%1 %2 READ %2 %3NOTIFY %2Changed FINAL)")
                 .arg(p.type.name + (obj ?"*" :""),
                      p.name,
-                     p.write ? writeProperty(p.name) :"",
-                     obj ?"" :("NOTIFY " +p.name + "Changed "))
+                     p.write ? writeProperty(p.name) :"")
              << endl;
     }
     h << QString(R"(    explicit %1(bool owned, QObject *parent);
@@ -393,9 +392,7 @@ public:
     }
     h << "signals:" << endl;
     for (auto p: o.properties) {
-        if (p.type.type != BindingType::Object) {
-            h << "    void " << p.name << "Changed();" << endl;
-        }
+        h << "    void " << p.name << "Changed();" << endl;
     }
     h << "};" << endl;
 }

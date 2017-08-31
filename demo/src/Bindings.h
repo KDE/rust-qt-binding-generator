@@ -25,11 +25,11 @@ private:
     TimeSeries* const m_timeSeries;
     Private * m_d;
     bool m_ownsPrivate;
-    Q_PROPERTY(Fibonacci* fibonacci READ fibonacci FINAL)
-    Q_PROPERTY(FibonacciList* fibonacciList READ fibonacciList FINAL)
-    Q_PROPERTY(FileSystemTree* fileSystemTree READ fileSystemTree FINAL)
-    Q_PROPERTY(Processes* processes READ processes FINAL)
-    Q_PROPERTY(TimeSeries* timeSeries READ timeSeries FINAL)
+    Q_PROPERTY(Fibonacci* fibonacci READ fibonacci NOTIFY fibonacciChanged FINAL)
+    Q_PROPERTY(FibonacciList* fibonacciList READ fibonacciList NOTIFY fibonacciListChanged FINAL)
+    Q_PROPERTY(FileSystemTree* fileSystemTree READ fileSystemTree NOTIFY fileSystemTreeChanged FINAL)
+    Q_PROPERTY(Processes* processes READ processes NOTIFY processesChanged FINAL)
+    Q_PROPERTY(TimeSeries* timeSeries READ timeSeries NOTIFY timeSeriesChanged FINAL)
     explicit Demo(bool owned, QObject *parent);
 public:
     explicit Demo(QObject *parent = nullptr);
@@ -45,6 +45,11 @@ public:
     const TimeSeries* timeSeries() const;
     TimeSeries* timeSeries();
 signals:
+    void fibonacciChanged();
+    void fibonacciListChanged();
+    void fileSystemTreeChanged();
+    void processesChanged();
+    void timeSeriesChanged();
 };
 
 class Fibonacci : public QObject

@@ -13,7 +13,6 @@ Item {
             titleText: "Date"
             format: "MMM yyyy"
             tickCount: 10
-            //alignment: Qt.AlignBottom
         }
 
         ValueAxis {
@@ -29,7 +28,7 @@ Item {
         }
 
         VXYModelMapper {
-            model: timeSeries
+            model: demo.timeSeries
             xColumn: 0
             yColumn: 1
             series: cpu

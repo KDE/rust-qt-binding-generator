@@ -56,11 +56,11 @@ ApplicationWindow {
                     id: fibonacciInput
                     placeholderText: "Your number"
                     validator: IntValidator {bottom: 0; top: 100;}
-                    Component.onCompleted: { text = fibonacci.input }
-                    onTextChanged: { fibonacci.input = parseInt(text, 10) }
+                    Component.onCompleted: { text = demo.fibonacci.input }
+                    onTextChanged: { demo.fibonacci.input = parseInt(text, 10) }
                 }
                 Text {
-                    text: "The Fibonacci number: " + fibonacci.result
+                    text: "The Fibonacci number: " + demo.fibonacci.result
                 }
             }
         }
@@ -68,7 +68,7 @@ ApplicationWindow {
             title: "list"
             TableView {
                 id: listView
-                model: fibonacciList
+                model: demo.fibonacciList
                 TableViewColumn {
                     role: "display"
                     title: "Row"
@@ -171,31 +171,72 @@ ApplicationWindow {
         Tab {
             id: chartTab
             title: "chart"
-//            Row {
-//                anchors.fill: parent
-                Text {
-                    text: "YAYAYA"
-anchors.left: parent.left
-anchors.right: i.left
+            RowLayout {
+                anchors.fill: parent
+                Component {
+                    id: editableDelegate
+                    Item {
+                        Text {
+                            text: styleData.value
+                            visible: !styleData.selected
+                        }
+                        Loader {
+                            id: loaderEditor
+                            anchors.fill: parent
+                            Connections {
+                                target: loaderEditor.item
+                                onEditingFinished: {
+                                    console.log('hi ', styleData.row, styleData.role, loaderEditor.item.text);
+                                    console.log(demo.timeSeries.data(styleData.row));
+                                }
+                            }
+                            sourceComponent: styleData.selected ? editor : null
+                        }
+                        Component {
+                            id: editor
+                            TextInput {
+                                id: textInput
+                                text: styleData.value
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: textInput.forceActiveFocus()
+                                }
+                            }
+                        }
+                    }
+                }
+                TableView {
+                    model: demo.timeSeries
+                    Layout.fillHeight: true
+
+                    TableViewColumn {
+                        role: "input"
+                        title: "input"
+                    }
+                    TableViewColumn {
+                        role: "result"
+                        title: "result"
+                    }
+                    itemDelegate: {
+                        return editableDelegate;
+                    }
                 }
                 Item {
-id: i
-anchors.right: parent.right
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
                     Text {
                         anchors.centerIn: parent
                         text: "QtChart is not available.";
                         visible: chartLoader.status !== Loader.Ready
                     }
                     Loader {
-width: 100
-
+                        anchors.fill: parent
                         id: chartLoader
-        //                anchors.fill: parent
                         source: "chart.qml"
                     }
                 }
-
-//            }
+            }
         }
     }
 }
