@@ -72,8 +72,8 @@ impl PersonTrait for Person {
         &self.emit
     }
     /// Get the name of the Person
-    fn get_name(&self) -> String {
-        self.name.clone()
+    fn get_name(&self) -> &str {
+        &self.name
     }
     /// Set the name of the Person
     fn set_name(&mut self, value: String) {
