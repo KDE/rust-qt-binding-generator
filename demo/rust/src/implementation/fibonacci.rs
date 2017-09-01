@@ -61,14 +61,12 @@ impl FibonacciTrait for Fibonacci {
 
 pub struct FibonacciList {
     emit: FibonacciListEmitter,
-    model: FibonacciListList,
 }
 
 impl FibonacciListTrait for FibonacciList {
-    fn create(emit: FibonacciListEmitter, model: FibonacciListList) -> FibonacciList {
+    fn create(emit: FibonacciListEmitter, _: FibonacciListList) -> FibonacciList {
         FibonacciList {
             emit: emit,
-            model: model,
         }
     }
     fn emit(&self) -> &FibonacciListEmitter {

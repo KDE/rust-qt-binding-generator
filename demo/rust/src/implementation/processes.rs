@@ -114,7 +114,7 @@ fn update_thread(
     emit: ProcessesEmitter,
     incoming: Arc<Mutex<Option<ProcessTree>>>,
     mut active: bool,
-    statusChannel: Receiver<ChangeState>,
+    status_channel: Receiver<ChangeState>,
 ) {
     thread::spawn(move || {
         loop {
@@ -124,7 +124,7 @@ fn update_thread(
                 emit.new_data_ready(None);
                 timeout = Duration::from_secs(1);
             }
-            match statusChannel.recv_timeout(timeout) {
+            match status_channel.recv_timeout(timeout) {
                 Err(RecvTimeoutError::Timeout) => {},
                 Err(RecvTimeoutError::Disconnected) => { return; },
                 Ok(ChangeState::Active) => { active = true; },
@@ -399,16 +399,16 @@ impl ProcessesTrait for Processes {
         if self.active != active {
             self.active = active;
             if active {
-                self.channel.send(ChangeState::Active);
+                self.channel.send(ChangeState::Active)
             } else {
-                self.channel.send(ChangeState::Inactive);
-            }
+                self.channel.send(ChangeState::Inactive)
+            }.expect("Process thread died.");
         }
     }
 }
 
 impl Drop for Processes {
     fn drop(&mut self) {
-        self.channel.send(ChangeState::Quit);
+        self.channel.send(ChangeState::Quit).expect("Process thread died.");
     }
 }

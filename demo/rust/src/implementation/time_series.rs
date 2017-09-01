@@ -8,15 +8,13 @@ struct TimeSeriesItem {
 
 pub struct TimeSeries {
     emit: TimeSeriesEmitter,
-    model: TimeSeriesList,
     list: Vec<TimeSeriesItem>,
 }
 
 impl TimeSeriesTrait for TimeSeries {
-    fn create(emit: TimeSeriesEmitter, model: TimeSeriesList) -> TimeSeries {
+    fn create(emit: TimeSeriesEmitter, _: TimeSeriesList) -> TimeSeries {
         let mut series = TimeSeries {
             emit: emit,
-            model: model,
             list: Vec::new(),
         };
         for i in 0..100 {
