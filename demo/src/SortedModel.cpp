@@ -13,5 +13,3 @@ bool SortedModel::filterAcceptsRow(int source_row, const QModelIndex& source_par
 
     return false;
 }
-
-#include "SortedModel.moc"
