@@ -188,8 +188,13 @@ ApplicationWindow {
                             Connections {
                                 target: loaderEditor.item
                                 onEditingFinished: {
-                                    console.log('hi ', styleData.row, styleData.role, loaderEditor.item.text);
-                                    console.log(demo.timeSeries.data(styleData.row));
+                                    var val = loaderEditor.item.text;
+                                    var row = styleData.row;
+                                    if (styleData.column === 0) {
+                                        demo.timeSeries.setInput(row, val);
+                                    } else {
+                                        demo.timeSeries.setResult(row, val);
+                                    }
                                 }
                             }
                             sourceComponent: styleData.selected ? editor : null
