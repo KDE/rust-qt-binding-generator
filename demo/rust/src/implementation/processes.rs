@@ -66,9 +66,9 @@ fn collect_processes(
 }
 
 // reconstruct process hierarchy
-fn handle_tasks(mut processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
+fn handle_tasks(processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
     let mut top = Vec::new();
-    let pids: Vec<pid_t> = processes.keys().map(|p| *p).collect();
+    let pids: Vec<pid_t> = processes.keys().cloned().collect();
     for pid in pids {
         if let Some(parent) = processes[&pid].process.parent {
             let p = processes.get_mut(&parent).unwrap();
@@ -80,13 +80,11 @@ fn handle_tasks(mut processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
     top
 }
 
-fn update_rows(list: Vec<pid_t>, mut processes: &mut HashMap<pid_t, ProcessItem>) {
-    let mut row = 0;
-    for pid in list {
-        processes.get_mut(&pid).unwrap().row = row;
-        let l = processes[&pid].tasks.clone();
-        update_rows(l, processes);
-        row += 1;
+fn update_rows(list: &[pid_t], processes: &mut HashMap<pid_t, ProcessItem>) {
+    for (row, pid) in list.iter().enumerate() {
+        processes.get_mut(pid).unwrap().row = row;
+        let l = processes[pid].tasks.clone();
+        update_rows(&l, processes);
     }
 }
 
@@ -95,7 +93,7 @@ fn sort_tasks(p: &mut ProcessTree) {
         process.tasks.sort();
     }
     p.top.sort();
-    update_rows(p.top.clone(), &mut p.processes);
+    update_rows(&p.top, &mut p.processes);
 }
 
 fn update() -> ProcessTree {
@@ -118,18 +116,19 @@ fn update_thread(
 ) {
     thread::spawn(move || {
         loop {
-            let mut timeout = Duration::from_secs(10000);
-            if active {
+            let timeout = if active {
                 *incoming.lock().unwrap() = Some(update());
                 emit.new_data_ready(None);
-                timeout = Duration::from_secs(1);
-            }
+                Duration::from_secs(1)
+            } else {
+                Duration::from_secs(10_000)
+            };
             match status_channel.recv_timeout(timeout) {
                 Err(RecvTimeoutError::Timeout) => {},
-                Err(RecvTimeoutError::Disconnected) => { return; },
+                Err(RecvTimeoutError::Disconnected)
+                | Ok(ChangeState::Quit) => { return; },
                 Ok(ChangeState::Active) => { active = true; },
                 Ok(ChangeState::Inactive) => { active = false; },
-                Ok(ChangeState::Quit) => { return; },
             }
         }
     });
@@ -176,7 +175,7 @@ fn remove_row(
     model.begin_remove_rows(Some(parent as usize), row, row);
     map.remove(&pid);
     let len = {
-        let ref mut tasks = map.get_mut(&parent).unwrap().tasks;
+        let tasks = &mut map.get_mut(&parent).unwrap().tasks;
         tasks.remove(row);
         tasks.len()
     };
@@ -204,7 +203,7 @@ fn insert_row(
     model.begin_insert_rows(Some(parent as usize), row, row);
     move_process(pid, map, source);
     let len = {
-        let ref mut tasks = map.get_mut(&parent).unwrap().tasks;
+        let tasks = &mut map.get_mut(&parent).unwrap().tasks;
         tasks.insert(row, pid);
         tasks.len()
     };
@@ -215,13 +214,16 @@ fn insert_row(
     model.end_insert_rows();
 }
 
+fn cmp_f32(a: f32, b: f32) -> bool {
+    ((a - b) / a).abs() < 0.01
+}
+
 fn sync_row(model: &ProcessesUniformTree, pid: pid_t, a: &mut Process, b: &Process) -> f32 {
-    let mut changed = false;
-    if a.name != b.name {
+    let mut changed = a.name != b.name;
+    if changed {
         a.name.clone_from(&b.name);
-        changed = true;
     }
-    if a.cpu_usage != b.cpu_usage {
+    if !cmp_f32(a.cpu_usage, b.cpu_usage) {
         a.cpu_usage = b.cpu_usage;
         changed = true;
     }
@@ -292,7 +294,7 @@ fn sync_tree(
         remove_row(model, parent, a, amap);
         alen -= 1;
     }
-    if cpu_total != bmap[&parent].process.cpu_usage {
+    if !cmp_f32(cpu_total, bmap[&parent].process.cpu_usage) {
         amap.get_mut(&parent).unwrap().process.cpu_usage = cpu_total;
         model.data_changed(parent as usize, parent as usize);
     }
@@ -355,7 +357,7 @@ impl ProcessesTrait for Processes {
         };
         if let Some(mut new) = new {
             // alert! at the top level, only adding is supported!
-            if self.p.top.len() == 0 {
+            if self.p.top.is_empty() {
                 self.model.begin_reset_model();
                 self.p = new;
                 self.model.end_reset_model();

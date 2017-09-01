@@ -125,7 +125,7 @@ where
                 parent: None,
                 row: 0,
                 children: None,
-                data: T::create(&path),
+                data: T::create(path),
             };
             self.entries.push(root);
         }
@@ -158,7 +158,7 @@ where
                         children.push(self.entries.len() + r);
                         new_entries.push(e);
                     }
-                    if new_entries.len() > 0 {
+                    if !new_entries.is_empty() {
                         self.model.begin_insert_rows(
                             Some(id),
                             0,
@@ -167,7 +167,7 @@ where
                     }
                 }
                 self.entries[id].children = Some(children);
-                if new_entries.len() > 0 {
+                if !new_entries.is_empty() {
                     self.entries.append(&mut new_entries);
                     self.model.end_insert_rows();
                 }
@@ -231,7 +231,7 @@ where
         }
     }
     fn row_count(&self, item: Option<usize>) -> usize {
-        if self.entries.len() == 0 {
+        if self.entries.is_empty() {
             return 0;
         }
         if let Some(i) = item {
