@@ -188,6 +188,9 @@ ApplicationWindow {
                             Connections {
                                 target: loaderEditor.item
                                 onEditingFinished: {
+                                    if (!demo) {
+                                        return;
+                                    }
                                     var val = loaderEditor.item.text;
                                     var row = styleData.row;
                                     if (styleData.column === 0) {
