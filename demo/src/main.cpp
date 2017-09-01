@@ -63,13 +63,12 @@ QWindow* getWindow(QWidget* w) {
 
 #ifdef QT_QUICK_LIB
 
-void copyWindowGeometry(QWidget* w, QQmlContext* c) {
-    QWindow* window = getWindow(w);
-    if (window) {
-        c->setContextProperty("windowX", window->x());
-        c->setContextProperty("windowY", window->y());
-        c->setContextProperty("windowWidth", window->width());
-        c->setContextProperty("windowHeight", window->height());
+void copyWindowGeometry(const QRect& rect, QObject* c) {
+    if (rect.width() && rect.height()) {
+        c->setProperty("x", rect.x());
+        c->setProperty("y", rect.y());
+        c->setProperty("width", rect.width());
+        c->setProperty("heigth", rect.height());
     }
 }
 
@@ -86,8 +85,14 @@ void createQtQuick(const QString& name, const QString& qml, Model* model,
     c->setContextProperty("qtquickIndex",
         QVariant(model->styles.stringList().indexOf(name)));
     c->setContextProperty("initialTab", initialTab);
-    copyWindowGeometry(widgets, engine->rootContext());
+    QRect geometry;
+    QWindow* window = getWindow(widgets);
+    if (window) {
+        geometry = window->geometry();
+    }
     engine->load(QUrl(qml));
+    auto root = engine->rootObjects().first();
+    copyWindowGeometry(geometry, root);
 }
 
 #endif

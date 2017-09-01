@@ -5,10 +5,8 @@ import QtQuick.Layouts 1.3
 
 ApplicationWindow {
     id: application
-    x: windowX
-    y: windowY
-    width: windowWidth
-    height: windowHeight
+    width: 640
+    height: 480
     visible: true
     ItemSelectionModel {
         id: selectionModel
@@ -23,7 +21,7 @@ ApplicationWindow {
         anchors.fill: parent
         onCountChanged: {
             for (var i = 0; i < tabView.count; ++i) {
-                if (tabView.getTab(i).title == initialTab) {
+                if (tabView.getTab(i).title === initialTab) {
                     tabView.currentIndex = i;
                 }
             }
