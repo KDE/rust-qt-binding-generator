@@ -34,6 +34,14 @@ struct BindingTypeProperties {
     bool isComplex() const {
         return name.startsWith("Q");
     }
+    bool operator==(const BindingTypeProperties& other) {
+        return type == other.type
+            && name == other.name
+            && cppSetType == other.cppSetType
+            && cSetType == other.cSetType
+            && rustType == other.rustType
+            && rustTypeInit == other.rustTypeInit;
+    }
 };
 
 struct Property {
@@ -88,6 +96,44 @@ struct Configuration {
             "Cannot find type %1.\n").arg(name);
         err.flush();
         exit(1);
+    }
+    QList<QString> types() const {
+        QList<QString> ops;
+        for (auto o: objects) {
+            for (auto ip: o.properties) {
+                if (!ops.contains(ip.type.name)) {
+                    ops.append(ip.type.name);
+                }
+            }
+            for (auto ip: o.itemProperties) {
+                if (!ops.contains(ip.type.name)) {
+                    ops.append(ip.type.name);
+                }
+            }
+        }
+        return ops;
+    }
+    QList<QString> optionalTypes() const {
+        QList<QString> ops;
+        for (auto o: objects) {
+            for (auto ip: o.itemProperties) {
+                if (ip.optional && !ops.contains(ip.type.name)) {
+                    ops.append(ip.type.name);
+                }
+            }
+            if (o.type != ObjectType::Object && !ops.contains("quintptr")) {
+                ops.append("quintptr");
+            }
+        }
+        return ops;
+    }
+    bool hasListOrTree() const {
+        for (auto o: objects) {
+            if (o.type == ObjectType::List || o.type == ObjectType::UniformTree) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 

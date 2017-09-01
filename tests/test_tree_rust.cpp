@@ -2,10 +2,10 @@
 #include "test_tree_rust.h"
 
 namespace {
-    template <typename T>
-    struct option {
+
+    struct option_quintptr {
     public:
-        T value;
+        quintptr value;
         bool some;
         operator QVariant() const {
             if (some) {
@@ -14,19 +14,7 @@ namespace {
             return QVariant();
         }
     };
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
+
     struct qstring_t {
     private:
         const void* data;
@@ -40,19 +28,15 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
+    typedef void (*qstring_set)(QString*, qstring_t*);
+    void set_qstring(QString* v, qstring_t* val) {
+        *v = *val;
+    }
+
     struct qmodelindex_t {
         int row;
         quintptr id;
     };
-
-}
-typedef void (*qstring_set)(QString*, qstring_t*);
-void set_qstring(QString* v, qstring_t* val) {
-    *v = *val;
-}
-typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-    *v = *val;
 }
 extern "C" {
     void persons_data_user_name(const Persons::Private*, quintptr, QString*, qstring_set);
@@ -206,9 +190,9 @@ extern "C" {
         void (*)(Persons*, quintptr, quintptr),
         void (*)(Persons*),
         void (*)(Persons*),
-        void (*)(Persons*, option<quintptr>, int, int),
+        void (*)(Persons*, option_quintptr, int, int),
         void (*)(Persons*),
-        void (*)(Persons*, option<quintptr>, int, int),
+        void (*)(Persons*, option_quintptr, int, int),
         void (*)(Persons*));
     void persons_free(Persons::Private*);
 };
@@ -244,7 +228,7 @@ Persons::Persons(QObject *parent):
         [](Persons* o) {
             o->endResetModel();
         },
-        [](Persons* o, option<quintptr> id, int first, int last) {
+        [](Persons* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = persons_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
@@ -255,7 +239,7 @@ Persons::Persons(QObject *parent):
         [](Persons* o) {
             o->endInsertRows();
         },
-        [](Persons* o, option<quintptr> id, int first, int last) {
+        [](Persons* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = persons_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);

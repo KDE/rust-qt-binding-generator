@@ -2,10 +2,10 @@
 #include "test_list_rust.h"
 
 namespace {
-    template <typename T>
-    struct option {
+
+    struct option_quintptr {
     public:
-        T value;
+        quintptr value;
         bool some;
         operator QVariant() const {
             if (some) {
@@ -14,19 +14,7 @@ namespace {
             return QVariant();
         }
     };
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
+
     struct qstring_t {
     private:
         const void* data;
@@ -40,19 +28,15 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
+    typedef void (*qstring_set)(QString*, qstring_t*);
+    void set_qstring(QString* v, qstring_t* val) {
+        *v = *val;
+    }
+
     struct qmodelindex_t {
         int row;
         quintptr id;
     };
-
-}
-typedef void (*qstring_set)(QString*, qstring_t*);
-void set_qstring(QString* v, qstring_t* val) {
-    *v = *val;
-}
-typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-    *v = *val;
 }
 extern "C" {
     void persons_data_user_name(const Persons::Private*, int, QString*, qstring_set);

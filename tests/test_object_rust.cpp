@@ -2,31 +2,7 @@
 #include "test_object_rust.h"
 
 namespace {
-    template <typename T>
-    struct option {
-    public:
-        T value;
-        bool some;
-        operator QVariant() const {
-            if (some) {
-                return QVariant(value);
-            }
-            return QVariant();
-        }
-    };
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
+
     struct qstring_t {
     private:
         const void* data;
@@ -40,23 +16,14 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
-    struct qmodelindex_t {
-        int row;
-        quintptr id;
-    };
+    typedef void (*qstring_set)(QString*, qstring_t*);
+    void set_qstring(QString* v, qstring_t* val) {
+        *v = *val;
+    }
     inline void personUserNameChanged(Person* o)
     {
         emit o->userNameChanged();
     }
-
-}
-typedef void (*qstring_set)(QString*, qstring_t*);
-void set_qstring(QString* v, qstring_t* val) {
-    *v = *val;
-}
-typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-    *v = *val;
 }
 extern "C" {
     Person::Private* person_new(Person*, void (*)(Person*));

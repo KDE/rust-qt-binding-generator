@@ -2,10 +2,10 @@
 #include "Bindings.h"
 
 namespace {
-    template <typename T>
-    struct option {
+
+    struct option_quintptr {
     public:
-        T value;
+        quintptr value;
         bool some;
         operator QVariant() const {
             if (some) {
@@ -14,19 +14,31 @@ namespace {
             return QVariant();
         }
     };
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
+
+    struct option_QString {
     public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
+        QString value;
+        bool some;
+        operator QVariant() const {
+            if (some) {
+                return QVariant(value);
+            }
+            return QVariant();
         }
     };
+
+    struct option_quint64 {
+    public:
+        quint64 value;
+        bool some;
+        operator QVariant() const {
+            if (some) {
+                return QVariant(value);
+            }
+            return QVariant();
+        }
+    };
+
     struct qstring_t {
     private:
         const void* data;
@@ -40,6 +52,29 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
+    typedef void (*qstring_set)(QString*, qstring_t*);
+    void set_qstring(QString* v, qstring_t* val) {
+        *v = *val;
+    }
+
+    struct qbytearray_t {
+    private:
+        const char* data;
+        int len;
+    public:
+        qbytearray_t(const QByteArray& v):
+            data(v.data()),
+            len(v.size()) {
+        }
+        operator QByteArray() const {
+            return QByteArray(data, len);
+        }
+    };
+    typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
+    void set_qbytearray(QByteArray* v, qbytearray_t* val) {
+        *v = *val;
+    }
+
     struct qmodelindex_t {
         int row;
         quintptr id;
@@ -60,15 +95,6 @@ namespace {
     {
         emit o->activeChanged();
     }
-
-}
-typedef void (*qstring_set)(QString*, qstring_t*);
-void set_qstring(QString* v, qstring_t* val) {
-    *v = *val;
-}
-typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-    *v = *val;
 }
 extern "C" {
     Demo::Private* demo_new(Demo*, Fibonacci*, void (*)(Fibonacci*), void (*)(Fibonacci*), FibonacciList*,
@@ -84,17 +110,17 @@ extern "C" {
         void (*)(FileSystemTree*, quintptr, quintptr),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
-        void (*)(FileSystemTree*, option<quintptr>, int, int),
+        void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*),
-        void (*)(FileSystemTree*, option<quintptr>, int, int),
+        void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*), Processes*, void (*)(Processes*),
         void (*)(const Processes*, quintptr, bool),
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
-        void (*)(Processes*, option<quintptr>, int, int),
+        void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*),
-        void (*)(Processes*, option<quintptr>, int, int),
+        void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*), TimeSeries*,
         void (*)(const TimeSeries*),
         void (*)(TimeSeries*, quintptr, quintptr),
@@ -239,7 +265,7 @@ extern "C" {
     void file_system_tree_data_file_name(const FileSystemTree::Private*, quintptr, QString*, qstring_set);
     void file_system_tree_data_file_path(const FileSystemTree::Private*, quintptr, QString*, qstring_set);
     qint32 file_system_tree_data_file_permissions(const FileSystemTree::Private*, quintptr);
-    option<quint64> file_system_tree_data_file_size(const FileSystemTree::Private*, quintptr);
+    option_quint64 file_system_tree_data_file_size(const FileSystemTree::Private*, quintptr);
     qint32 file_system_tree_data_file_type(const FileSystemTree::Private*, quintptr);
     void file_system_tree_sort(FileSystemTree::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
@@ -445,9 +471,9 @@ extern "C" {
         void (*)(FileSystemTree*, quintptr, quintptr),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
-        void (*)(FileSystemTree*, option<quintptr>, int, int),
+        void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*),
-        void (*)(FileSystemTree*, option<quintptr>, int, int),
+        void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*));
     void file_system_tree_free(FileSystemTree::Private*);
     void file_system_tree_path_get(const FileSystemTree::Private*, QString*, qstring_set);
@@ -663,9 +689,9 @@ extern "C" {
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
-        void (*)(Processes*, option<quintptr>, int, int),
+        void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*),
-        void (*)(Processes*, option<quintptr>, int, int),
+        void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*));
     void processes_free(Processes::Private*);
     bool processes_active_get(const Processes::Private*);
@@ -922,7 +948,7 @@ Demo::Demo(QObject *parent):
         [](FileSystemTree* o) {
             o->endResetModel();
         },
-        [](FileSystemTree* o, option<quintptr> id, int first, int last) {
+        [](FileSystemTree* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = file_system_tree_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
@@ -933,7 +959,7 @@ Demo::Demo(QObject *parent):
         [](FileSystemTree* o) {
             o->endInsertRows();
         },
-        [](FileSystemTree* o, option<quintptr> id, int first, int last) {
+        [](FileSystemTree* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = file_system_tree_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
@@ -966,7 +992,7 @@ Demo::Demo(QObject *parent):
         [](Processes* o) {
             o->endResetModel();
         },
-        [](Processes* o, option<quintptr> id, int first, int last) {
+        [](Processes* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
@@ -977,7 +1003,7 @@ Demo::Demo(QObject *parent):
         [](Processes* o) {
             o->endInsertRows();
         },
-        [](Processes* o, option<quintptr> id, int first, int last) {
+        [](Processes* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
@@ -1198,7 +1224,7 @@ FileSystemTree::FileSystemTree(QObject *parent):
         [](FileSystemTree* o) {
             o->endResetModel();
         },
-        [](FileSystemTree* o, option<quintptr> id, int first, int last) {
+        [](FileSystemTree* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = file_system_tree_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
@@ -1209,7 +1235,7 @@ FileSystemTree::FileSystemTree(QObject *parent):
         [](FileSystemTree* o) {
             o->endInsertRows();
         },
-        [](FileSystemTree* o, option<quintptr> id, int first, int last) {
+        [](FileSystemTree* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = file_system_tree_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
@@ -1286,7 +1312,7 @@ Processes::Processes(QObject *parent):
         [](Processes* o) {
             o->endResetModel();
         },
-        [](Processes* o, option<quintptr> id, int first, int last) {
+        [](Processes* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
@@ -1297,7 +1323,7 @@ Processes::Processes(QObject *parent):
         [](Processes* o) {
             o->endInsertRows();
         },
-        [](Processes* o, option<quintptr> id, int first, int last) {
+        [](Processes* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);

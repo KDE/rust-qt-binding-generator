@@ -7,7 +7,7 @@ template <typename T>
 QString cppSetType(const T& p)
 {
     if (p.optional) {
-        return "option<" + p.type.cppSetType + ">";
+        return "option_" + p.type.cppSetType;
     }
     return p.type.cppSetType;
 }
@@ -507,9 +507,9 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
         void (*)(%1*, quintptr, quintptr),
         void (*)(%1*),
         void (*)(%1*),
-        void (*)(%1*, option<quintptr>, int, int),
+        void (*)(%1*, option_quintptr, int, int),
         void (*)(%1*),
-        void (*)(%1*, option<quintptr>, int, int),
+        void (*)(%1*, option_quintptr, int, int),
         void (*)(%1*))").arg(o.name);
     }
 }
@@ -580,7 +580,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](%1* o) {
             o->endResetModel();
         },
-        [](%1* o, option<quintptr> id, int first, int last) {
+        [](%1* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = %2_row(o->m_d, id.value);
                 o->beginInsertRows(o->createIndex(row, 0, id.value), first, last);
@@ -591,7 +591,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](%1* o) {
             o->endInsertRows();
         },
-        [](%1* o, option<quintptr> id, int first, int last) {
+        [](%1* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = %2_row(o->m_d, id.value);
                 o->beginRemoveRows(o->createIndex(row, 0, id.value), first, last);
@@ -799,10 +799,12 @@ void writeCpp(const Configuration& conf) {
 #include "%1"
 
 namespace {
-    template <typename T>
-    struct option {
+)").arg(conf.hFile.fileName());
+    for (auto option: conf.optionalTypes()) {
+        cpp << QString(R"(
+    struct option_%1 {
     public:
-        T value;
+        %1 value;
         bool some;
         operator QVariant() const {
             if (some) {
@@ -811,19 +813,10 @@ namespace {
             return QVariant();
         }
     };
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
+)").arg(option);
+    }
+    if (conf.types().contains("QString")) {
+        cpp << R"(
     struct qstring_t {
     private:
         const void* data;
@@ -837,11 +830,41 @@ namespace {
             return QString::fromUtf8(static_cast<const char*>(data), len);
         }
     };
+    typedef void (*qstring_set)(QString*, qstring_t*);
+    void set_qstring(QString* v, qstring_t* val) {
+        *v = *val;
+    }
+)";
+    }
+    if (conf.types().contains("QByteArray")) {
+        cpp << R"(
+    struct qbytearray_t {
+    private:
+        const char* data;
+        int len;
+    public:
+        qbytearray_t(const QByteArray& v):
+            data(v.data()),
+            len(v.size()) {
+        }
+        operator QByteArray() const {
+            return QByteArray(data, len);
+        }
+    };
+    typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
+    void set_qbytearray(QByteArray* v, qbytearray_t* val) {
+        *v = *val;
+    }
+)";
+    }
+    if (conf.hasListOrTree()) {
+        cpp << R"(
     struct qmodelindex_t {
         int row;
         quintptr id;
     };
-)").arg(conf.hFile.fileName());
+)";
+    }
 
     for (auto o: conf.objects) {
         for (auto p: o.properties) {
@@ -852,18 +875,7 @@ namespace {
             cpp << "    {\n        emit o->" << p.name << "Changed();\n    }\n";
         }
     }
-
-    cpp << R"(
-}
-typedef void (*qstring_set)(QString*, qstring_t*);
-void set_qstring(QString* v, qstring_t* val) {
-    *v = *val;
-}
-typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-    *v = *val;
-}
-)";
+    cpp << "}\n";
 
     for (auto object: conf.objects) {
         if (object.type != ObjectType::Object) {
