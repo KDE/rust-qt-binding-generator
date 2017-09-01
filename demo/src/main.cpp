@@ -79,20 +79,20 @@ void createQtQuick(const QString& name, const QString& qml, Model* model,
     c->setContextProperty("styles", &model->styles);
     c->setContextProperty("demo", &model->demo);
     c->setContextProperty("sortedFileSystem", &model->sortedFileSystem);
-    c->setContextProperty("processes", &model->sortedProcesses);
-
     c->setContextProperty("widgets", widgets);
-    c->setContextProperty("qtquickIndex",
-        QVariant(model->styles.stringList().indexOf(name)));
-    c->setContextProperty("initialTab", initialTab);
     QRect geometry;
     QWindow* window = getWindow(widgets);
     if (window) {
         geometry = window->geometry();
     }
     engine->load(QUrl(qml));
-    auto root = engine->rootObjects().first();
+    QObject* root = engine->rootObjects().first();
     copyWindowGeometry(geometry, root);
+    root->setProperty("initialTab", initialTab);
+    root->setProperty("qtquickIndex",
+            QVariant(model->styles.stringList().indexOf(name)));
+    root->setProperty("processes",
+            QVariant::fromValue(&model->sortedProcesses));
 }
 
 #endif
