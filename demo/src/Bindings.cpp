@@ -221,11 +221,6 @@ bool FibonacciList::setHeaderData(int section, Qt::Orientation orientation, cons
     return true;
 }
 
-bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-    return false;
-}
-
 extern "C" {
     FibonacciList::Private* fibonacci_list_new(FibonacciList*,
         void (*)(const FibonacciList*),
@@ -444,11 +439,6 @@ bool FileSystemTree::setHeaderData(int section, Qt::Orientation orientation, con
     return true;
 }
 
-bool FileSystemTree::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-    return false;
-}
-
 extern "C" {
     FileSystemTree::Private* file_system_tree_new(FileSystemTree*, void (*)(FileSystemTree*),
         void (*)(const FileSystemTree*, quintptr, bool),
@@ -665,11 +655,6 @@ bool Processes::setHeaderData(int section, Qt::Orientation orientation, const QV
     }
     m_headerData.insert(qMakePair(section, (Qt::ItemDataRole)role), value);
     return true;
-}
-
-bool Processes::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-    return false;
 }
 
 extern "C" {

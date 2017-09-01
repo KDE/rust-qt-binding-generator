@@ -35,11 +35,18 @@ QString cGetType(const BindingTypeProperties& type) {
     return type.name + "*, " + type.name.toLower() + "_set";
 }
 
+bool modelIsWritable(const Object& o) {
+    bool write = false;
+    for (auto ip: o.itemProperties) {
+        write |= ip.write;
+    }
+    return write;
+}
+
 void writeHeaderItemModel(QTextStream& h, const Object& o) {
     h << QString(R"(
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
     bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
@@ -52,6 +59,9 @@ void writeHeaderItemModel(QTextStream& h, const Object& o) {
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
 )");
+    if (modelIsWritable(o)) {
+        h << "    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;\n";
+    }
     for (auto ip: o.itemProperties) {
         if (o.type == ObjectType::List) {
             h << QString("    Q_INVOKABLE QVariant %1(int row) const;\n").arg(ip.name);
@@ -376,40 +386,41 @@ bool %1::setHeaderData(int section, Qt::Orientation orientation, const QVariant 
     return true;
 }
 
-bool %1::setData(const QModelIndex &index, const QVariant &value, int role)
-{
 )").arg(o.name);
-    for (int col = 0; col < o.columnCount; ++col) {
-        if (!isColumnWrite(o, col)) {
-            continue;
-        }
-        cpp << "    if (index.column() == " << col << ") {\n";
-        for (int i = 0; i < o.itemProperties.size(); ++i) {
-            auto ip = o.itemProperties[i];
-            if (!ip.write) {
+    if (modelIsWritable(o)) {
+        cpp << QString("bool %1::setData(const QModelIndex &index, const QVariant &value, int role)\n{\n").arg(o.name);
+        for (int col = 0; col < o.columnCount; ++col) {
+            if (!isColumnWrite(o, col)) {
                 continue;
             }
-            auto roles = ip.roles.value(col);
-            if (col > 0 && roles.size() == 0) {
-                continue;
+            cpp << "    if (index.column() == " << col << ") {\n";
+            for (int i = 0; i < o.itemProperties.size(); ++i) {
+                auto ip = o.itemProperties[i];
+                if (!ip.write) {
+                    continue;
+                }
+                auto roles = ip.roles.value(col);
+                if (col > 0 && roles.size() == 0) {
+                    continue;
+                }
+                cpp << "        if (";
+                for (auto role: roles) {
+                    cpp << QString("role == Qt::%1 || ").arg(metaRoles.valueToKey(role));
+                }
+                cpp << "role == Qt::UserRole + " << i << ") {\n";
+                if (o.type == ObjectType::List) {
+                    cpp << QString("            return set%1(index.row(), value);\n")
+                        .arg(upperInitial(ip.name));
+                } else {
+                    cpp << QString("            return set%1(index, value);\n")
+                        .arg(upperInitial(ip.name));
+                }
+                cpp << "        }\n";
             }
-            cpp << "        if (";
-            for (auto role: roles) {
-                cpp << QString("role == Qt::%1 || ").arg(metaRoles.valueToKey(role));
-            }
-            cpp << "role == Qt::UserRole + " << i << ") {\n";
-            if (o.type == ObjectType::List) {
-                cpp << QString("            return set%1(index.row(), value);\n")
-                    .arg(upperInitial(ip.name));
-            } else {
-                cpp << QString("            return set%1(index, value);\n")
-                    .arg(upperInitial(ip.name));
-            }
-            cpp << "        }\n";
+            cpp << "    }\n";
         }
-        cpp << "    }\n";
+        cpp << "    return false;\n}\n\n";
     }
-    cpp << "    return false;\n}\n\n";
 }
 
 void writeHeaderObject(QTextStream& h, const Object& o, const Configuration& conf) {
