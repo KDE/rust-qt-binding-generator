@@ -5,7 +5,10 @@ Item {
     ChartView {
         id: chart
         anchors.fill: parent
-        legend.alignment: Qt.AlignBottom
+        Component.onCompleted: {
+            legend.alignment = Qt.AlignBottom
+        }
+
         antialiasing: true
 
         DateTimeAxis {
