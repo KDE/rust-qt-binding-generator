@@ -17,7 +17,8 @@ endif()
 
 include(FeatureSummary)
 
-find_program(CARGO cargo)
+find_package(Cargo)
+find_package(Rust)
 
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG
@@ -57,9 +58,13 @@ endif()
 add_subdirectory(src)
 
 enable_testing()
-add_subdirectory(tests)
 
-if(Qt5Widgets_FOUND AND Qt5Svg_FOUND)
+if(Cargo_FOUND AND Rust_FOUND)
+    add_subdirectory(tests)
+endif()
+
+
+if(Qt5Widgets_FOUND AND Qt5Svg_FOUND AND Cargo_FOUND AND Rust_FOUND)
     add_subdirectory(demo)
 endif()
 

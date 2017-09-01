@@ -21,7 +21,7 @@ function(rust_test NAME DIRECTORY)
 
     add_custom_command(
         OUTPUT "${DIR}/${RUST_TARGET_DIR}/librust.a"
-        COMMAND ${CARGO} build ${RUST_BUILD_FLAG}
+        COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
         DEPENDS "${DIR}/src/lib.rs"
                 "${DIR}/src/implementation.rs"
                 "${DIR}/src/interface.rs"

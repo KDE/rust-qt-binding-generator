@@ -13,7 +13,7 @@ add_custom_command(
 # compile the rust code into a static library
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a"
-  COMMAND ${CARGO} build ${RUST_BUILD_FLAG}
+  COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
   DEPENDS rust/src/lib.rs
           rust/src/implementation/mod.rs
           rust/src/implementation/time_series.rs
