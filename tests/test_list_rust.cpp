@@ -115,6 +115,7 @@ Qt::ItemFlags Persons::flags(const QModelIndex &i) const
     }
     return flags;
 }
+
 QVariant Persons::userName(int row) const
 {
     QVariant v;
@@ -122,6 +123,17 @@ QVariant Persons::userName(int row) const
     persons_data_user_name(m_d, row, &s, set_qstring);
     if (!s.isNull()) v.setValue<QString>(s);
     return v;
+}
+
+bool Persons::setUserName(int row, const QVariant& value)
+{
+    bool set = false;
+    set = persons_set_data_user_name(m_d, row, value.value<QString>());
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
 }
 
 QVariant Persons::data(const QModelIndex &index, int role) const
@@ -138,6 +150,7 @@ QVariant Persons::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
+
 QHash<int, QByteArray> Persons::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "userName");
@@ -162,17 +175,14 @@ bool Persons::setHeaderData(int section, Qt::Orientation orientation, const QVar
 
 bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    bool set = false;
     if (index.column() == 0) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            set = persons_set_data_user_name(m_d, index.row(), value.value<QString>());
+            return setUserName(index.row(), value);
         }
     }
-    if (set) {
-        emit dataChanged(index, index, QVector<int>() << role);
-    }
-    return set;
+    return false;
 }
+
 extern "C" {
     Persons::Private* persons_new(Persons*,
         void (*)(const Persons*),
@@ -238,4 +248,4 @@ Persons::~Persons() {
 }
 void Persons::initHeaderData() {
     m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("userName"));
-    }
+}

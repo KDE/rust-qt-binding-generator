@@ -103,13 +103,14 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE QVariant result(int row) const;
+
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
-    QVariant result(int row) const;
 signals:
 };
 
@@ -144,18 +145,19 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE QVariant fileIcon(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant fileName(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant filePath(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant filePermissions(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant fileSize(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant fileType(const QModelIndex& index) const;
+
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
-    QVariant fileIcon(const QModelIndex& index) const;
-    QVariant fileName(const QModelIndex& index) const;
-    QVariant filePath(const QModelIndex& index) const;
-    QVariant filePermissions(const QModelIndex& index) const;
-    QVariant fileSize(const QModelIndex& index) const;
-    QVariant fileType(const QModelIndex& index) const;
 signals:
     void pathChanged();
 };
@@ -191,19 +193,20 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE QVariant cmd(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant cpuPercentage(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant cpuUsage(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant memory(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant name(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant pid(const QModelIndex& index) const;
+    Q_INVOKABLE QVariant uid(const QModelIndex& index) const;
+
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
-    QVariant cmd(const QModelIndex& index) const;
-    QVariant cpuPercentage(const QModelIndex& index) const;
-    QVariant cpuUsage(const QModelIndex& index) const;
-    QVariant memory(const QModelIndex& index) const;
-    QVariant name(const QModelIndex& index) const;
-    QVariant pid(const QModelIndex& index) const;
-    QVariant uid(const QModelIndex& index) const;
 signals:
     void activeChanged();
 };
@@ -236,14 +239,17 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE QVariant input(int row) const;
+    Q_INVOKABLE bool setInput(int row, const QVariant& value);
+    Q_INVOKABLE QVariant result(int row) const;
+    Q_INVOKABLE bool setResult(int row, const QVariant& value);
+
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
-    QVariant input(int row) const;
-    QVariant result(int row) const;
 signals:
 };
 #endif // BINDINGS_H

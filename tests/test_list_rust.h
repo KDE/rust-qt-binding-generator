@@ -34,13 +34,15 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE QVariant userName(int row) const;
+    Q_INVOKABLE bool setUserName(int row, const QVariant& value);
+
 signals:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
-    QVariant userName(int row) const;
 signals:
 };
 #endif // TEST_LIST_RUST_H

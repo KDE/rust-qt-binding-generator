@@ -177,6 +177,7 @@ Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);
     return flags;
 }
+
 QVariant FibonacciList::result(int row) const
 {
     QVariant v;
@@ -197,6 +198,7 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
+
 QHash<int, QByteArray> FibonacciList::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "result");
@@ -221,12 +223,9 @@ bool FibonacciList::setHeaderData(int section, Qt::Orientation orientation, cons
 
 bool FibonacciList::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    bool set = false;
-    if (set) {
-        emit dataChanged(index, index, QVector<int>() << role);
-    }
-    return set;
+    return false;
 }
+
 extern "C" {
     FibonacciList::Private* fibonacci_list_new(FibonacciList*,
         void (*)(const FibonacciList*),
@@ -320,6 +319,7 @@ Qt::ItemFlags FileSystemTree::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);
     return flags;
 }
+
 QVariant FileSystemTree::fileIcon(const QModelIndex& index) const
 {
     QVariant v;
@@ -328,6 +328,7 @@ QVariant FileSystemTree::fileIcon(const QModelIndex& index) const
     if (!b.isNull()) v.setValue<QByteArray>(b);
     return v;
 }
+
 QVariant FileSystemTree::fileName(const QModelIndex& index) const
 {
     QVariant v;
@@ -336,6 +337,7 @@ QVariant FileSystemTree::fileName(const QModelIndex& index) const
     if (!s.isNull()) v.setValue<QString>(s);
     return v;
 }
+
 QVariant FileSystemTree::filePath(const QModelIndex& index) const
 {
     QVariant v;
@@ -344,18 +346,21 @@ QVariant FileSystemTree::filePath(const QModelIndex& index) const
     if (!s.isNull()) v.setValue<QString>(s);
     return v;
 }
+
 QVariant FileSystemTree::filePermissions(const QModelIndex& index) const
 {
     QVariant v;
     v = file_system_tree_data_file_permissions(m_d, index.internalId());
     return v;
 }
+
 QVariant FileSystemTree::fileSize(const QModelIndex& index) const
 {
     QVariant v;
     v = file_system_tree_data_file_size(m_d, index.internalId());
     return v;
 }
+
 QVariant FileSystemTree::fileType(const QModelIndex& index) const
 {
     QVariant v;
@@ -411,6 +416,7 @@ QVariant FileSystemTree::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
+
 QHash<int, QByteArray> FileSystemTree::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "fileIcon");
@@ -440,12 +446,9 @@ bool FileSystemTree::setHeaderData(int section, Qt::Orientation orientation, con
 
 bool FileSystemTree::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    bool set = false;
-    if (set) {
-        emit dataChanged(index, index, QVector<int>() << role);
-    }
-    return set;
+    return false;
 }
+
 extern "C" {
     FileSystemTree::Private* file_system_tree_new(FileSystemTree*, void (*)(FileSystemTree*),
         void (*)(const FileSystemTree*, quintptr, bool),
@@ -543,6 +546,7 @@ Qt::ItemFlags Processes::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);
     return flags;
 }
+
 QVariant Processes::cmd(const QModelIndex& index) const
 {
     QVariant v;
@@ -551,24 +555,28 @@ QVariant Processes::cmd(const QModelIndex& index) const
     if (!s.isNull()) v.setValue<QString>(s);
     return v;
 }
+
 QVariant Processes::cpuPercentage(const QModelIndex& index) const
 {
     QVariant v;
     v = processes_data_cpu_percentage(m_d, index.internalId());
     return v;
 }
+
 QVariant Processes::cpuUsage(const QModelIndex& index) const
 {
     QVariant v;
     v = processes_data_cpu_usage(m_d, index.internalId());
     return v;
 }
+
 QVariant Processes::memory(const QModelIndex& index) const
 {
     QVariant v;
     v = processes_data_memory(m_d, index.internalId());
     return v;
 }
+
 QVariant Processes::name(const QModelIndex& index) const
 {
     QVariant v;
@@ -577,12 +585,14 @@ QVariant Processes::name(const QModelIndex& index) const
     if (!s.isNull()) v.setValue<QString>(s);
     return v;
 }
+
 QVariant Processes::pid(const QModelIndex& index) const
 {
     QVariant v;
     v = processes_data_pid(m_d, index.internalId());
     return v;
 }
+
 QVariant Processes::uid(const QModelIndex& index) const
 {
     QVariant v;
@@ -628,6 +638,7 @@ QVariant Processes::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
+
 QHash<int, QByteArray> Processes::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "cmd");
@@ -658,12 +669,9 @@ bool Processes::setHeaderData(int section, Qt::Orientation orientation, const QV
 
 bool Processes::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    bool set = false;
-    if (set) {
-        emit dataChanged(index, index, QVector<int>() << role);
-    }
-    return set;
+    return false;
 }
+
 extern "C" {
     Processes::Private* processes_new(Processes*, void (*)(Processes*),
         void (*)(const Processes*, quintptr, bool),
@@ -745,17 +753,41 @@ Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
     }
     return flags;
 }
+
 QVariant TimeSeries::input(int row) const
 {
     QVariant v;
     v = time_series_data_input(m_d, row);
     return v;
 }
+
+bool TimeSeries::setInput(int row, const QVariant& value)
+{
+    bool set = false;
+    set = time_series_set_data_input(m_d, row, value.value<quint32>());
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
+}
+
 QVariant TimeSeries::result(int row) const
 {
     QVariant v;
     v = time_series_data_result(m_d, row);
     return v;
+}
+
+bool TimeSeries::setResult(int row, const QVariant& value)
+{
+    bool set = false;
+    set = time_series_set_data_result(m_d, row, value.value<quint32>());
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
 }
 
 QVariant TimeSeries::data(const QModelIndex &index, int role) const
@@ -781,6 +813,7 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
+
 QHash<int, QByteArray> TimeSeries::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "input");
@@ -806,25 +839,22 @@ bool TimeSeries::setHeaderData(int section, Qt::Orientation orientation, const Q
 
 bool TimeSeries::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    bool set = false;
     if (index.column() == 0) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            set = time_series_set_data_input(m_d, index.row(), value.value<quint32>());
+            return setInput(index.row(), value);
         }
         if (role == Qt::UserRole + 1) {
-            set = time_series_set_data_result(m_d, index.row(), value.value<quint32>());
+            return setResult(index.row(), value);
         }
     }
     if (index.column() == 1) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 1) {
-            set = time_series_set_data_result(m_d, index.row(), value.value<quint32>());
+            return setResult(index.row(), value);
         }
     }
-    if (set) {
-        emit dataChanged(index, index, QVector<int>() << role);
-    }
-    return set;
+    return false;
 }
+
 extern "C" {
     TimeSeries::Private* time_series_new(TimeSeries*,
         void (*)(const TimeSeries*),
@@ -1150,7 +1180,7 @@ FibonacciList::~FibonacciList() {
 }
 void FibonacciList::initHeaderData() {
     m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("result"));
-    }
+}
 FileSystemTree::FileSystemTree(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),
@@ -1225,7 +1255,7 @@ void FileSystemTree::initHeaderData() {
     m_headerData.insert(qMakePair(2, Qt::DisplayRole), QVariant("filePath"));
     m_headerData.insert(qMakePair(3, Qt::DisplayRole), QVariant("filePermissions"));
     m_headerData.insert(qMakePair(4, Qt::DisplayRole), QVariant("fileType"));
-    }
+}
 QString FileSystemTree::path() const
 {
     QString v;
@@ -1311,7 +1341,7 @@ void Processes::initHeaderData() {
     m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("name"));
     m_headerData.insert(qMakePair(1, Qt::DisplayRole), QVariant("cpuUsage"));
     m_headerData.insert(qMakePair(2, Qt::DisplayRole), QVariant("memory"));
-    }
+}
 bool Processes::active() const
 {
     return processes_active_get(m_d);
@@ -1372,4 +1402,4 @@ TimeSeries::~TimeSeries() {
 void TimeSeries::initHeaderData() {
     m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("input"));
     m_headerData.insert(qMakePair(1, Qt::DisplayRole), QVariant("result"));
-    }
+}
