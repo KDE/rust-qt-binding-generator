@@ -115,25 +115,28 @@ Qt::ItemFlags Persons::flags(const QModelIndex &i) const
     }
     return flags;
 }
-QVariant Persons::data(const QModelIndex &index, int role) const
+QVariant Persons::userName(int row) const
 {
     QVariant v;
-    Q_ASSERT(rowCount(index.parent()) > index.row());
     QString s;
-    QByteArray b;
+    persons_data_user_name(m_d, row, &s, set_qstring);
+    if (!s.isNull()) v.setValue<QString>(s);
+    return v;
+}
+
+QVariant Persons::data(const QModelIndex &index, int role) const
+{
+    Q_ASSERT(rowCount(index.parent()) > index.row());
     switch (index.column()) {
     case 0:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            persons_data_user_name(m_d, index.row(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
+            return userName(index.row());
         }
-        break;
     }
-    return v;
+    return QVariant();
 }
 QHash<int, QByteArray> Persons::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();

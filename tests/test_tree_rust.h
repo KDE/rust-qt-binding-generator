@@ -40,6 +40,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    QVariant userName(const QModelIndex& index) const;
 signals:
 };
 #endif // TEST_TREE_RUST_H

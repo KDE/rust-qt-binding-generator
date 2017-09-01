@@ -177,23 +177,25 @@ Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);
     return flags;
 }
-QVariant FibonacciList::data(const QModelIndex &index, int role) const
+QVariant FibonacciList::result(int row) const
 {
     QVariant v;
+    v = fibonacci_list_data_result(m_d, row);
+    return v;
+}
+
+QVariant FibonacciList::data(const QModelIndex &index, int role) const
+{
     Q_ASSERT(rowCount(index.parent()) > index.row());
-    QString s;
-    QByteArray b;
     switch (index.column()) {
     case 0:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 0:
-            v = fibonacci_list_data_result(m_d, index.row());
-            break;
+            return result(index.row());
         }
-        break;
     }
-    return v;
+    return QVariant();
 }
 QHash<int, QByteArray> FibonacciList::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
@@ -318,75 +320,96 @@ Qt::ItemFlags FileSystemTree::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);
     return flags;
 }
-QVariant FileSystemTree::data(const QModelIndex &index, int role) const
+QVariant FileSystemTree::fileIcon(const QModelIndex& index) const
 {
     QVariant v;
-    Q_ASSERT(rowCount(index.parent()) > index.row());
-    QString s;
     QByteArray b;
+    file_system_tree_data_file_icon(m_d, index.internalId(), &b, set_qbytearray);
+    if (!b.isNull()) v.setValue<QByteArray>(b);
+    return v;
+}
+QVariant FileSystemTree::fileName(const QModelIndex& index) const
+{
+    QVariant v;
+    QString s;
+    file_system_tree_data_file_name(m_d, index.internalId(), &s, set_qstring);
+    if (!s.isNull()) v.setValue<QString>(s);
+    return v;
+}
+QVariant FileSystemTree::filePath(const QModelIndex& index) const
+{
+    QVariant v;
+    QString s;
+    file_system_tree_data_file_path(m_d, index.internalId(), &s, set_qstring);
+    if (!s.isNull()) v.setValue<QString>(s);
+    return v;
+}
+QVariant FileSystemTree::filePermissions(const QModelIndex& index) const
+{
+    QVariant v;
+    v = file_system_tree_data_file_permissions(m_d, index.internalId());
+    return v;
+}
+QVariant FileSystemTree::fileSize(const QModelIndex& index) const
+{
+    QVariant v;
+    v = file_system_tree_data_file_size(m_d, index.internalId());
+    return v;
+}
+QVariant FileSystemTree::fileType(const QModelIndex& index) const
+{
+    QVariant v;
+    v = file_system_tree_data_file_type(m_d, index.internalId());
+    return v;
+}
+
+QVariant FileSystemTree::data(const QModelIndex &index, int role) const
+{
+    Q_ASSERT(rowCount(index.parent()) > index.row());
     switch (index.column()) {
     case 0:
         switch (role) {
         case Qt::DecorationRole:
         case Qt::UserRole + 0:
-            file_system_tree_data_file_icon(m_d, index.internalId(), &b, set_qbytearray);
-            if (!b.isNull()) v.setValue<QByteArray>(b);
-            break;
+            return fileIcon(index);
         case Qt::DisplayRole:
         case Qt::UserRole + 1:
-            file_system_tree_data_file_name(m_d, index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
+            return fileName(index);
         case Qt::UserRole + 2:
-            file_system_tree_data_file_path(m_d, index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
+            return filePath(index);
         case Qt::UserRole + 3:
-            v = file_system_tree_data_file_permissions(m_d, index.internalId());
-            break;
+            return filePermissions(index);
         case Qt::UserRole + 4:
-            v = file_system_tree_data_file_size(m_d, index.internalId());
-            break;
+            return fileSize(index);
         case Qt::UserRole + 5:
-            v = file_system_tree_data_file_type(m_d, index.internalId());
-            break;
+            return fileType(index);
         }
-        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 4:
-            v = file_system_tree_data_file_size(m_d, index.internalId());
-            break;
+            return fileSize(index);
         }
-        break;
     case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
-            file_system_tree_data_file_path(m_d, index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
+            return filePath(index);
         }
-        break;
     case 3:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
-            v = file_system_tree_data_file_permissions(m_d, index.internalId());
-            break;
+            return filePermissions(index);
         }
-        break;
     case 4:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 5:
-            v = file_system_tree_data_file_type(m_d, index.internalId());
-            break;
+            return fileType(index);
         }
-        break;
     }
-    return v;
+    return QVariant();
 }
 QHash<int, QByteArray> FileSystemTree::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
@@ -520,60 +543,90 @@ Qt::ItemFlags Processes::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);
     return flags;
 }
-QVariant Processes::data(const QModelIndex &index, int role) const
+QVariant Processes::cmd(const QModelIndex& index) const
 {
     QVariant v;
-    Q_ASSERT(rowCount(index.parent()) > index.row());
     QString s;
-    QByteArray b;
+    processes_data_cmd(m_d, index.internalId(), &s, set_qstring);
+    if (!s.isNull()) v.setValue<QString>(s);
+    return v;
+}
+QVariant Processes::cpuPercentage(const QModelIndex& index) const
+{
+    QVariant v;
+    v = processes_data_cpu_percentage(m_d, index.internalId());
+    return v;
+}
+QVariant Processes::cpuUsage(const QModelIndex& index) const
+{
+    QVariant v;
+    v = processes_data_cpu_usage(m_d, index.internalId());
+    return v;
+}
+QVariant Processes::memory(const QModelIndex& index) const
+{
+    QVariant v;
+    v = processes_data_memory(m_d, index.internalId());
+    return v;
+}
+QVariant Processes::name(const QModelIndex& index) const
+{
+    QVariant v;
+    QString s;
+    processes_data_name(m_d, index.internalId(), &s, set_qstring);
+    if (!s.isNull()) v.setValue<QString>(s);
+    return v;
+}
+QVariant Processes::pid(const QModelIndex& index) const
+{
+    QVariant v;
+    v = processes_data_pid(m_d, index.internalId());
+    return v;
+}
+QVariant Processes::uid(const QModelIndex& index) const
+{
+    QVariant v;
+    v = processes_data_uid(m_d, index.internalId());
+    return v;
+}
+
+QVariant Processes::data(const QModelIndex &index, int role) const
+{
+    Q_ASSERT(rowCount(index.parent()) > index.row());
     switch (index.column()) {
     case 0:
         switch (role) {
         case Qt::UserRole + 0:
-            processes_data_cmd(m_d, index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
+            return cmd(index);
         case Qt::UserRole + 1:
-            v = processes_data_cpu_percentage(m_d, index.internalId());
-            break;
+            return cpuPercentage(index);
         case Qt::UserRole + 2:
-            v = processes_data_cpu_usage(m_d, index.internalId());
-            break;
+            return cpuUsage(index);
         case Qt::UserRole + 3:
-            v = processes_data_memory(m_d, index.internalId());
-            break;
+            return memory(index);
         case Qt::DisplayRole:
         case Qt::UserRole + 4:
-            processes_data_name(m_d, index.internalId(), &s, set_qstring);
-            if (!s.isNull()) v.setValue<QString>(s);
-            break;
+            return name(index);
         case Qt::ToolTipRole:
         case Qt::UserRole + 5:
-            v = processes_data_pid(m_d, index.internalId());
-            break;
+            return pid(index);
         case Qt::UserRole + 6:
-            v = processes_data_uid(m_d, index.internalId());
-            break;
+            return uid(index);
         }
-        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
-            v = processes_data_cpu_usage(m_d, index.internalId());
-            break;
+            return cpuUsage(index);
         }
-        break;
     case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
-            v = processes_data_memory(m_d, index.internalId());
-            break;
+            return memory(index);
         }
-        break;
     }
-    return v;
+    return QVariant();
 }
 QHash<int, QByteArray> Processes::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
@@ -692,36 +745,41 @@ Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
     }
     return flags;
 }
-QVariant TimeSeries::data(const QModelIndex &index, int role) const
+QVariant TimeSeries::input(int row) const
 {
     QVariant v;
+    v = time_series_data_input(m_d, row);
+    return v;
+}
+QVariant TimeSeries::result(int row) const
+{
+    QVariant v;
+    v = time_series_data_result(m_d, row);
+    return v;
+}
+
+QVariant TimeSeries::data(const QModelIndex &index, int role) const
+{
     Q_ASSERT(rowCount(index.parent()) > index.row());
-    QString s;
-    QByteArray b;
     switch (index.column()) {
     case 0:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            v = time_series_data_input(m_d, index.row());
-            break;
+            return input(index.row());
         case Qt::UserRole + 1:
-            v = time_series_data_result(m_d, index.row());
-            break;
+            return result(index.row());
         }
-        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 1:
-            v = time_series_data_result(m_d, index.row());
-            break;
+            return result(index.row());
         }
-        break;
     }
-    return v;
+    return QVariant();
 }
 QHash<int, QByteArray> TimeSeries::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();

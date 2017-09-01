@@ -109,6 +109,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    QVariant result(int row) const;
 signals:
 };
 
@@ -149,6 +150,12 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    QVariant fileIcon(const QModelIndex& index) const;
+    QVariant fileName(const QModelIndex& index) const;
+    QVariant filePath(const QModelIndex& index) const;
+    QVariant filePermissions(const QModelIndex& index) const;
+    QVariant fileSize(const QModelIndex& index) const;
+    QVariant fileType(const QModelIndex& index) const;
 signals:
     void pathChanged();
 };
@@ -190,6 +197,13 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    QVariant cmd(const QModelIndex& index) const;
+    QVariant cpuPercentage(const QModelIndex& index) const;
+    QVariant cpuUsage(const QModelIndex& index) const;
+    QVariant memory(const QModelIndex& index) const;
+    QVariant name(const QModelIndex& index) const;
+    QVariant pid(const QModelIndex& index) const;
+    QVariant uid(const QModelIndex& index) const;
 signals:
     void activeChanged();
 };
@@ -228,6 +242,8 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    QVariant input(int row) const;
+    QVariant result(int row) const;
 signals:
 };
 #endif // BINDINGS_H

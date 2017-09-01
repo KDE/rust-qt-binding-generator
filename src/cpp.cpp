@@ -35,7 +35,7 @@ QString cGetType(const BindingTypeProperties& type) {
     return type.name + "*, " + type.name.toLower() + "_set";
 }
 
-void writeHeaderItemModel(QTextStream& h) {
+void writeHeaderItemModel(QTextStream& h, const Object& o) {
     h << QString(R"(
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -58,6 +58,19 @@ private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
 )");
+    for (auto ip: o.itemProperties) {
+        if (o.type == ObjectType::List) {
+            h << QString("    QVariant %1(int row) const;\n").arg(ip.name);
+        } else {
+            h << QString("    QVariant %1(const QModelIndex& index) const;\n").arg(ip.name);
+        }
+/*
+        if (ip.write) {
+            r << QString("    fn set_%1(&mut self, item: usize, %2) -> bool;\n")
+                .arg(snakeCase(ip.name), rustType(ip));
+        }
+*/
+    }
 }
 
 bool isColumnWrite(const Object& o, int col) {
@@ -224,14 +237,39 @@ Qt::ItemFlags %1::flags(const QModelIndex &i) const
             cpp << "        flags |= Qt::ItemIsEditable;\n    }\n";
         }
     }
-    cpp << QString(R"(    return flags;
-}
+    cpp << "    return flags;\n}\n";
+    for (auto ip: o.itemProperties) {
+        QString idx = index;
+        if (o.type == ObjectType::List) {
+            idx = ", row";
+            cpp << QString("QVariant %1::%2(int row) const\n{\n")
+                    .arg(o.name, ip.name);
+        } else {
+            cpp << QString("QVariant %1::%2(const QModelIndex& index) const\n{\n")
+                    .arg(o.name, ip.name);
+        }
+        cpp << "    QVariant v;\n";
+        if (ip.type.name == "QString") {
+            cpp << "    QString s;\n";
+            cpp << QString("    %1_data_%2(m_d%4, &s, set_%3);\n")
+                   .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), idx);
+            cpp << "    if (!s.isNull()) v.setValue<QString>(s);\n";
+        } else if (ip.type.name == "QByteArray") {
+            cpp << "    QByteArray b;\n";
+            cpp << QString("    %1_data_%2(m_d%4, &b, set_%3);\n")
+                   .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), idx);
+            cpp << "    if (!b.isNull()) v.setValue<QByteArray>(b);\n";
+        } else {
+            cpp << QString("    v = %1_data_%2(m_d%3);\n")
+                   .arg(lcname, snakeCase(ip.name), idx);
+        }
+        cpp << "    return v;\n";
+        cpp << "}\n";
+    }
+    cpp << QString(R"(
 QVariant %1::data(const QModelIndex &index, int role) const
 {
-    QVariant v;
     Q_ASSERT(rowCount(index.parent()) > index.row());
-    QString s;
-    QByteArray b;
     switch (index.column()) {
 )").arg(o.name);
 
@@ -249,24 +287,15 @@ QVariant %1::data(const QModelIndex &index, int role) const
                 cpp << QString("        case Qt::%1:\n").arg(metaRoles.valueToKey(role));
             }
             cpp << QString("        case Qt::UserRole + %1:\n").arg(i);
-            if (ip.type.name == "QString") {
-                cpp << QString("            %1_data_%2(m_d%4, &s, set_%3);\n")
-                       .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), index);
-                cpp << "            if (!s.isNull()) v.setValue<QString>(s);\n";
-            } else if (ip.type.name == "QByteArray") {
-                cpp << QString("            %1_data_%2(m_d%4, &b, set_%3);\n")
-                       .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), index);
-                cpp << "            if (!b.isNull()) v.setValue<QByteArray>(b);\n";
+            if (o.type == ObjectType::List) {
+                cpp << QString("            return %1(index.row());\n").arg(ip.name);
             } else {
-                cpp << QString("            v = %1_data_%2(m_d%3);\n")
-                       .arg(lcname, snakeCase(ip.name), index);
+                cpp << QString("            return %1(index);\n").arg(ip.name);
             }
-            cpp << "            break;\n";
         }
         cpp << "        }\n";
-        cpp << "        break;\n";
     }
-    cpp << "    }\n    return v;\n}\n";
+    cpp << "    }\n    return QVariant();\n}\n";
     cpp << "QHash<int, QByteArray> " << o.name << "::roleNames() const {\n";
     cpp << "    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();\n";
     for (int i = 0; i < o.itemProperties.size(); ++i) {
@@ -388,7 +417,7 @@ public:
         }
     }
     if (baseType(o) == "QAbstractItemModel") {
-        writeHeaderItemModel(h);
+        writeHeaderItemModel(h, o);
     }
     h << "signals:" << endl;
     for (auto p: o.properties) {
