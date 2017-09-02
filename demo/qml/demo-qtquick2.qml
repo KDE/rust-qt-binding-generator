@@ -21,7 +21,13 @@ ApplicationWindow {
             text: "tree"
         }
     }
-    footer: StyleSwitcher2 {
+    footer: Rectangle {
+        height: statusBar.height
+        width: parent.width
+        StyleSwitcher2 {
+            id: statusBar
+            width: parent.width
+        }
     }
     StackLayout {
         anchors.fill: parent
