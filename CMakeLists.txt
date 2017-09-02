@@ -38,7 +38,7 @@ set(CMAKE_AUTOUIC ON)
 
 if (ECM_FOUND)
     # Find KDE Modules
-    find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
+    find_package(KF5 ${KF5_MIN_VERSION} COMPONENTS
         CoreAddons      # KAboutData
         I18n            # KLocalizedString
         WidgetsAddons   # KMessageBox
