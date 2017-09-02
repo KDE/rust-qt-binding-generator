@@ -2,7 +2,8 @@ import QtQuick 2.6
 import QtQuick.Controls 1.5
 import QtQuick.Layouts 1.3
 
-Column {
+ColumnLayout {
+    Layout.fillHeight: true
     Text {
         text: qsTr("Calculate the <i>nth</i> Fibonacci number")
     }
@@ -14,7 +15,7 @@ Column {
             top: 100
         }
         text: demo.fibonacci.input
-        onTextChanged: {
+        onAccepted: {
             var val = parseInt(text, 10)
             if (val !== demo.fibonacci.input) {
                 demo.fibonacci.input = val

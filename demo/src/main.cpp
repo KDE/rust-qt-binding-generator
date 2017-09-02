@@ -168,6 +168,9 @@ QWidget* createObjectTab(Model* model) {
     QWidget* view = new QWidget;
     Fibonacci* fibonacci = model->demo.fibonacci();
 
+    QLabel* label = new QLabel;
+    label->setText(label->tr("Calculate the <i>nth</i> Fibonacci number"));
+
     QLineEdit* input = new QLineEdit;
     input->setPlaceholderText("Your number");
     input->setValidator(new QIntValidator(0, 100));
@@ -180,16 +183,18 @@ QWidget* createObjectTab(Model* model) {
             input->setText(QString::number(fibonacci->input()));
     });
 
-    QLabel* label = new QLabel;
-    fibonacci->connect(fibonacci, &Fibonacci::resultChanged, label,
-        [label, fibonacci]() {
-            label->setText("The Fibonacci number: "
+    QLabel* result = new QLabel;
+    fibonacci->connect(fibonacci, &Fibonacci::resultChanged, result,
+        [result, fibonacci]() {
+            result->setText(result->tr("The Fibonacci number: ")
                 + QString::number(fibonacci->result()));
     });
+    input->setText(QString::number(model->demo.fibonacci()->input()));
 
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(input);
+    QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(label);
+    layout->addWidget(input);
+    layout->addWidget(result);
     view->setLayout(layout);
     return view;
 }
