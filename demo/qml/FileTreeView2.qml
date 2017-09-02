@@ -9,6 +9,28 @@ Item {
     ListView {
         id: view
         anchors.fill: parent
+        header: Column {
+            ToolBar {
+                RowLayout {
+                    anchors.fill: parent
+                    ToolButton {
+                        text: qsTr("‹")
+                        enabled: dirModel.rootIndex.valid
+                        onClicked: {
+                            dirModel.rootIndex = dirModel.rootIndex.parent
+                        }
+                    }
+                }
+            } Row {
+                Text {
+                    width: 200
+                    text: qsTr("Name")
+                }
+                Text {
+                    text: qsTr("Size")
+                }
+            }
+        }
         model: DelegateModel {
             id: dirModel
             model: sortedFileSystem
@@ -17,30 +39,32 @@ Item {
                 height: row.height
                 Row {
                     id: row
-                    Text {
+                    Button {
+                        id: button
                         width: 200
                         text: fileName
+                        enabled: model.hasModelChildren
+                        onClicked: {
+                            if (model.hasModelChildren)
+                                view.model.rootIndex = view.model.modelIndex(index)
+                        }
+                        Timer {
+                            id: checkChildren
+                            interval: 100
+                            running: true
+                            repeat: true
+                            onTriggered: {
+                                if (model.hasModelChildren) {
+                                    button.enabled = true
+                                    checkChildren.stop()
+                                }
+                            }
+                        }
                     }
                     Text {
                         text: fileSize
                     }
                 }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (model.hasModelChildren)
-                            view.model.rootIndex = view.model.modelIndex(index)
-                    }
-                }
-            }
-        }
-        header: Row {
-            Text {
-                width: 200
-                text: qsTr("Name")
-            }
-            Text {
-                text: qsTr("Size")
             }
         }
     }
