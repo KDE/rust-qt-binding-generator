@@ -53,7 +53,7 @@ function(rust_test NAME DIRECTORY)
 
     add_custom_command(
         OUTPUT "clean_${NAME}"
-        COMMAND ${CARGO} clean
+        COMMAND ${Cargo_EXECUTABLE} clean
         WORKING_DIRECTORY "${DIR}"
     )
     add_custom_target("clean-${NAME}" DEPENDS "clean_${NAME}")
