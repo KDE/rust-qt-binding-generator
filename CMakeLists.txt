@@ -17,6 +17,7 @@ if (ECM_FOUND)
 endif()
 
 include(FeatureSummary)
+include(ECMPoQmTools)
 
 find_package(Cargo)
 find_package(Rust)

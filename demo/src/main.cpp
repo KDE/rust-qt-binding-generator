@@ -169,7 +169,7 @@ QWidget* createObjectTab(Model* model) {
     Fibonacci* fibonacci = model->demo.fibonacci();
 
     QLabel* label = new QLabel;
-    label->setText(label->tr("Calculate the <i>nth</i> Fibonacci number"));
+    label->setText(QCoreApplication::translate("main", "Calculate the <i>nth</i> Fibonacci number"));
 
     QLineEdit* input = new QLineEdit;
     input->setPlaceholderText("Your number");
@@ -186,7 +186,7 @@ QWidget* createObjectTab(Model* model) {
     QLabel* result = new QLabel;
     fibonacci->connect(fibonacci, &Fibonacci::resultChanged, result,
         [result, fibonacci]() {
-            result->setText(result->tr("The Fibonacci number: ")
+            result->setText(QCoreApplication::translate("main", "The Fibonacci number: ")
                 + QString::number(fibonacci->result()));
     });
     input->setText(QString::number(model->demo.fibonacci()->input()));
@@ -202,9 +202,9 @@ QWidget* createObjectTab(Model* model) {
 QWidget* createListTab(Model* model) {
     QTableView* view = new QTableView();
     model->demo.fibonacciList()->setHeaderData(0, Qt::Horizontal,
-        view->tr("Row"), Qt::DisplayRole);
+        QCoreApplication::translate("main", "Row"), Qt::DisplayRole);
     model->demo.fibonacciList()->setHeaderData(1, Qt::Horizontal,
-        view->tr("Fibonacci number"), Qt::DisplayRole);
+        QCoreApplication::translate("main", "Fibonacci number"), Qt::DisplayRole);
     view->setModel(model->demo.fibonacciList());
     view->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     return view;
@@ -213,9 +213,9 @@ QWidget* createListTab(Model* model) {
 QWidget* createTreeTab(Model* model) {
     QTreeView* view = new QTreeView();
     model->demo.fileSystemTree()->setHeaderData(0, Qt::Horizontal,
-        view->tr("Name"), Qt::DisplayRole);
+        QCoreApplication::translate("main", "Name"), Qt::DisplayRole);
     model->demo.fileSystemTree()->setHeaderData(1, Qt::Horizontal,
-        view->tr("Size"), Qt::DisplayRole);
+        QCoreApplication::translate("main", "Size"), Qt::DisplayRole);
     view->setUniformRowHeights(true);
     view->setSortingEnabled(true);
     view->setModel(&model->sortedFileSystem);

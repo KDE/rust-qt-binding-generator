@@ -37,8 +37,10 @@ if (Qt5Charts_FOUND)
     list(APPEND DemoLibs Qt5::Charts)
 endif()
 
+ecm_create_qm_loader(Demo_QM_LOADER Demo_qt.pot)
+
 set(Demo_SRCS src/main.cpp src/Bindings.cpp src/SortedModel.cpp
-    resource_file.qrc)
+    resource_file.qrc ${Demo_QM_LOADER})
 
 add_executable(Demo ${Demo_SRCS})
 add_dependencies(Demo rust_target)
