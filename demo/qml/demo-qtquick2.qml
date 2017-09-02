@@ -21,6 +21,7 @@ ApplicationWindow {
             text: "tree"
         }
     }
+
     footer: Rectangle {
         height: statusBar.height
         width: parent.width

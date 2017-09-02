@@ -27,7 +27,8 @@ ListView {
                     Layout.fillWidth: true
                 }
             }
-        } Row {
+        }
+        Row {
             Text {
                 width: 200
                 text: qsTr("Name")
@@ -48,6 +49,13 @@ ListView {
             height: row.height
             Row {
                 id: row
+                Connections {
+                    target: demo.fileSystemTree
+                    onRowsInserted: {
+                        button.enabled = (model.hasModelChildren
+                            || demo.fileSystemTree.filePath(parent) === model.filePath)
+                    }
+                }
                 Button {
                     id: button
                     width: 200
@@ -56,18 +64,6 @@ ListView {
                     onClicked: {
                         if (model.hasModelChildren) {
                             view.model.rootIndex = view.model.modelIndex(index)
-                        }
-                    }
-                    Timer {
-                        id: checkChildren
-                        interval: 100
-                        running: true
-                        repeat: true
-                        onTriggered: {
-                            if (model.hasModelChildren) {
-                                button.enabled = true
-                                checkChildren.stop()
-                            }
                         }
                     }
                 }
