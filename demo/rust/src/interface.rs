@@ -437,7 +437,8 @@ pub trait FibonacciListTrait {
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-    fn result(&self, item: usize) -> u64;
+    fn fibonacci_number(&self, item: usize) -> u64;
+    fn row(&self, item: usize) -> u64;
 }
 
 #[no_mangle]
@@ -497,8 +498,13 @@ pub unsafe extern "C" fn fibonacci_list_sort(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn fibonacci_list_data_result(ptr: *const FibonacciList, row: c_int) -> u64 {
-    (&*ptr).result(row as usize).into()
+pub unsafe extern "C" fn fibonacci_list_data_fibonacci_number(ptr: *const FibonacciList, row: c_int) -> u64 {
+    (&*ptr).fibonacci_number(row as usize).into()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn fibonacci_list_data_row(ptr: *const FibonacciList, row: c_int) -> u64 {
+    (&*ptr).row(row as usize).into()
 }
 
 pub struct FileSystemTreeQObject {}

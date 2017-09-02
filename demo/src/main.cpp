@@ -84,6 +84,8 @@ void createQtQuick(const QString& name, const QString& qml, Model* model,
     QWindow* window = getWindow(widgets);
     if (window) {
         geometry = window->geometry();
+    } else {
+        geometry = QRect(0, 0, 500, 500);
     }
     engine->load(QUrl(qml));
     QObject* root = engine->rootObjects().first();
@@ -193,8 +195,13 @@ QWidget* createObjectTab(Model* model) {
 }
 
 QWidget* createListTab(Model* model) {
-    QListView* view = new QListView();
+    QTableView* view = new QTableView();
+    model->demo.fibonacciList()->setHeaderData(0, Qt::Horizontal,
+        view->tr("Row"), Qt::DisplayRole);
+    model->demo.fibonacciList()->setHeaderData(1, Qt::Horizontal,
+        view->tr("Fibonacci number"), Qt::DisplayRole);
     view->setModel(model->demo.fibonacciList());
+    view->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     return view;
 }
 
@@ -268,7 +275,7 @@ QWidget* createChartTab(Model* model) {
 }
 #endif
 
-QTabWidget* createTabs(Model* model, QComboBox* box) {
+QTabWidget* createTabs(Model* model) {
     QTabWidget* tabs = new QTabWidget();
     tabs->addTab(createObjectTab(model), "object");
     tabs->addTab(createListTab(model), "list");
@@ -292,7 +299,7 @@ void createMainWindow(Model* model, const QString& initialStyle,
     QComboBox* box = createStyleComboBox(model);
     QStatusBar* statusBar = createStatusBar(model, main, box, initialTab);
     main->setStatusBar(statusBar);
-    QTabWidget* tabs = createTabs(model, box);
+    QTabWidget* tabs = createTabs(model);
     main->setCentralWidget(tabs);
     main->show();
     box->setCurrentText(initialStyle);

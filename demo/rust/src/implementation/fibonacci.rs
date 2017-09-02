@@ -75,7 +75,10 @@ impl FibonacciListTrait for FibonacciList {
     fn row_count(&self) -> usize {
         93
     }
-    fn result(&self, row: usize) -> u64 {
+    fn row(&self, row: usize) -> u64 {
+        row as u64 + 1
+    }
+    fn fibonacci_number(&self, row: usize) -> u64 {
         fibonacci(row as u32 + 1) as u64
     }
 }

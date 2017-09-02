@@ -102,7 +102,8 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
-    Q_INVOKABLE QVariant result(int row) const;
+    Q_INVOKABLE QVariant fibonacciNumber(int row) const;
+    Q_INVOKABLE QVariant row(int row) const;
 
 signals:
     // new data is ready to be made available to the model with fetchMore()

@@ -4,19 +4,16 @@ import QtQuick.Controls 1.5
 import QtQuick.Layouts 1.3
 
 TableView {
-    id: listView
     model: demo.fibonacciList
     TableViewColumn {
-        delegate: Text {
-            text: styleData.row + 1
-        }
-        title: "Row"
+        role: "row"
+        title: qsTr("Row")
         width: 100
         Component.onCompleted: resizeToContents()
     }
     TableViewColumn {
-        role: "display"
-        title: "Fibonacci Number"
+        role: "fibonacciNumber"
+        title: qsTr("Fibonacci number")
         width: 100
         Component.onCompleted: resizeToContents()
     }

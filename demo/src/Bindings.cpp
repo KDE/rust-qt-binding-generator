@@ -147,7 +147,8 @@ extern "C" {
 };
 
 extern "C" {
-    quint64 fibonacci_list_data_result(const FibonacciList::Private*, int);
+    quint64 fibonacci_list_data_fibonacci_number(const FibonacciList::Private*, int);
+    quint64 fibonacci_list_data_row(const FibonacciList::Private*, int);
     void fibonacci_list_sort(FibonacciList::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int fibonacci_list_row_count(const FibonacciList::Private*);
@@ -156,7 +157,7 @@ extern "C" {
 }
 int FibonacciList::columnCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : 1;
+    return (parent.isValid()) ? 0 : 2;
 }
 
 bool FibonacciList::hasChildren(const QModelIndex &parent) const
@@ -171,7 +172,7 @@ int FibonacciList::rowCount(const QModelIndex &parent) const
 
 QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 2) {
         return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
@@ -204,10 +205,17 @@ Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant FibonacciList::result(int row) const
+QVariant FibonacciList::fibonacciNumber(int row) const
 {
     QVariant v;
-    v = fibonacci_list_data_result(m_d, row);
+    v = fibonacci_list_data_fibonacci_number(m_d, row);
+    return v;
+}
+
+QVariant FibonacciList::row(int row) const
+{
+    QVariant v;
+    v = fibonacci_list_data_row(m_d, row);
     return v;
 }
 
@@ -217,9 +225,17 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
+        case Qt::UserRole + 0:
+            return fibonacciNumber(index.row());
+        case Qt::DisplayRole:
+        case Qt::UserRole + 1:
+            return row(index.row());
+        }
+    case 1:
+        switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 0:
-            return result(index.row());
+            return fibonacciNumber(index.row());
         }
     }
     return QVariant();
@@ -227,7 +243,8 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
 
 QHash<int, QByteArray> FibonacciList::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
-    names.insert(Qt::UserRole + 0, "result");
+    names.insert(Qt::UserRole + 0, "fibonacciNumber");
+    names.insert(Qt::UserRole + 1, "row");
     return names;
 }
 QVariant FibonacciList::headerData(int section, Qt::Orientation orientation, int role) const
@@ -906,7 +923,7 @@ Demo::Demo(QObject *parent):
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
-                       o->createIndex(last, 0, last));
+                       o->createIndex(last, 1, last));
         },
         [](FibonacciList* o) {
             o->beginResetModel();
@@ -1155,7 +1172,7 @@ FibonacciList::FibonacciList(QObject *parent):
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
-                       o->createIndex(last, 0, last));
+                       o->createIndex(last, 1, last));
         },
         [](FibonacciList* o) {
             o->beginResetModel();
@@ -1190,7 +1207,8 @@ FibonacciList::~FibonacciList() {
     }
 }
 void FibonacciList::initHeaderData() {
-    m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("result"));
+    m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("row"));
+    m_headerData.insert(qMakePair(1, Qt::DisplayRole), QVariant("fibonacciNumber"));
 }
 FileSystemTree::FileSystemTree(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),

@@ -81,9 +81,13 @@
         "FibonacciList": {
             "type": "List",
             "itemProperties": {
-                "result": {
+                "row": {
                     "type": "quint64",
                     "roles": [ [ "display" ] ]
+                },
+                "fibonacciNumber": {
+                    "type": "quint64",
+                    "roles": [ [], [ "display" ] ]
                 }
             }
         },

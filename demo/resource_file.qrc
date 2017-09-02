@@ -7,5 +7,8 @@
         <file>qml/Fibonacci.qml</file>
         <file>qml/FibonacciList.qml</file>
         <file>qml/StyleSwitcher.qml</file>
+        <file>qml/StyleSwitcher2.qml</file>
+        <file>qml/Fibonacci2.qml</file>
+        <file>qml/FibonacciList2.qml</file>
     </qresource>
 </RCC>
