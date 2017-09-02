@@ -8,9 +8,12 @@ Item {
 
     ListView {
         id: view
+        property string title
         anchors.fill: parent
         header: Column {
+            width: parent.width
             ToolBar {
+                width: parent.width
                 RowLayout {
                     anchors.fill: parent
                     ToolButton {
@@ -19,6 +22,13 @@ Item {
                         onClicked: {
                             dirModel.rootIndex = dirModel.rootIndex.parent
                         }
+                    }
+                    Label {
+                        text: view.title
+                        elide: Label.ElideRight
+                        horizontalAlignment: Qt.AlignHCenter
+                        verticalAlignment: Qt.AlignVCenter
+                        Layout.fillWidth: true
                     }
                 }
             } Row {
@@ -34,6 +44,9 @@ Item {
         model: DelegateModel {
             id: dirModel
             model: sortedFileSystem
+            onRootIndexChanged: {
+                view.title = model.data(rootIndex)
+            }
             delegate: Item {
                 width: parent.width
                 height: row.height
@@ -45,8 +58,9 @@ Item {
                         text: fileName
                         enabled: model.hasModelChildren
                         onClicked: {
-                            if (model.hasModelChildren)
+                            if (model.hasModelChildren) {
                                 view.model.rootIndex = view.model.modelIndex(index)
+                            }
                         }
                         Timer {
                             id: checkChildren
@@ -61,8 +75,9 @@ Item {
                             }
                         }
                     }
-                    Text {
+                    Label {
                         text: fileSize
+                        padding: button.padding
                     }
                 }
             }
