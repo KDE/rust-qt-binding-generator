@@ -1,14 +1,18 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/demo.qml</file>
-        <file>qml/chart.qml</file>
-        <file>qml/demo-qtquick2.qml</file>
         <file>logo.svg</file>
+        <file>qml/DataAndChart.qml</file>
         <file>qml/Fibonacci.qml</file>
+        <file>qml/Fibonacci2.qml</file>
         <file>qml/FibonacciList.qml</file>
+        <file>qml/FibonacciList2.qml</file>
+        <file>qml/FileTreeView.qml</file>
+        <file>qml/FileTreeView2.qml</file>
+        <file>qml/ProcessesTree.qml</file>
         <file>qml/StyleSwitcher.qml</file>
         <file>qml/StyleSwitcher2.qml</file>
-        <file>qml/Fibonacci2.qml</file>
-        <file>qml/FibonacciList2.qml</file>
+        <file>qml/chart.qml</file>
+        <file>qml/demo-qtquick2.qml</file>
+        <file>qml/demo.qml</file>
     </qresource>
 </RCC>

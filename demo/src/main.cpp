@@ -212,9 +212,16 @@ QWidget* createListTab(Model* model) {
 
 QWidget* createTreeTab(Model* model) {
     QTreeView* view = new QTreeView();
+    model->demo.fileSystemTree()->setHeaderData(0, Qt::Horizontal,
+        view->tr("Name"), Qt::DisplayRole);
+    model->demo.fileSystemTree()->setHeaderData(1, Qt::Horizontal,
+        view->tr("Size"), Qt::DisplayRole);
     view->setUniformRowHeights(true);
     view->setSortingEnabled(true);
     view->setModel(&model->sortedFileSystem);
+    view->header()->setSectionHidden(2, true);
+    view->header()->setSectionHidden(3, true);
+    view->header()->setSectionHidden(4, true);
     auto root = model->sortedFileSystem.index(0, 0);
     view->expand(root);
     view->sortByColumn(0, Qt::AscendingOrder);

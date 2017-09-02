@@ -28,9 +28,6 @@ ApplicationWindow {
         currentIndex: bar.currentIndex
         Fibonacci2 {}
         FibonacciList2 {}
-        Text {
-            id: treeView
-            text: "No TreeView in QtQuick Controls 2"
-        }
+        FileTreeView2 {}
     }
 }
