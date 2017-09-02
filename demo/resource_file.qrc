@@ -1,8 +1,11 @@
 <RCC>
     <qresource prefix="/">
-        <file>demo.qml</file>
-        <file>chart.qml</file>
-        <file>demo-qtquick2.qml</file>
-        <file alias="logo.svg">../logo.svg</file>
+        <file>qml/demo.qml</file>
+        <file>qml/chart.qml</file>
+        <file>qml/demo-qtquick2.qml</file>
+        <file>logo.svg</file>
+        <file>qml/Fibonacci.qml</file>
+        <file>qml/FibonacciList.qml</file>
+        <file>qml/StyleSwitcher.qml</file>
     </qresource>
 </RCC>

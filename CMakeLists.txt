@@ -34,6 +34,7 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG
 find_package(Qt5QuickControls2 EXACT ${Qt5Core_VERSION})
 find_package(Qt5Charts EXACT ${Qt5Core_VERSION})
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
 
 if (ECM_FOUND)
     # Find KDE Modules

@@ -7,11 +7,15 @@ ApplicationWindow {
     id: application
     property string initialTab: "style"
     property int qtquickIndex: 0
-    property var processes: ListModel { ListElement{ name: "init"} }
+    property var processes: ListModel {
+        ListElement {
+            name: "init"
+        }
+    }
     onInitialTabChanged: {
         for (var i = 0; i < tabView.count; ++i) {
             if (tabView.getTab(i).title === initialTab) {
-                tabView.currentIndex = i;
+                tabView.currentIndex = i
             }
         }
     }
@@ -26,55 +30,24 @@ ApplicationWindow {
         id: processSelection
         model: processes
     }
+    statusBar: StatusBar {
+        StyleSwitcher {
+            anchors.right: parent.right
+        }
+    }
     TabView {
         id: tabView
         anchors.fill: parent
         Tab {
-            title: "style"
-            Column {
-                anchors.fill: parent
-                anchors.margins: 5
-                ComboBox {
-                    currentIndex: qtquickIndex
-                    model: styles
-                    textRole: "display"
-                    onCurrentIndexChanged: {
-                        if (currentIndex !== qtquickIndex) {
-                            widgets.currentIndex = currentIndex;
-                            application.close();
-                        }
-                    }
-                }
-                Image {
-                    source: "logo.svg"
-                }
-            }
-        }
-        Tab {
             title: "object"
-            RowLayout {
-                TextField {
-                    id: fibonacciInput
-                    placeholderText: "Your number"
-                    validator: IntValidator {bottom: 0; top: 100;}
-                    Component.onCompleted: { text = demo.fibonacci.input }
-                    onTextChanged: { demo.fibonacci.input = parseInt(text, 10) }
-                }
-                Text {
-                    text: "The Fibonacci number: " + demo.fibonacci.result
-                }
+            Fibonacci {
+                anchors.fill: parent
             }
         }
         Tab {
             title: "list"
-            TableView {
-                id: listView
-                model: demo.fibonacciList
-                TableViewColumn {
-                    role: "display"
-                    title: "Row"
-                    width: 100
-                }
+            FibonacciList {
+                anchors.fill: parent
             }
         }
         Tab {
@@ -94,15 +67,15 @@ ApplicationWindow {
                     role: "fileSize"
                 }
                 Component.onCompleted: {
-                    var root = treeView.rootIndex;
-                    var first = sortedFileSystem.index(0, 0, root);
-                    treeView.expand(first);
+                    var root = treeView.rootIndex
+                    var first = sortedFileSystem.index(0, 0, root)
+                    treeView.expand(first)
                 }
                 onSortIndicatorColumnChanged: sort()
                 onSortIndicatorOrderChanged: sort()
                 function sort() {
-                    var role = getColumn(treeView.sortIndicatorColumn).role;
-                    model.sortByRole(role, treeView.sortIndicatorOrder);
+                    var role = getColumn(treeView.sortIndicatorColumn).role
+                    model.sortByRole(role, treeView.sortIndicatorOrder)
                 }
             }
         }
@@ -116,13 +89,13 @@ ApplicationWindow {
                     width: parent.width
                     placeholderText: "Filter processes"
                     onTextChanged: {
-                        processes.filterRegExp
-                            = new RegExp(processFilterInput.text);
+                        processes.filterRegExp = new RegExp(processFilterInput.text)
                     }
                 }
                 TreeView {
                     onClicked: {
-                        processSelection.select(index, ItemSelectionModel.ToggleCurrent);
+                        processSelection.select(
+                                    index, ItemSelectionModel.ToggleCurrent)
                     }
                     Binding {
                         target: demo.processes
@@ -136,7 +109,7 @@ ApplicationWindow {
                     model: processes
                     selection: processSelection
                     selectionMode: SelectionMode.ExtendedSelection
-//                    selectionMode: SelectionMode.SingleSelection
+                    //                    selectionMode: SelectionMode.SingleSelection
                     sortIndicatorVisible: true
                     alternatingRowColors: true
                     TableViewColumn {
@@ -154,17 +127,20 @@ ApplicationWindow {
                     onSortIndicatorColumnChanged: sort()
                     onSortIndicatorOrderChanged: sort()
                     function sort() {
-                        var role = getColumn(processView.sortIndicatorColumn).role;
-                        model.sortByRole(role, processView.sortIndicatorOrder);
+                        var role = getColumn(
+                                    processView.sortIndicatorColumn).role
+                        model.sortByRole(role, processView.sortIndicatorOrder)
                     }
                     Timer {
-                        interval: 100; running: true; repeat: true
+                        interval: 100
+                        running: true
+                        repeat: true
                         onTriggered: {
-                            var root = processView.rootIndex;
-                            var systemd = processes.index(1, 0, root);
+                            var root = processView.rootIndex
+                            var systemd = processes.index(1, 0, root)
                             if (processes.data(systemd) === "systemd") {
-                                processView.expand(systemd);
-                                running = false;
+                                processView.expand(systemd)
+                                running = false
                             }
                         }
                     }
@@ -190,14 +166,14 @@ ApplicationWindow {
                                 target: loaderEditor.item
                                 onEditingFinished: {
                                     if (!demo) {
-                                        return;
+                                        return
                                     }
-                                    var val = loaderEditor.item.text;
-                                    var row = styleData.row;
+                                    var val = loaderEditor.item.text
+                                    var row = styleData.row
                                     if (styleData.column === 0) {
-                                        demo.timeSeries.setInput(row, val);
+                                        demo.timeSeries.setInput(row, val)
                                     } else {
-                                        demo.timeSeries.setResult(row, val);
+                                        demo.timeSeries.setResult(row, val)
                                     }
                                 }
                             }
@@ -230,7 +206,7 @@ ApplicationWindow {
                         title: "result"
                     }
                     itemDelegate: {
-                        return editableDelegate;
+                        return editableDelegate
                     }
                 }
                 Item {
@@ -238,7 +214,7 @@ ApplicationWindow {
                     Layout.fillHeight: true
                     Text {
                         anchors.centerIn: parent
-                        text: "QtChart is not available.";
+                        text: "QtChart is not available."
                         visible: chartLoader.status !== Loader.Ready
                     }
                     Loader {

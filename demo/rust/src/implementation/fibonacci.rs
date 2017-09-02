@@ -73,9 +73,9 @@ impl FibonacciListTrait for FibonacciList {
         &self.emit
     }
     fn row_count(&self) -> usize {
-        94
+        93
     }
     fn result(&self, row: usize) -> u64 {
-        fibonacci(row as u32) as u64
+        fibonacci(row as u32 + 1) as u64
     }
 }

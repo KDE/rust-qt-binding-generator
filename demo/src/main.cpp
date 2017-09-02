@@ -117,21 +117,21 @@ QComboBox* createStyleComboBox(Model* model) {
     return box;
 }
 
-QWidget* createStyleTab(Model* model, QWidget* tabs, QComboBox* box,
+QStatusBar* createStatusBar(Model* model, QWidget* main, QComboBox* box,
         const QString& initialTab) {
     QRect windowRect;
-    auto f = [windowRect, box, tabs, model, initialTab](const QString &text) mutable {
-        QWindow* window = getWindow(tabs);
-        bool visible = tabs->isVisible();
+    auto f = [windowRect, box, main, model, initialTab](const QString &text) mutable {
+        QWindow* window = getWindow(main);
+        bool visible = main->isVisible();
         if (text.startsWith("QWidgets ")) {
-            tabs->setVisible(true);
+            main->setVisible(true);
             if (window && !visible) {
                 window->setX(windowRect.x());
                 window->setY(windowRect.y());
                 window->setWidth(windowRect.width());
                 window->setHeight(windowRect.height());
             }
-            setStyle(tabs, QStyleFactory::create(text.mid(9)));
+            setStyle(main, QStyleFactory::create(text.mid(9)));
 #ifdef QT_QUICK_LIB
         } else {
             if (window) {
@@ -140,28 +140,26 @@ QWidget* createStyleTab(Model* model, QWidget* tabs, QComboBox* box,
                 windowRect.setWidth(window->width());
                 windowRect.setHeight(window->height());
             }
-            tabs->setVisible(false);
+            main->setVisible(false);
 #ifdef QTQUICKCONTROLS2
             if (text == "QtQuick Controls 2") {
-                createQtQuick("QtQuick Controls 2", "qrc:///demo-qtquick2.qml",
+                createQtQuick("QtQuick Controls 2", "qrc:///qml/demo-qtquick2.qml",
                     model, box, initialTab);
             } else
 #endif
-            createQtQuick("QtQuick", "qrc:///demo.qml", model, box, initialTab);
+            createQtQuick("QtQuick", "qrc:///qml/demo.qml", model, box, initialTab);
 #endif
         }
     };
     box->connect(box, &QComboBox::currentTextChanged, box, f);
 
     QSvgWidget* logo = new QSvgWidget(":/logo.svg");
-    logo->setFixedSize(logo->renderer()->defaultSize());
+    logo->setFixedSize(logo->renderer()->defaultSize() / 4);
 
-    QWidget* tab = new QWidget;
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(box);
-    layout->addWidget(logo);
-    tab->setLayout(layout);
-    return tab;
+    QStatusBar* statusBar = new QStatusBar;
+    statusBar->addPermanentWidget(logo);
+    statusBar->addPermanentWidget(box);
+    return statusBar;
 }
 
 QWidget* createObjectTab(Model* model) {
@@ -270,12 +268,8 @@ QWidget* createChartTab(Model* model) {
 }
 #endif
 
-void createWidgets(Model* model, const QString& initialStyle,
-        const QString& initialTab) {
+QTabWidget* createTabs(Model* model, QComboBox* box) {
     QTabWidget* tabs = new QTabWidget();
-
-    QComboBox* box = createStyleComboBox(model);
-    tabs->addTab(createStyleTab(model, tabs, box, initialTab), "style");
     tabs->addTab(createObjectTab(model), "object");
     tabs->addTab(createListTab(model), "list");
     tabs->addTab(createTreeTab(model), "tree");
@@ -287,8 +281,20 @@ void createWidgets(Model* model, const QString& initialStyle,
 #ifdef QT_CHARTS_LIB
     tabs->addTab(createChartTab(model), "chart");
 #endif
-    tabs->setMinimumSize(QSize(500, 500));
-    tabs->show();
+    return tabs;
+}
+
+void createMainWindow(Model* model, const QString& initialStyle,
+                      const QString& initialTab) {
+    QMainWindow* main = new QMainWindow();
+    main->setMinimumSize(QSize(500, 500));
+
+    QComboBox* box = createStyleComboBox(model);
+    QStatusBar* statusBar = createStatusBar(model, main, box, initialTab);
+    main->setStatusBar(statusBar);
+    QTabWidget* tabs = createTabs(model, box);
+    main->setCentralWidget(tabs);
+    main->show();
     box->setCurrentText(initialStyle);
     for (int i = 0; i < tabs->count(); ++i) {
         if (tabs->tabText(i) == initialTab) {
@@ -327,14 +333,15 @@ int main (int argc, char *argv[])
     parser.process(app);
 
     Model model;
+    model.demo.fibonacci()->setInput(1);
     model.demo.fileSystemTree()->setPath("/");
     model.sortedFileSystem.setSourceModel(model.demo.fileSystemTree());
     model.sortedFileSystem.setDynamicSortFilter(true);
     model.sortedProcesses.setSourceModel(model.demo.processes());
     model.sortedProcesses.setDynamicSortFilter(true);
 
-    createWidgets(&model, parser.value(initialStyleOption),
-                           parser.value(initialTabOption));
+    createMainWindow(&model, parser.value(initialStyleOption),
+                             parser.value(initialTabOption));
 
     return app.exec();
 }
