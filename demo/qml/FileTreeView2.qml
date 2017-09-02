@@ -42,7 +42,7 @@ ListView {
         id: dirModel
         model: sortedFileSystem
         onRootIndexChanged: {
-            view.title = model.data(rootIndex)
+            view.title = model.data(rootIndex) || ""
         }
         delegate: Item {
             width: parent.width
@@ -50,10 +50,12 @@ ListView {
             Row {
                 id: row
                 Connections {
-                    target: demo.fileSystemTree
+                    target: sortedFileSystem
                     onRowsInserted: {
-                        button.enabled = (model.hasModelChildren
-                            || demo.fileSystemTree.filePath(parent) === model.filePath)
+                        // enable the button if children were found when 'model'
+                        // was created or if they were just inserted
+                        button.enabled = model.hasModelChildren
+                                || dirModel.modelIndex(index) === parent
                     }
                 }
                 Button {
@@ -62,9 +64,7 @@ ListView {
                     text: fileName
                     enabled: model.hasModelChildren
                     onClicked: {
-                        if (model.hasModelChildren) {
-                            view.model.rootIndex = view.model.modelIndex(index)
-                        }
+                        view.model.rootIndex = view.model.modelIndex(index)
                     }
                 }
                 Label {
