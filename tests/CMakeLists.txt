@@ -40,7 +40,7 @@ function(rust_test NAME DIRECTORY)
         Qt5::Core
         Qt5::Test
         "${DIR}/${RUST_TARGET_DIR}/librust.a"
-        pthread dl
+        pthread ${DL_LIBRARY}
     )
     set_property(TARGET ${NAME}
         APPEND PROPERTY AUTOGEN_TARGET_DEPENDS "${SRC}/${NAME}_rust.h"

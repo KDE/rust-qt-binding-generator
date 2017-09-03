@@ -22,6 +22,21 @@ include(ECMPoQmTools)
 find_package(Cargo REQUIRED)
 find_package(Rust REQUIRED)
 
+# Runtime information library -- dl on Debian, execinfo on FreeBSD.
+# This quiets a warning from rustc about linking to native artifacts.
+if (CMAKE_SYSTEM MATCHES "FreeBSD")
+    find_library(DL_LIBRARY execinfo)
+else()
+    find_library(DL_LIBRARY dl)
+endif()
+
+# It would be neater to use set_package_properties() here and to
+# rely on feature_summary(), below, but that entails using find_package()
+# and moving this whole thing into a Find-module, which is over-wrought.
+if (NOT DL_LIBRARY)
+    message(FATAL_ERROR "No runtime information library (-ldl or -lexecinfo)")
+endif()
+
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG
     REQUIRED COMPONENTS
