@@ -90,9 +90,13 @@ BindingTypeProperties parseBindingType(const QString& value) {
     }
     QTextStream err(stderr);
     err << QCoreApplication::translate("main",
-        "'%1' is not a supported type. Try one of\n").arg(value);
+        "'%1' is not a supported type. Use one of\n").arg(value);
     for (auto i: bindingTypeProperties()) {
-        err << "     " << i.name << "\n";
+        if (i.name == i.rustType) {
+            err << "     " << i.rustType << "\n";
+        } else {
+            err << "     " << i.name << " (" << i.rustType << ")\n";
+        }
     }
     err.flush();
     exit(1);
