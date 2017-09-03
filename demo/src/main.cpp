@@ -272,14 +272,14 @@ QWidget* createChartTab(Model* model) {
     chart->addSeries(cos);
 
     QValueAxis *axisX = new QValueAxis;
-    axisX->setLabelFormat("%i");
+    axisX->setLabelFormat("%.1f");
     axisX->setTitleText("time [s]");
     chart->addAxis(axisX, Qt::AlignBottom);
     sin->attachAxis(axisX);
     cos->attachAxis(axisX);
 
     QValueAxis *axisY = new QValueAxis;
-    axisY->setLabelFormat("%i");
+    axisY->setLabelFormat("%.1f");
     axisY->setTitleText("electric potential [V]");
     chart->addAxis(axisY, Qt::AlignLeft);
     sin->attachAxis(axisY);

@@ -14,11 +14,13 @@ Item {
         ValueAxis {
             id: axisX
             titleText: qsTr("time [s]")
+            labelFormat: "%.1f"
         }
 
         ValueAxis {
             id: axisY
             titleText: qsTr("electric potential [V]")
+            labelFormat: "%.1f"
         }
 
         LineSeries {

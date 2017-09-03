@@ -18,7 +18,7 @@ impl TimeSeriesTrait for TimeSeries {
             emit: emit,
             list: Vec::new(),
         };
-        for i in 0..100 {
+        for i in 0..101 {
             let x = i as f32 / 10.;
             series.list.push(TimeSeriesItem {
                 time: x,
