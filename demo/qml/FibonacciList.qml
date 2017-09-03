@@ -9,12 +9,10 @@ TableView {
         role: "row"
         title: qsTr("Row")
         width: 100
-        Component.onCompleted: resizeToContents()
     }
     TableViewColumn {
         role: "fibonacciNumber"
         title: qsTr("Fibonacci number")
         width: 100
-        Component.onCompleted: resizeToContents()
     }
 }
