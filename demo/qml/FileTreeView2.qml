@@ -21,7 +21,7 @@ ListView {
                 }
                 Label {
                     text: view.title
-                    elide: Label.ElideRight
+                    elide: Label.ElideMiddle
                     horizontalAlignment: Qt.AlignHCenter
                     verticalAlignment: Qt.AlignVCenter
                     Layout.fillWidth: true
@@ -42,7 +42,8 @@ ListView {
         id: dirModel
         model: sortedFileSystem
         onRootIndexChanged: {
-            view.title = model.data(rootIndex) || ""
+            var index = sortedFileSystem.mapToSource(rootIndex);
+            view.title = demo.fileSystemTree.filePath(index) || "";
         }
         delegate: Item {
             width: parent.width
