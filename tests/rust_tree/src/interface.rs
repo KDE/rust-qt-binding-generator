@@ -108,7 +108,7 @@ impl PersonsEmitter {
     }
 }
 
-pub struct PersonsUniformTree {
+pub struct PersonsTree {
     qobject: *const PersonsQObject,
     data_changed: fn(*const PersonsQObject, usize, usize),
     begin_reset_model: fn(*const PersonsQObject),
@@ -119,7 +119,7 @@ pub struct PersonsUniformTree {
     end_remove_rows: fn(*const PersonsQObject),
 }
 
-impl PersonsUniformTree {
+impl PersonsTree {
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -144,7 +144,7 @@ impl PersonsUniformTree {
 }
 
 pub trait PersonsTrait {
-    fn create(emit: PersonsEmitter, model: PersonsUniformTree) -> Self;
+    fn create(emit: PersonsEmitter, model: PersonsTree) -> Self;
     fn emit(&self) -> &PersonsEmitter;
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
@@ -175,7 +175,7 @@ pub extern "C" fn persons_new(
         qobject: Arc::new(Mutex::new(persons)),
         new_data_ready: persons_new_data_ready,
     };
-    let model = PersonsUniformTree {
+    let model = PersonsTree {
         qobject: persons,
         data_changed: persons_data_changed,
         begin_reset_model: persons_begin_reset_model,

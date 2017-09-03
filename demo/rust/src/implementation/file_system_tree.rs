@@ -107,7 +107,7 @@ struct Entry<T: Item> {
 
 pub struct RGeneralItemModel<T: Item> {
     emit: FileSystemTreeEmitter,
-    model: FileSystemTreeUniformTree,
+    model: FileSystemTreeTree,
     entries: Vec<Entry<T>>,
     path: Option<String>,
     incoming: Incoming<T>,
@@ -189,7 +189,7 @@ impl<T: Item> FileSystemTreeTrait for RGeneralItemModel<T>
 where
     T: Sync + Send,
 {
-    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeUniformTree) -> Self {
+    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self {
         let mut tree = RGeneralItemModel {
             emit: emit,
             model: model,

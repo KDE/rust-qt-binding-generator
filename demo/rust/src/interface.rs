@@ -215,7 +215,7 @@ pub extern "C" fn demo_new(
         path_changed: path_changed,
         new_data_ready: file_system_tree_new_data_ready,
     };
-    let model = FileSystemTreeUniformTree {
+    let model = FileSystemTreeTree {
         qobject: file_system_tree,
         data_changed: file_system_tree_data_changed,
         begin_reset_model: file_system_tree_begin_reset_model,
@@ -231,7 +231,7 @@ pub extern "C" fn demo_new(
         active_changed: active_changed,
         new_data_ready: processes_new_data_ready,
     };
-    let model = ProcessesUniformTree {
+    let model = ProcessesTree {
         qobject: processes,
         data_changed: processes_data_changed,
         begin_reset_model: processes_begin_reset_model,
@@ -536,7 +536,7 @@ impl FileSystemTreeEmitter {
     }
 }
 
-pub struct FileSystemTreeUniformTree {
+pub struct FileSystemTreeTree {
     qobject: *const FileSystemTreeQObject,
     data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     begin_reset_model: fn(*const FileSystemTreeQObject),
@@ -547,7 +547,7 @@ pub struct FileSystemTreeUniformTree {
     end_remove_rows: fn(*const FileSystemTreeQObject),
 }
 
-impl FileSystemTreeUniformTree {
+impl FileSystemTreeTree {
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -572,7 +572,7 @@ impl FileSystemTreeUniformTree {
 }
 
 pub trait FileSystemTreeTrait {
-    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeUniformTree) -> Self;
+    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self;
     fn emit(&self) -> &FileSystemTreeEmitter;
     fn path(&self) -> Option<&str>;
     fn set_path(&mut self, value: Option<String>);
@@ -611,7 +611,7 @@ pub extern "C" fn file_system_tree_new(
         path_changed: path_changed,
         new_data_ready: file_system_tree_new_data_ready,
     };
-    let model = FileSystemTreeUniformTree {
+    let model = FileSystemTreeTree {
         qobject: file_system_tree,
         data_changed: file_system_tree_data_changed,
         begin_reset_model: file_system_tree_begin_reset_model,
@@ -799,7 +799,7 @@ impl ProcessesEmitter {
     }
 }
 
-pub struct ProcessesUniformTree {
+pub struct ProcessesTree {
     qobject: *const ProcessesQObject,
     data_changed: fn(*const ProcessesQObject, usize, usize),
     begin_reset_model: fn(*const ProcessesQObject),
@@ -810,7 +810,7 @@ pub struct ProcessesUniformTree {
     end_remove_rows: fn(*const ProcessesQObject),
 }
 
-impl ProcessesUniformTree {
+impl ProcessesTree {
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -835,7 +835,7 @@ impl ProcessesUniformTree {
 }
 
 pub trait ProcessesTrait {
-    fn create(emit: ProcessesEmitter, model: ProcessesUniformTree) -> Self;
+    fn create(emit: ProcessesEmitter, model: ProcessesTree) -> Self;
     fn emit(&self) -> &ProcessesEmitter;
     fn active(&self) -> bool;
     fn set_active(&mut self, value: bool);
@@ -875,7 +875,7 @@ pub extern "C" fn processes_new(
         active_changed: active_changed,
         new_data_ready: processes_new_data_ready,
     };
-    let model = ProcessesUniformTree {
+    let model = ProcessesTree {
         qobject: processes,
         data_changed: processes_data_changed,
         begin_reset_model: processes_begin_reset_model,

@@ -27,7 +27,7 @@
             }
         },
         "FileSystemTree": {
-            "type": "UniformTree",
+            "type": "Tree",
             "properties": {
                 "path": {
                     "type": "QString",
@@ -92,7 +92,7 @@
             }
         },
         "Processes": {
-            "type": "UniformTree",
+            "type": "Tree",
             "properties": {
                 "active": {
                     "type": "bool",

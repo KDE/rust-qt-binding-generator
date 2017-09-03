@@ -9,7 +9,7 @@
 enum class ObjectType {
     Object,
     List,
-    UniformTree
+    Tree
 };
 
 enum class BindingType {
@@ -129,7 +129,7 @@ struct Configuration {
     }
     bool hasListOrTree() const {
         for (auto o: objects) {
-            if (o.type == ObjectType::List || o.type == ObjectType::UniformTree) {
+            if (o.type == ObjectType::List || o.type == ObjectType::Tree) {
                 return true;
             }
         }

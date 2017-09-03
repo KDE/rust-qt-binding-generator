@@ -7,7 +7,7 @@
     },
     "objects": {
         "Persons": {
-            "type": "UniformTree",
+            "type": "Tree",
             "itemProperties": {
                 "userName": {
                     "type": "QString",

@@ -177,7 +177,7 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
     const QString lcname(snakeCase(o.name));
     QString indexDecl = ", int";
     QString index = ", index.row()";
-    if (o.type == ObjectType::UniformTree) {
+    if (o.type == ObjectType::Tree) {
         indexDecl = ", quintptr";
         index = ", index.internalId()";
     }
@@ -501,7 +501,7 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
         void (*)(%1*, int, int),
         void (*)(%1*))").arg(o.name);
     }
-    if (o.type == ObjectType::UniformTree) {
+    if (o.type == ObjectType::Tree) {
         cpp << QString(R"(,
         void (*)(const %1*, quintptr, bool),
         void (*)(%1*, quintptr, quintptr),
@@ -558,7 +558,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         }
 )").arg(o.name,     QString::number(o.columnCount - 1));
     }
-    if (o.type == ObjectType::UniformTree) {
+    if (o.type == ObjectType::Tree) {
         cpp << QString(R"(,
         [](const %1* o, quintptr id, bool valid) {
             if (valid) {

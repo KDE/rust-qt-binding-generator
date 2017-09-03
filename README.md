@@ -42,7 +42,7 @@ This will create four files:
 
 * *src/person.h*
 * *src/person.cpp*
-* rust/src/implemenation.rs
+* rust/src/implementation.rs
 * *rust/src/interface.rs*
 
 Only `implementation.rs` should be changed. The other files are the binding. `implementation.rs` is initialy created with a simple implementation that is shown here with some comments.

@@ -28,7 +28,7 @@ enum ChangeState {
 
 pub struct Processes {
     emit: ProcessesEmitter,
-    model: ProcessesUniformTree,
+    model: ProcessesTree,
     p: ProcessTree,
     incoming: Arc<Mutex<Option<ProcessTree>>>,
     active: bool,
@@ -160,7 +160,7 @@ fn move_process(
 }
 
 fn remove_row(
-    model: &ProcessesUniformTree,
+    model: &ProcessesTree,
     parent: pid_t,
     row: usize,
     map: &mut HashMap<pid_t, ProcessItem>,
@@ -187,7 +187,7 @@ fn remove_row(
 }
 
 fn insert_row(
-    model: &ProcessesUniformTree,
+    model: &ProcessesTree,
     parent: pid_t,
     row: usize,
     map: &mut HashMap<pid_t, ProcessItem>,
@@ -218,7 +218,7 @@ fn cmp_f32(a: f32, b: f32) -> bool {
     ((a - b) / a).abs() < 0.01
 }
 
-fn sync_row(model: &ProcessesUniformTree, pid: pid_t, a: &mut Process, b: &Process) -> f32 {
+fn sync_row(model: &ProcessesTree, pid: pid_t, a: &mut Process, b: &Process) -> f32 {
     let mut changed = a.name != b.name;
     if changed {
         a.name.clone_from(&b.name);
@@ -246,7 +246,7 @@ fn sync_row(model: &ProcessesUniformTree, pid: pid_t, a: &mut Process, b: &Proce
 }
 
 fn sync_tree(
-    model: &ProcessesUniformTree,
+    model: &ProcessesTree,
     parent: pid_t,
     amap: &mut HashMap<pid_t, ProcessItem>,
     bmap: &mut HashMap<pid_t, ProcessItem>,
@@ -303,7 +303,7 @@ fn sync_tree(
 }
 
 impl ProcessesTrait for Processes {
-    fn create(emit: ProcessesEmitter, model: ProcessesUniformTree) -> Processes {
+    fn create(emit: ProcessesEmitter, model: ProcessesTree) -> Processes {
         let (tx, rx) = channel();
         let p = Processes {
             emit: emit.clone(),

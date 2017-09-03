@@ -61,13 +61,13 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
     if (o.type == ObjectType::List) {
         r << QString(",\n    %2_new_data_ready: fn(*const %1QObject)")
             .arg(o.name, snakeCase(o.name));
-    } else if (o.type == ObjectType::UniformTree) {
+    } else if (o.type == ObjectType::Tree) {
         r << QString(",\n    %2_new_data_ready: fn(*const %1QObject, item: usize, valid: bool)")
             .arg(o.name, snakeCase(o.name));
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl;
-        if (o.type == ObjectType::UniformTree) {
+        if (o.type == ObjectType::Tree) {
             indexDecl = " item: usize, valid: bool,";
         }
         r << QString(R"(,
@@ -102,7 +102,7 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
     }
     QString model = "";
     if (o.type != ObjectType::Object) {
-        const QString type = o.type == ObjectType::List ? "List" : "UniformTree";
+        const QString type = o.type == ObjectType::List ? "List" : "Tree";
         model = ", model";
         r << QString(R"(    };
     let model = %1%2 {
@@ -145,7 +145,7 @@ pub struct %1Emitter {
     if (o.type == ObjectType::List) {
         r << QString("    new_data_ready: fn(*const %1QObject),\n")
             .arg(o.name);
-    } else if (o.type == ObjectType::UniformTree) {
+    } else if (o.type == ObjectType::Tree) {
         r << QString("    new_data_ready: fn(*const %1QObject, item: usize, valid: bool),\n")
             .arg(o.name);
     }
@@ -178,7 +178,7 @@ impl %1Emitter {
         }
     }
 )";
-    } else if (o.type == ObjectType::UniformTree) {
+    } else if (o.type == ObjectType::Tree) {
         r << R"(    pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
@@ -190,12 +190,12 @@ impl %1Emitter {
 
     QString modelStruct = "";
     if (o.type != ObjectType::Object) {
-        QString type = o.type == ObjectType::List ? "List" : "UniformTree";
+        QString type = o.type == ObjectType::List ? "List" : "Tree";
         modelStruct = ", model: " + o.name + type;
         QString index;
         QString indexDecl;
         QString indexCDecl;
-        if (o.type == ObjectType::UniformTree) {
+        if (o.type == ObjectType::Tree) {
             indexDecl = " item: Option<usize>,";
             indexCDecl = " item: usize, valid: bool,";
             index = " item.unwrap_or(13), item.is_some(),";
@@ -270,7 +270,7 @@ pub trait %1Trait {
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
 )";
-    } else if (o.type == ObjectType::UniformTree) {
+    } else if (o.type == ObjectType::Tree) {
         r << R"(    fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
         false
@@ -410,7 +410,7 @@ pub unsafe extern "C" fn %2_sort(
     (&mut *ptr).sort(column, order)
 }
 )").arg(o.name, lcname);
-    } else if (o.type == ObjectType::UniformTree) {
+    } else if (o.type == ObjectType::Tree) {
         r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_row_count(
@@ -488,7 +488,7 @@ pub unsafe extern "C" fn %2_row(ptr: *const %1, item: usize) -> c_int {
     if (o.type != ObjectType::Object) {
         QString indexDecl = ", row: c_int";
         QString index = "row as usize";
-        if (o.type == ObjectType::UniformTree) {
+        if (o.type == ObjectType::Tree) {
             indexDecl = ", item: usize";
             index = "item";
         }
@@ -744,9 +744,9 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     if (o.type == ObjectType::List) {
         modelStruct = ", model: " + o.name + "List";
         r << QString("    model: %1List,\n").arg(o.name);
-    } else if (o.type == ObjectType::UniformTree) {
-        modelStruct = ", model: " + o.name + "UniformTree";
-        r << QString("    model: %1UniformTree,\n").arg(o.name);
+    } else if (o.type == ObjectType::Tree) {
+        modelStruct = ", model: " + o.name + "Tree";
+        r << QString("    model: %1Tree,\n").arg(o.name);
     }
     for (const Property& p: o.properties) {
         const QString lc(snakeCase(p.name));
@@ -826,7 +826,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     if (o.type == ObjectType::List) {
         r << "    fn row_count(&self) -> usize {\n        self.list.len()\n    }\n";
-    } else if (o.type == ObjectType::UniformTree) {
+    } else if (o.type == ObjectType::Tree) {
         r << R"(    fn row_count(&self, item: Option<usize>) -> usize {
         self.list.len()
     }
@@ -843,7 +843,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
     }
     if (o.type != ObjectType::Object) {
         QString index;
-        if (o.type == ObjectType::UniformTree) {
+        if (o.type == ObjectType::Tree) {
             index = ", item: usize";
         }
         for (auto ip: o.itemProperties) {

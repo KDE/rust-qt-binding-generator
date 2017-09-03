@@ -149,8 +149,8 @@ parseObject(const QString& name, const QJsonObject& json) {
     QString type = json.value("type").toString();
     if (type == "List") {
         o.type = ObjectType::List;
-    } else if (type == "UniformTree") {
-        o.type = ObjectType::UniformTree;
+    } else if (type == "Tree") {
+        o.type = ObjectType::Tree;
     } else {
         o.type = ObjectType::Object;
     }

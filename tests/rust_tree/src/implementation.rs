@@ -10,12 +10,12 @@ struct PersonsItem {
 
 pub struct Persons {
     emit: PersonsEmitter,
-    model: PersonsUniformTree,
+    model: PersonsTree,
     list: Vec<PersonsItem>,
 }
 
 impl PersonsTrait for Persons {
-    fn create(emit: PersonsEmitter, model: PersonsUniformTree) -> Persons {
+    fn create(emit: PersonsEmitter, model: PersonsTree) -> Persons {
         Persons {
             emit: emit,
             model: model,
