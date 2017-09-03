@@ -1,6 +1,6 @@
 # Rust Qt Binding Generator
 
-![Rust Qt Binding](demo/logo.svg)
+![Rust Qt Binding](demo/rust_qt_binding_generator.svg)
 
 This code generator gets you started quickly to use Rust code from Qt and QML. In other words, it helps to create a Qt based GUI on top of Rust code.
 

@@ -155,11 +155,11 @@ QStatusBar* createStatusBar(Model* model, QWidget* main, QComboBox* box,
     };
     box->connect(box, &QComboBox::currentTextChanged, box, f);
 
-    QSvgWidget* logo = new QSvgWidget(":/logo.svg");
-    logo->setFixedSize(logo->renderer()->defaultSize() / 4);
+    QSvgWidget* rust_qt_binding_generator = new QSvgWidget(":/rust_qt_binding_generator.svg");
+    rust_qt_binding_generator->setFixedSize(rust_qt_binding_generator->renderer()->defaultSize() / 4);
 
     QStatusBar* statusBar = new QStatusBar;
-    statusBar->addPermanentWidget(logo);
+    statusBar->addPermanentWidget(rust_qt_binding_generator);
     statusBar->addPermanentWidget(box);
     return statusBar;
 }
@@ -336,7 +336,7 @@ void createMainWindow(Model* model, const QString& initialStyle,
 int main (int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon(":/logo.svg"));
+    app.setWindowIcon(QIcon(":/rust_qt_binding_generator.svg"));
 
 #ifdef QT_QUICK_LIB
     qmlRegisterType<QSortFilterProxyModel>("org.qtproject.example", 1, 0, "SortFilterProxyModel");

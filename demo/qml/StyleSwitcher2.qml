@@ -6,7 +6,7 @@ RowLayout {
     Image {
         sourceSize.height: 2 * box.height
         fillMode: Image.PreserveAspectFit
-        source: "../logo.svg"
+        source: "../rust_qt_binding_generator.svg"
     }
     ComboBox {
         id: box

@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>logo.svg</file>
+        <file>rust_qt_binding_generator.svg</file>
         <file>qml/DataAndChart.qml</file>
         <file>qml/Fibonacci.qml</file>
         <file>qml/Fibonacci2.qml</file>
