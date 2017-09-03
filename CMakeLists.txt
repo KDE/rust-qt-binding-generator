@@ -21,13 +21,15 @@ include(ECMPoQmTools)
 
 find_package(Cargo REQUIRED)
 find_package(Rust REQUIRED)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
 
 # Runtime information library -- dl on Debian, execinfo on FreeBSD.
 # This quiets a warning from rustc about linking to native artifacts.
 if (CMAKE_SYSTEM MATCHES "FreeBSD")
     find_library(DL_LIBRARY execinfo)
 else()
-    find_library(DL_LIBRARY dl)
+    find_library(DL_LIBRARY ${CMAKE_DL_LIBS})
 endif()
 
 # It would be neater to use set_package_properties() here and to
