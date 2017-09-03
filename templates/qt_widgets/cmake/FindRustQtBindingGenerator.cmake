@@ -1,0 +1,5 @@
+include(FindPackageHandleStandardArgs)
+find_program(RustQtBindingGenerator_EXECUTABLE rust_qt_binding_generator)
+find_package_handle_standard_args(RustQtBindingGenerator
+    REQUIRED_VARS RustQtBindingGenerator_EXECUTABLE)
+mark_as_advanced(RustQtBindingGenerator_EXECUTABLE)
