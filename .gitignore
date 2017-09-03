@@ -1,4 +1,5 @@
 /demo/rust/Cargo.lock
 /demo/rust/target/
+/docker_home/
 /tests/rust_*/Cargo.lock
 /tests/rust_*/target/
