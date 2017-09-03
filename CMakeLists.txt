@@ -37,16 +37,6 @@ find_package(Qt5Charts EXACT ${Qt5Core_VERSION})
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-if (ECM_FOUND)
-    # Find KDE Modules
-    find_package(KF5 ${KF5_MIN_VERSION} COMPONENTS
-        CoreAddons      # KAboutData
-        I18n            # KLocalizedString
-        WidgetsAddons   # KMessageBox
-    )
-    find_package(KF5Kirigami CONFIG)
-endif()
-
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
