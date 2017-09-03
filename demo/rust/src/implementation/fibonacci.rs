@@ -28,7 +28,7 @@ pub struct Fibonacci {
 }
 
 impl FibonacciTrait for Fibonacci {
-    fn create(emit: FibonacciEmitter) -> Fibonacci {
+    fn new(emit: FibonacciEmitter) -> Fibonacci {
         Fibonacci {
             emit: emit,
             input: 0,
@@ -64,7 +64,7 @@ pub struct FibonacciList {
 }
 
 impl FibonacciListTrait for FibonacciList {
-    fn create(emit: FibonacciListEmitter, _: FibonacciListList) -> FibonacciList {
+    fn new(emit: FibonacciListEmitter, _: FibonacciListList) -> FibonacciList {
         FibonacciList {
             emit: emit,
         }

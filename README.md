@@ -61,7 +61,7 @@ pub struct Person {
 /// Implementation of the binding
 impl PersonTrait for Person {
     /// Create a new person with default data.
-    fn create(emit: PersonEmitter) -> Person {
+    fn new(emit: PersonEmitter) -> Person {
         Person {
             emit: emit,
             name: String::new(),

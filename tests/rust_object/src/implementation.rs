@@ -9,7 +9,7 @@ pub struct Person {
 }
 
 impl PersonTrait for Person {
-    fn create(emit: PersonEmitter) -> Person {
+    fn new(emit: PersonEmitter) -> Person {
         Person {
             emit: emit,
             user_name: String::new(),

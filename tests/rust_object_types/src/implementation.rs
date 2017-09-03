@@ -16,7 +16,7 @@ pub struct Object {
 }
 
 impl ObjectTrait for Object {
-    fn create(emit: ObjectEmitter) -> Object {
+    fn new(emit: ObjectEmitter) -> Object {
         Object {
             emit: emit,
             boolean: true,

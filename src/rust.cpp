@@ -116,7 +116,7 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
         end_remove_rows: %4_end_remove_rows,
 )").arg(o.name, type, snakeCase(name), snakeCase(o.name));
     }
-    r << QString("    };\n    let d_%3 = %1::create(%3_emit%2")
+    r << QString("    };\n    let d_%3 = %1::new(%3_emit%2")
          .arg(o.name, model, snakeCase(name));
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
@@ -241,7 +241,7 @@ impl %1%2 {
     r << QString(R"(}
 
 pub trait %1Trait {
-    fn create(emit: %1Emitter%2)").arg(o.name, modelStruct);
+    fn new(emit: %1Emitter%2)").arg(o.name, modelStruct);
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) {
             r << ",\n        " << snakeCase(p.name) << ": " << p.type.name;
@@ -762,7 +762,7 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         }
     }
     r << QString(R"(impl %1Trait for %1 {
-    fn create(emit: %1Emitter%2) -> %1 {
+    fn new(emit: %1Emitter%2) -> %1 {
         %1 {
             emit: emit,
 )").arg(o.name, modelStruct);

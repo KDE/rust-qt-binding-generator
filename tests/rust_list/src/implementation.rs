@@ -15,7 +15,7 @@ pub struct Persons {
 }
 
 impl PersonsTrait for Persons {
-    fn create(emit: PersonsEmitter, model: PersonsList) -> Persons {
+    fn new(emit: PersonsEmitter, model: PersonsList) -> Persons {
         Persons {
             emit: emit,
             model: model,

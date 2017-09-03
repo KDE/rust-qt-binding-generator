@@ -63,7 +63,7 @@ impl GroupEmitter {
 }
 
 pub trait GroupTrait {
-    fn create(emit: GroupEmitter,
+    fn new(emit: GroupEmitter,
         person: Person) -> Self;
     fn emit(&self) -> &GroupEmitter;
     fn person(&self) -> &Person;
@@ -81,16 +81,16 @@ pub extern "C" fn group_new(
         qobject: Arc::new(Mutex::new(object)),
         description_changed: description_changed,
     };
-    let d_object = InnerObject::create(object_emit);
+    let d_object = InnerObject::new(object_emit);
     let person_emit = PersonEmitter {
         qobject: Arc::new(Mutex::new(person)),
     };
-    let d_person = Person::create(person_emit,
+    let d_person = Person::new(person_emit,
         d_object);
     let group_emit = GroupEmitter {
         qobject: Arc::new(Mutex::new(group)),
     };
-    let d_group = Group::create(group_emit,
+    let d_group = Group::new(group_emit,
         d_person);
     Box::into_raw(Box::new(d_group))
 }
@@ -128,7 +128,7 @@ impl InnerObjectEmitter {
 }
 
 pub trait InnerObjectTrait {
-    fn create(emit: InnerObjectEmitter) -> Self;
+    fn new(emit: InnerObjectEmitter) -> Self;
     fn emit(&self) -> &InnerObjectEmitter;
     fn description(&self) -> &str;
     fn set_description(&mut self, value: String);
@@ -143,7 +143,7 @@ pub extern "C" fn inner_object_new(
         qobject: Arc::new(Mutex::new(inner_object)),
         description_changed: description_changed,
     };
-    let d_inner_object = InnerObject::create(inner_object_emit);
+    let d_inner_object = InnerObject::new(inner_object_emit);
     Box::into_raw(Box::new(d_inner_object))
 }
 
@@ -183,7 +183,7 @@ impl PersonEmitter {
 }
 
 pub trait PersonTrait {
-    fn create(emit: PersonEmitter,
+    fn new(emit: PersonEmitter,
         object: InnerObject) -> Self;
     fn emit(&self) -> &PersonEmitter;
     fn object(&self) -> &InnerObject;
@@ -200,11 +200,11 @@ pub extern "C" fn person_new(
         qobject: Arc::new(Mutex::new(object)),
         description_changed: description_changed,
     };
-    let d_object = InnerObject::create(object_emit);
+    let d_object = InnerObject::new(object_emit);
     let person_emit = PersonEmitter {
         qobject: Arc::new(Mutex::new(person)),
     };
-    let d_person = Person::create(person_emit,
+    let d_person = Person::new(person_emit,
         d_object);
     Box::into_raw(Box::new(d_person))
 }

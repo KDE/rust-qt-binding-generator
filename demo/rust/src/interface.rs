@@ -125,7 +125,7 @@ impl DemoEmitter {
 }
 
 pub trait DemoTrait {
-    fn create(emit: DemoEmitter,
+    fn new(emit: DemoEmitter,
         fibonacci: Fibonacci,
         fibonacci_list: FibonacciList,
         file_system_tree: FileSystemTree,
@@ -194,7 +194,7 @@ pub extern "C" fn demo_new(
         input_changed: input_changed,
         result_changed: result_changed,
     };
-    let d_fibonacci = Fibonacci::create(fibonacci_emit);
+    let d_fibonacci = Fibonacci::new(fibonacci_emit);
     let fibonacci_list_emit = FibonacciListEmitter {
         qobject: Arc::new(Mutex::new(fibonacci_list)),
         new_data_ready: fibonacci_list_new_data_ready,
@@ -209,7 +209,7 @@ pub extern "C" fn demo_new(
         begin_remove_rows: fibonacci_list_begin_remove_rows,
         end_remove_rows: fibonacci_list_end_remove_rows,
     };
-    let d_fibonacci_list = FibonacciList::create(fibonacci_list_emit, model);
+    let d_fibonacci_list = FibonacciList::new(fibonacci_list_emit, model);
     let file_system_tree_emit = FileSystemTreeEmitter {
         qobject: Arc::new(Mutex::new(file_system_tree)),
         path_changed: path_changed,
@@ -225,7 +225,7 @@ pub extern "C" fn demo_new(
         begin_remove_rows: file_system_tree_begin_remove_rows,
         end_remove_rows: file_system_tree_end_remove_rows,
     };
-    let d_file_system_tree = FileSystemTree::create(file_system_tree_emit, model);
+    let d_file_system_tree = FileSystemTree::new(file_system_tree_emit, model);
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(Mutex::new(processes)),
         active_changed: active_changed,
@@ -241,7 +241,7 @@ pub extern "C" fn demo_new(
         begin_remove_rows: processes_begin_remove_rows,
         end_remove_rows: processes_end_remove_rows,
     };
-    let d_processes = Processes::create(processes_emit, model);
+    let d_processes = Processes::new(processes_emit, model);
     let time_series_emit = TimeSeriesEmitter {
         qobject: Arc::new(Mutex::new(time_series)),
         new_data_ready: time_series_new_data_ready,
@@ -256,11 +256,11 @@ pub extern "C" fn demo_new(
         begin_remove_rows: time_series_begin_remove_rows,
         end_remove_rows: time_series_end_remove_rows,
     };
-    let d_time_series = TimeSeries::create(time_series_emit, model);
+    let d_time_series = TimeSeries::new(time_series_emit, model);
     let demo_emit = DemoEmitter {
         qobject: Arc::new(Mutex::new(demo)),
     };
-    let d_demo = Demo::create(demo_emit,
+    let d_demo = Demo::new(demo_emit,
         d_fibonacci,
         d_fibonacci_list,
         d_file_system_tree,
@@ -329,7 +329,7 @@ impl FibonacciEmitter {
 }
 
 pub trait FibonacciTrait {
-    fn create(emit: FibonacciEmitter) -> Self;
+    fn new(emit: FibonacciEmitter) -> Self;
     fn emit(&self) -> &FibonacciEmitter;
     fn input(&self) -> u32;
     fn set_input(&mut self, value: u32);
@@ -347,7 +347,7 @@ pub extern "C" fn fibonacci_new(
         input_changed: input_changed,
         result_changed: result_changed,
     };
-    let d_fibonacci = Fibonacci::create(fibonacci_emit);
+    let d_fibonacci = Fibonacci::new(fibonacci_emit);
     Box::into_raw(Box::new(d_fibonacci))
 }
 
@@ -429,7 +429,7 @@ impl FibonacciListList {
 }
 
 pub trait FibonacciListTrait {
-    fn create(emit: FibonacciListEmitter, model: FibonacciListList) -> Self;
+    fn new(emit: FibonacciListEmitter, model: FibonacciListList) -> Self;
     fn emit(&self) -> &FibonacciListEmitter;
     fn row_count(&self) -> usize;
     fn can_fetch_more(&self) -> bool {
@@ -467,7 +467,7 @@ pub extern "C" fn fibonacci_list_new(
         begin_remove_rows: fibonacci_list_begin_remove_rows,
         end_remove_rows: fibonacci_list_end_remove_rows,
     };
-    let d_fibonacci_list = FibonacciList::create(fibonacci_list_emit, model);
+    let d_fibonacci_list = FibonacciList::new(fibonacci_list_emit, model);
     Box::into_raw(Box::new(d_fibonacci_list))
 }
 
@@ -572,7 +572,7 @@ impl FileSystemTreeTree {
 }
 
 pub trait FileSystemTreeTrait {
-    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self;
+    fn new(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self;
     fn emit(&self) -> &FileSystemTreeEmitter;
     fn path(&self) -> Option<&str>;
     fn set_path(&mut self, value: Option<String>);
@@ -621,7 +621,7 @@ pub extern "C" fn file_system_tree_new(
         begin_remove_rows: file_system_tree_begin_remove_rows,
         end_remove_rows: file_system_tree_end_remove_rows,
     };
-    let d_file_system_tree = FileSystemTree::create(file_system_tree_emit, model);
+    let d_file_system_tree = FileSystemTree::new(file_system_tree_emit, model);
     Box::into_raw(Box::new(d_file_system_tree))
 }
 
@@ -835,7 +835,7 @@ impl ProcessesTree {
 }
 
 pub trait ProcessesTrait {
-    fn create(emit: ProcessesEmitter, model: ProcessesTree) -> Self;
+    fn new(emit: ProcessesEmitter, model: ProcessesTree) -> Self;
     fn emit(&self) -> &ProcessesEmitter;
     fn active(&self) -> bool;
     fn set_active(&mut self, value: bool);
@@ -885,7 +885,7 @@ pub extern "C" fn processes_new(
         begin_remove_rows: processes_begin_remove_rows,
         end_remove_rows: processes_end_remove_rows,
     };
-    let d_processes = Processes::create(processes_emit, model);
+    let d_processes = Processes::new(processes_emit, model);
     Box::into_raw(Box::new(d_processes))
 }
 
@@ -1079,7 +1079,7 @@ impl TimeSeriesList {
 }
 
 pub trait TimeSeriesTrait {
-    fn create(emit: TimeSeriesEmitter, model: TimeSeriesList) -> Self;
+    fn new(emit: TimeSeriesEmitter, model: TimeSeriesList) -> Self;
     fn emit(&self) -> &TimeSeriesEmitter;
     fn row_count(&self) -> usize;
     fn can_fetch_more(&self) -> bool {
@@ -1121,7 +1121,7 @@ pub extern "C" fn time_series_new(
         begin_remove_rows: time_series_begin_remove_rows,
         end_remove_rows: time_series_end_remove_rows,
     };
-    let d_time_series = TimeSeries::create(time_series_emit, model);
+    let d_time_series = TimeSeries::new(time_series_emit, model);
     Box::into_raw(Box::new(d_time_series))
 }
 

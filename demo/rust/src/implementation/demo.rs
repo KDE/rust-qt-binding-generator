@@ -11,7 +11,7 @@ pub struct Demo {
 }
 
 impl DemoTrait for Demo {
-    fn create(emit: DemoEmitter,
+    fn new(emit: DemoEmitter,
         fibonacci: Fibonacci,
         fibonacci_list: FibonacciList,
         file_system_tree: FileSystemTree,

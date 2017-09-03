@@ -168,7 +168,7 @@ impl ObjectEmitter {
 }
 
 pub trait ObjectTrait {
-    fn create(emit: ObjectEmitter) -> Self;
+    fn new(emit: ObjectEmitter) -> Self;
     fn emit(&self) -> &ObjectEmitter;
     fn boolean(&self) -> bool;
     fn set_boolean(&mut self, value: bool);
@@ -211,7 +211,7 @@ pub extern "C" fn object_new(
         u64_changed: u64_changed,
         uinteger_changed: uinteger_changed,
     };
-    let d_object = Object::create(object_emit);
+    let d_object = Object::new(object_emit);
     Box::into_raw(Box::new(d_object))
 }
 

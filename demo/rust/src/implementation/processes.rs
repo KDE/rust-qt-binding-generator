@@ -303,7 +303,7 @@ fn sync_tree(
 }
 
 impl ProcessesTrait for Processes {
-    fn create(emit: ProcessesEmitter, model: ProcessesTree) -> Processes {
+    fn new(emit: ProcessesEmitter, model: ProcessesTree) -> Processes {
         let (tx, rx) = channel();
         let p = Processes {
             emit: emit.clone(),

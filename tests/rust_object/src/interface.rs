@@ -70,7 +70,7 @@ impl PersonEmitter {
 }
 
 pub trait PersonTrait {
-    fn create(emit: PersonEmitter) -> Self;
+    fn new(emit: PersonEmitter) -> Self;
     fn emit(&self) -> &PersonEmitter;
     fn user_name(&self) -> &str;
     fn set_user_name(&mut self, value: String);
@@ -85,7 +85,7 @@ pub extern "C" fn person_new(
         qobject: Arc::new(Mutex::new(person)),
         user_name_changed: user_name_changed,
     };
-    let d_person = Person::create(person_emit);
+    let d_person = Person::new(person_emit);
     Box::into_raw(Box::new(d_person))
 }
 

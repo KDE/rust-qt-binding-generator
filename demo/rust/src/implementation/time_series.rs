@@ -13,7 +13,7 @@ pub struct TimeSeries {
 }
 
 impl TimeSeriesTrait for TimeSeries {
-    fn create(emit: TimeSeriesEmitter, _: TimeSeriesList) -> TimeSeries {
+    fn new(emit: TimeSeriesEmitter, _: TimeSeriesList) -> TimeSeries {
         let mut series = TimeSeries {
             emit: emit,
             list: Vec::new(),

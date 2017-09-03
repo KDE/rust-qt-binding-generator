@@ -9,7 +9,7 @@ pub struct Group {
 }
 
 impl GroupTrait for Group {
-    fn create(emit: GroupEmitter, person: Person) -> Group {
+    fn new(emit: GroupEmitter, person: Person) -> Group {
         Group {
             emit: emit,
             person: person,
@@ -32,7 +32,7 @@ pub struct InnerObject {
 }
 
 impl InnerObjectTrait for InnerObject {
-    fn create(emit: InnerObjectEmitter) -> InnerObject {
+    fn new(emit: InnerObjectEmitter) -> InnerObject {
         InnerObject {
             emit: emit,
             description: String::new(),
@@ -56,7 +56,7 @@ pub struct Person {
 }
 
 impl PersonTrait for Person {
-    fn create(emit: PersonEmitter, object: InnerObject) -> Person {
+    fn new(emit: PersonEmitter, object: InnerObject) -> Person {
         Person {
             emit: emit,
             object: object,

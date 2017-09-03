@@ -19,7 +19,7 @@ pub struct DirEntry {
 type Incoming<T> = Arc<Mutex<HashMap<usize, Vec<T>>>>;
 
 impl Item for DirEntry {
-    fn create(name: &str) -> DirEntry {
+    fn new(name: &str) -> DirEntry {
         DirEntry {
             name: OsString::from(name),
             metadata: metadata(name).ok(),
@@ -85,7 +85,7 @@ impl Default for DirEntry {
 }
 
 pub trait Item: Default {
-    fn create(name: &str) -> Self;
+    fn new(name: &str) -> Self;
     fn can_fetch_more(&self) -> bool;
     fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: FileSystemTreeEmitter);
     fn file_name(&self) -> String;
@@ -125,7 +125,7 @@ where
                 parent: None,
                 row: 0,
                 children: None,
-                data: T::create(path),
+                data: T::new(path),
             };
             self.entries.push(root);
         }
@@ -189,7 +189,7 @@ impl<T: Item> FileSystemTreeTrait for RGeneralItemModel<T>
 where
     T: Sync + Send,
 {
-    fn create(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self {
+    fn new(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self {
         let mut tree = RGeneralItemModel {
             emit: emit,
             model: model,

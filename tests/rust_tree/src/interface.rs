@@ -144,7 +144,7 @@ impl PersonsTree {
 }
 
 pub trait PersonsTrait {
-    fn create(emit: PersonsEmitter, model: PersonsTree) -> Self;
+    fn new(emit: PersonsEmitter, model: PersonsTree) -> Self;
     fn emit(&self) -> &PersonsEmitter;
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
@@ -185,7 +185,7 @@ pub extern "C" fn persons_new(
         begin_remove_rows: persons_begin_remove_rows,
         end_remove_rows: persons_end_remove_rows,
     };
-    let d_persons = Persons::create(persons_emit, model);
+    let d_persons = Persons::new(persons_emit, model);
     Box::into_raw(Box::new(d_persons))
 }
 
