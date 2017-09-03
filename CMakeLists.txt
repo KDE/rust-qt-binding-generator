@@ -75,3 +75,5 @@ if(Qt5Widgets_FOUND AND Qt5Svg_FOUND)
     add_subdirectory(demo)
 endif()
 
+install(FILES org.kde.rust_qt_binding_generator.appdata.xml
+        DESTINATION ${KDE_INSTALL_METAINFODIR})

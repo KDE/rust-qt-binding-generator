@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop">
+  <id>org.kde.rust_qt_binding_generator</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <name>Rust Qt Binding Generator</name>
+  <summary>Generate bindings to use Rust code in Qt and QML</summary>
+  <description>
+    <p>Rust Qt Binding Generator is command-line program for using Rust code in Qt programs. It generates QObject types that give access to Rust code. The implementation of the QObject is written in a Rust trait.</p>
+  </description>
+  <url type="homepage">https://community.kde.org/Rust_Qt_Binding_Generator</url>
+  <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?format=guided&amp;product=rust_qt_binding_generator</url>
+  <url type="help">https://docs.kde.org/index.php?application=rust_qt_binding_generator</url>
+  <update_contact>vandenoever_at_kde.org</update_contact>
+  <project_group>KDE</project_group>
+</component>
