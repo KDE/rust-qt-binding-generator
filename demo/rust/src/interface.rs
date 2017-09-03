@@ -1087,10 +1087,12 @@ pub trait TimeSeriesTrait {
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-    fn input(&self, item: usize) -> u32;
-    fn set_input(&mut self, item: usize, u32) -> bool;
-    fn result(&self, item: usize) -> u32;
-    fn set_result(&mut self, item: usize, u32) -> bool;
+    fn cos(&self, item: usize) -> f32;
+    fn set_cos(&mut self, item: usize, f32) -> bool;
+    fn sin(&self, item: usize) -> f32;
+    fn set_sin(&mut self, item: usize, f32) -> bool;
+    fn time(&self, item: usize) -> f32;
+    fn set_time(&mut self, item: usize, f32) -> bool;
 }
 
 #[no_mangle]
@@ -1150,27 +1152,40 @@ pub unsafe extern "C" fn time_series_sort(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn time_series_data_input(ptr: *const TimeSeries, row: c_int) -> u32 {
-    (&*ptr).input(row as usize).into()
+pub unsafe extern "C" fn time_series_data_cos(ptr: *const TimeSeries, row: c_int) -> f32 {
+    (&*ptr).cos(row as usize).into()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn time_series_set_data_input(
+pub unsafe extern "C" fn time_series_set_data_cos(
     ptr: *mut TimeSeries, row: c_int,
-    v: u32,
+    v: f32,
 ) -> bool {
-    (&mut *ptr).set_input(row as usize, v)
+    (&mut *ptr).set_cos(row as usize, v)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn time_series_data_result(ptr: *const TimeSeries, row: c_int) -> u32 {
-    (&*ptr).result(row as usize).into()
+pub unsafe extern "C" fn time_series_data_sin(ptr: *const TimeSeries, row: c_int) -> f32 {
+    (&*ptr).sin(row as usize).into()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn time_series_set_data_result(
+pub unsafe extern "C" fn time_series_set_data_sin(
     ptr: *mut TimeSeries, row: c_int,
-    v: u32,
+    v: f32,
 ) -> bool {
-    (&mut *ptr).set_result(row as usize, v)
+    (&mut *ptr).set_sin(row as usize, v)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn time_series_data_time(ptr: *const TimeSeries, row: c_int) -> f32 {
+    (&*ptr).time(row as usize).into()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn time_series_set_data_time(
+    ptr: *mut TimeSeries, row: c_int,
+    v: f32,
+) -> bool {
+    (&mut *ptr).set_time(row as usize, v)
 }

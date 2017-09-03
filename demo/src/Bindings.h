@@ -237,10 +237,12 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-    Q_INVOKABLE QVariant input(int row) const;
-    Q_INVOKABLE bool setInput(int row, const QVariant& value);
-    Q_INVOKABLE QVariant result(int row) const;
-    Q_INVOKABLE bool setResult(int row, const QVariant& value);
+    Q_INVOKABLE QVariant cos(int row) const;
+    Q_INVOKABLE bool setCos(int row, const QVariant& value);
+    Q_INVOKABLE QVariant sin(int row) const;
+    Q_INVOKABLE bool setSin(int row, const QVariant& value);
+    Q_INVOKABLE QVariant time(int row) const;
+    Q_INVOKABLE bool setTime(int row, const QVariant& value);
 
 signals:
     // new data is ready to be made available to the model with fetchMore()

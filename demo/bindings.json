@@ -131,15 +131,20 @@
         "TimeSeries": {
             "type": "List",
             "itemProperties": {
-                "input": {
-                    "type": "quint32",
+                "time": {
+                    "type": "float",
                     "write": true,
                     "roles": [ [ "display", "edit" ] ]
                 },
-                "result": {
-                    "type": "quint32",
+                "sin": {
+                    "type": "float",
                     "write": true,
                     "roles": [ [], [ "display", "edit" ] ]
+                },
+                "cos": {
+                    "type": "float",
+                    "write": true,
+                    "roles": [ [], [], [ "display", "edit" ] ]
                 }
             }
         }

@@ -11,21 +11,19 @@ Item {
 
         antialiasing: true
 
-        DateTimeAxis {
+        ValueAxis {
             id: axisX
-            titleText: "Date"
-            format: "MMM yyyy"
-            tickCount: 10
+            titleText: qsTr("time [s]")
         }
 
         ValueAxis {
             id: axisY
-            titleText: "Sunspots count"
+            titleText: qsTr("electric potential [V]")
         }
 
         LineSeries {
-            id: cpu
-            name: "CPU"
+            id: sin
+            name: "sin"
             axisX: axisX
             axisY: axisY
         }
@@ -34,7 +32,21 @@ Item {
             model: demo.timeSeries
             xColumn: 0
             yColumn: 1
-            series: cpu
+            series: sin
+        }
+
+        LineSeries {
+            id: cos
+            name: "cos"
+            axisX: axisX
+            axisY: axisY
+        }
+
+        VXYModelMapper {
+            model: demo.timeSeries
+            xColumn: 0
+            yColumn: 2
+            series: cos
         }
     }
 }

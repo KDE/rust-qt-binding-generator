@@ -716,10 +716,12 @@ extern "C" {
 };
 
 extern "C" {
-    uint time_series_data_input(const TimeSeries::Private*, int);
-    bool time_series_set_data_input(TimeSeries::Private*, int, uint);
-    uint time_series_data_result(const TimeSeries::Private*, int);
-    bool time_series_set_data_result(TimeSeries::Private*, int, uint);
+    float time_series_data_cos(const TimeSeries::Private*, int);
+    bool time_series_set_data_cos(TimeSeries::Private*, int, float);
+    float time_series_data_sin(const TimeSeries::Private*, int);
+    bool time_series_set_data_sin(TimeSeries::Private*, int, float);
+    float time_series_data_time(const TimeSeries::Private*, int);
+    bool time_series_set_data_time(TimeSeries::Private*, int, float);
     void time_series_sort(TimeSeries::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int time_series_row_count(const TimeSeries::Private*);
@@ -728,7 +730,7 @@ extern "C" {
 }
 int TimeSeries::columnCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : 2;
+    return (parent.isValid()) ? 0 : 3;
 }
 
 bool TimeSeries::hasChildren(const QModelIndex &parent) const
@@ -743,7 +745,7 @@ int TimeSeries::rowCount(const QModelIndex &parent) const
 
 QModelIndex TimeSeries::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 2) {
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 3) {
         return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
@@ -779,20 +781,23 @@ Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
     if (i.column() == 1) {
         flags |= Qt::ItemIsEditable;
     }
+    if (i.column() == 2) {
+        flags |= Qt::ItemIsEditable;
+    }
     return flags;
 }
 
-QVariant TimeSeries::input(int row) const
+QVariant TimeSeries::cos(int row) const
 {
     QVariant v;
-    v = time_series_data_input(m_d, row);
+    v = time_series_data_cos(m_d, row);
     return v;
 }
 
-bool TimeSeries::setInput(int row, const QVariant& value)
+bool TimeSeries::setCos(int row, const QVariant& value)
 {
     bool set = false;
-    set = time_series_set_data_input(m_d, row, value.value<quint32>());
+    set = time_series_set_data_cos(m_d, row, value.value<float>());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -800,17 +805,35 @@ bool TimeSeries::setInput(int row, const QVariant& value)
     return set;
 }
 
-QVariant TimeSeries::result(int row) const
+QVariant TimeSeries::sin(int row) const
 {
     QVariant v;
-    v = time_series_data_result(m_d, row);
+    v = time_series_data_sin(m_d, row);
     return v;
 }
 
-bool TimeSeries::setResult(int row, const QVariant& value)
+bool TimeSeries::setSin(int row, const QVariant& value)
 {
     bool set = false;
-    set = time_series_set_data_result(m_d, row, value.value<quint32>());
+    set = time_series_set_data_sin(m_d, row, value.value<float>());
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
+}
+
+QVariant TimeSeries::time(int row) const
+{
+    QVariant v;
+    v = time_series_data_time(m_d, row);
+    return v;
+}
+
+bool TimeSeries::setTime(int row, const QVariant& value)
+{
+    bool set = false;
+    set = time_series_set_data_time(m_d, row, value.value<float>());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -824,19 +847,28 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
+        case Qt::UserRole + 0:
+            return cos(index.row());
+        case Qt::UserRole + 1:
+            return sin(index.row());
         case Qt::DisplayRole:
         case Qt::EditRole:
-        case Qt::UserRole + 0:
-            return input(index.row());
-        case Qt::UserRole + 1:
-            return result(index.row());
+        case Qt::UserRole + 2:
+            return time(index.row());
         }
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 1:
-            return result(index.row());
+            return sin(index.row());
+        }
+    case 2:
+        switch (role) {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+        case Qt::UserRole + 0:
+            return cos(index.row());
         }
     }
     return QVariant();
@@ -844,8 +876,9 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
 
 QHash<int, QByteArray> TimeSeries::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
-    names.insert(Qt::UserRole + 0, "input");
-    names.insert(Qt::UserRole + 1, "result");
+    names.insert(Qt::UserRole + 0, "cos");
+    names.insert(Qt::UserRole + 1, "sin");
+    names.insert(Qt::UserRole + 2, "time");
     return names;
 }
 QVariant TimeSeries::headerData(int section, Qt::Orientation orientation, int role) const
@@ -868,16 +901,24 @@ bool TimeSeries::setHeaderData(int section, Qt::Orientation orientation, const Q
 bool TimeSeries::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.column() == 0) {
-        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            return setInput(index.row(), value);
+        if (role == Qt::UserRole + 0) {
+            return setCos(index.row(), value);
         }
         if (role == Qt::UserRole + 1) {
-            return setResult(index.row(), value);
+            return setSin(index.row(), value);
+        }
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 2) {
+            return setTime(index.row(), value);
         }
     }
     if (index.column() == 1) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 1) {
-            return setResult(index.row(), value);
+            return setSin(index.row(), value);
+        }
+    }
+    if (index.column() == 2) {
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
+            return setCos(index.row(), value);
         }
     }
     return false;
@@ -1037,7 +1078,7 @@ Demo::Demo(QObject *parent):
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
-                       o->createIndex(last, 1, last));
+                       o->createIndex(last, 2, last));
         },
         [](TimeSeries* o) {
             o->beginResetModel();
@@ -1394,7 +1435,7 @@ TimeSeries::TimeSeries(QObject *parent):
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
-                       o->createIndex(last, 1, last));
+                       o->createIndex(last, 2, last));
         },
         [](TimeSeries* o) {
             o->beginResetModel();
@@ -1429,6 +1470,7 @@ TimeSeries::~TimeSeries() {
     }
 }
 void TimeSeries::initHeaderData() {
-    m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("input"));
-    m_headerData.insert(qMakePair(1, Qt::DisplayRole), QVariant("result"));
+    m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("time"));
+    m_headerData.insert(qMakePair(1, Qt::DisplayRole), QVariant("sin"));
+    m_headerData.insert(qMakePair(2, Qt::DisplayRole), QVariant("cos"));
 }

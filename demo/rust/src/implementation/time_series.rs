@@ -2,8 +2,9 @@ use interface::*;
 
 #[derive(Default, Clone)]
 struct TimeSeriesItem {
-    input: u32,
-    result: u32,
+    time: f32,
+    sin: f32,
+    cos: f32,
 }
 
 pub struct TimeSeries {
@@ -18,9 +19,11 @@ impl TimeSeriesTrait for TimeSeries {
             list: Vec::new(),
         };
         for i in 0..100 {
+            let x = i as f32 / 10.;
             series.list.push(TimeSeriesItem {
-                input: i,
-                result: 2 * i,
+                time: x,
+                sin: x.sin(),
+                cos: x.cos(),
             });
         }
         series
@@ -31,18 +34,25 @@ impl TimeSeriesTrait for TimeSeries {
     fn row_count(&self) -> usize {
         self.list.len() as usize
     }
-    fn input(&self, row: usize) -> u32 {
-        self.list[row as usize].input
+    fn time(&self, row: usize) -> f32 {
+        self.list[row as usize].time
     }
-    fn set_input(&mut self, row: usize, v: u32) -> bool {
-        self.list[row as usize].input = v;
+    fn set_time(&mut self, row: usize, v: f32) -> bool {
+        self.list[row as usize].time = v;
         true
     }
-    fn result(&self, row: usize) -> u32 {
-        self.list[row as usize].result
+    fn sin(&self, row: usize) -> f32 {
+        self.list[row as usize].sin
     }
-    fn set_result(&mut self, row: usize, v: u32) -> bool {
-        self.list[row as usize].result = v;
+    fn set_sin(&mut self, row: usize, v: f32) -> bool {
+        self.list[row as usize].sin = v;
+        true
+    }
+    fn cos(&self, row: usize) -> f32 {
+        self.list[row as usize].cos
+    }
+    fn set_cos(&mut self, row: usize, v: f32) -> bool {
+        self.list[row as usize].cos = v;
         true
     }
 }

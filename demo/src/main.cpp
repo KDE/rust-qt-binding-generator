@@ -251,28 +251,39 @@ QWidget* createProcessesTab(Model* model) {
 using namespace QtCharts;
 
 QWidget* createChartTab(Model* model) {
-    QLineSeries *series = new QLineSeries();
-    series->setName("Line 1");
-    QVXYModelMapper *mapper = new QVXYModelMapper(series);
-    mapper->setXColumn(0);
-    mapper->setYColumn(1);
-    mapper->setSeries(series);
-    mapper->setModel(model->demo.timeSeries());
+    QLineSeries *sin = new QLineSeries();
+    sin->setName("sin");
+    QVXYModelMapper *sinMapper = new QVXYModelMapper(sin);
+    sinMapper->setXColumn(0);
+    sinMapper->setYColumn(1);
+    sinMapper->setSeries(sin);
+    sinMapper->setModel(model->demo.timeSeries());
+
+    QLineSeries *cos = new QLineSeries();
+    cos->setName("cos");
+    QVXYModelMapper *cosMapper = new QVXYModelMapper(cos);
+    cosMapper->setXColumn(0);
+    cosMapper->setYColumn(2);
+    cosMapper->setSeries(cos);
+    cosMapper->setModel(model->demo.timeSeries());
 
     QChart* chart = new QChart;
-    chart->addSeries(series);
-    QDateTimeAxis *axisX = new QDateTimeAxis;
-    axisX->setTickCount(10);
-    axisX->setFormat("MMM yyyy");
-    axisX->setTitleText("Date");
+    chart->addSeries(sin);
+    chart->addSeries(cos);
+
+    QValueAxis *axisX = new QValueAxis;
+    axisX->setLabelFormat("%i");
+    axisX->setTitleText("time [s]");
     chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
+    sin->attachAxis(axisX);
+    cos->attachAxis(axisX);
 
     QValueAxis *axisY = new QValueAxis;
     axisY->setLabelFormat("%i");
-    axisY->setTitleText("Sunspots count");
+    axisY->setTitleText("electric potential [V]");
     chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
+    sin->attachAxis(axisY);
+    cos->attachAxis(axisY);
 
     QWidget* view = new QWidget;
     QTableView* data = new QTableView;

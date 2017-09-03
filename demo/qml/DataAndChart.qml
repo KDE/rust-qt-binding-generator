@@ -4,12 +4,14 @@ import QtQuick.Controls 1.5
 import QtQuick.Layouts 1.3
 
 RowLayout {
-    anchors.fill: parent
     Component {
         id: editableDelegate
         Item {
+            function round(v) {
+                return Math.round(1000 * v) / 1000
+            }
             Text {
-                text: styleData.value
+                text: round(styleData.value)
                 visible: !styleData.selected
             }
             Loader {
@@ -24,9 +26,11 @@ RowLayout {
                         var val = loaderEditor.item.text
                         var row = styleData.row
                         if (styleData.column === 0) {
-                            demo.timeSeries.setInput(row, val)
+                            demo.timeSeries.setTime(row, val)
+                        } else if (styleData.column === 1) {
+                            demo.timeSeries.setSin(row, val)
                         } else {
-                            demo.timeSeries.setResult(row, val)
+                            demo.timeSeries.setCos(row, val)
                         }
                     }
                 }
@@ -36,7 +40,7 @@ RowLayout {
                 id: editor
                 TextInput {
                     id: textInput
-                    text: styleData.value
+                    text: round(styleData.value)
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
@@ -46,34 +50,41 @@ RowLayout {
             }
         }
     }
-    TableView {
-        model: demo.timeSeries
-        Layout.fillHeight: true
-        
-        TableViewColumn {
-            role: "input"
-            title: qsTr("input")
+    SplitView {
+        anchors.fill: parent
+        TableView {
+            model: demo.timeSeries
+            Layout.fillHeight: true
+
+            TableViewColumn {
+                role: "time"
+                title: qsTr("time")
+            }
+            TableViewColumn {
+                role: "sin"
+                title: qsTr("sin")
+            }
+            TableViewColumn {
+                role: "cos"
+                title: qsTr("cos")
+            }
+            itemDelegate: {
+                return editableDelegate
+            }
         }
-        TableViewColumn {
-            role: "result"
-            title: qsTr("result")
-        }
-        itemDelegate: {
-            return editableDelegate
-        }
-    }
-    Item {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        Text {
-            anchors.centerIn: parent
-            text: qsTr("QtChart is not available.")
-            visible: chartLoader.status !== Loader.Ready
-        }
-        Loader {
-            anchors.fill: parent
-            id: chartLoader
-            source: "chart.qml"
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Text {
+                anchors.centerIn: parent
+                text: qsTr("QtChart is not available.")
+                visible: chartLoader.status !== Loader.Ready
+            }
+            Loader {
+                anchors.fill: parent
+                id: chartLoader
+                source: "chart.qml"
+            }
         }
     }
 }
