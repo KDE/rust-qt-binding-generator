@@ -19,8 +19,8 @@ endif()
 include(FeatureSummary)
 include(ECMPoQmTools)
 
-find_package(Cargo)
-find_package(Rust)
+find_package(Cargo REQUIRED)
+find_package(Rust REQUIRED)
 
 # Find Qt modules
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG
@@ -52,12 +52,9 @@ add_subdirectory(src)
 
 enable_testing()
 
-if(Cargo_FOUND AND Rust_FOUND)
-    add_subdirectory(tests)
-endif()
+add_subdirectory(tests)
 
-
-if(Qt5Widgets_FOUND AND Qt5Svg_FOUND AND Cargo_FOUND AND Rust_FOUND)
+if(Qt5Widgets_FOUND AND Qt5Svg_FOUND)
     add_subdirectory(demo)
 endif()
 
