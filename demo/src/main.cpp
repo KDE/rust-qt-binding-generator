@@ -85,7 +85,7 @@ void createQtQuick(const QString& name, const QString& qml, Model* model,
     if (window) {
         geometry = window->geometry();
     } else {
-        geometry = QRect(0, 0, 500, 500);
+        geometry = QRect(0, 0, 800, 640);
     }
     engine->load(QUrl(qml));
     QObject* root = engine->rootObjects().first();
@@ -317,7 +317,7 @@ QTabWidget* createTabs(Model* model) {
 void createMainWindow(Model* model, const QString& initialStyle,
                       const QString& initialTab) {
     QMainWindow* main = new QMainWindow();
-    main->setMinimumSize(QSize(500, 500));
+    main->setMinimumSize(QSize(800, 640));
 
     QComboBox* box = createStyleComboBox(model);
     QStatusBar* statusBar = createStatusBar(model, main, box, initialTab);

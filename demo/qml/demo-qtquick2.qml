@@ -7,7 +7,8 @@ ApplicationWindow {
     property string initialTab: "style"
     property int qtquickIndex: 0
     visible: true
-    height: 500
+    width: 800
+    height: 640
     header: TabBar {
         id: bar
         width: parent.width
