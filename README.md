@@ -99,7 +99,7 @@ impl GreetingTrait for Greeting {
         &self.emit
     }
     /// Get the message of the Greeting
-    fn get_message(&self) -> &str {
+    fn message(&self) -> &str {
         &self.message
     }
     /// Set the message of the Greeting
@@ -149,17 +149,17 @@ The project comes with a demo application that show a Qt user interface based on
 
 <figure>
   <img src="demo/screenshots/demo.png" alt="Qt Widgets UI with Rust logic"/>
-  <figcaption>Qt Widgets UI with Rust logic</figcaption>
+  <figcaption><a href="demo/src/main.cpp">Qt Widgets UI</a> with <a href="demo/rust/src/implementation/file_system_tree.rs">Rust logic</a></figcaption>
 </figure>
 
 <figure>
-  <img src="demo/screenshots/demo.png" alt="Qt Quick Controls UI with Rust logic"/>
-  <figcaption>Qt Quick Controls UI with Rust logic</figcaption>
+  <img src="demo/screenshots/demo2.png" alt="Qt Quick Controls UI with Rust logic"/>
+  <figcaption><a href="demo/qml/DataAndChart.qml">Qt Quick Controls UI</a> with <a href="demo/rust/src/implementation/time_series.rs">Rust logic</a></figcaption>
 </figure>
 
 <figure>
-  <img src="demo/screenshots/demo.png" alt="Qt Quick Controls 2 UI with Rust logic"/>
-  <figcaption>Qt Quick Controls 2 UI with Rust logic</figcaption>
+  <img src="demo/screenshots/demo3.png" alt="Qt Quick Controls 2 UI with Rust logic"/>
+  <figcaption><a href="demo/qml/FileTreeView2.qml">Qt Quick Controls 2 UI</a> with <a href="demo/rust/src/implementation/file_system_tree.rs">Rust logic</a></figcaption>
 </figure>
 
 ## Docker development environment
