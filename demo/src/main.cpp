@@ -23,7 +23,9 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QMainWindow>
 #include <QSortFilterProxyModel>
+#include <QStatusBar>
 #include <QStringListModel>
 #include <QStyleFactory>
 #include <QSvgRenderer>
