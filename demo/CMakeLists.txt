@@ -36,6 +36,9 @@ endif()
 if (Qt5Charts_FOUND)
     list(APPEND DemoLibs Qt5::Charts)
 endif()
+if (KF5Kirigami2_FOUND)
+    add_definitions(-DKIRIGAMI2)
+endif()
 
 ecm_create_qm_loader(Demo_QM_LOADER Demo_qt.pot)
 

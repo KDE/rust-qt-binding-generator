@@ -14,5 +14,8 @@
         <file>qml/chart.qml</file>
         <file>qml/demo-qtquick2.qml</file>
         <file>qml/demo.qml</file>
+        <file>qml/demo-kirigami2.qml</file>
+        <file>qml/FibonacciListKirigami.qml</file>
+        <file>qml/FileTreeViewKirigami.qml</file>
     </qresource>
 </RCC>

@@ -118,6 +118,9 @@ QComboBox* createStyleComboBox(Model* model) {
 #ifdef QTQUICKCONTROLS2
     box->addItem("QtQuick Controls 2");
 #endif
+#ifdef KIRIGAMI2
+    box->addItem("Kirigami 2");
+#endif
     return box;
 }
 
@@ -148,6 +151,12 @@ QStatusBar* createStatusBar(Model* model, QWidget* main, QComboBox* box,
 #ifdef QTQUICKCONTROLS2
             if (text == "QtQuick Controls 2") {
                 createQtQuick("QtQuick Controls 2", "qrc:///qml/demo-qtquick2.qml",
+                    model, box, initialTab);
+            } else
+#endif
+#ifdef KIRIGAMI2
+            if (text == "Kirigami 2") {
+                createQtQuick("Kirigami 2", "qrc:///qml/demo-kirigami2.qml",
                     model, box, initialTab);
             } else
 #endif
