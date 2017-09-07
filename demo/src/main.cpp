@@ -27,10 +27,11 @@
 
 #ifdef QT_QUICK_LIB
 #include <QQmlApplicationEngine>
-#include <QtQml/qqml.h>
 #include <QQmlContext>
-#include <QQuickView>
 #include <QQuickItem>
+#include <QQuickStyle>
+#include <QQuickView>
+#include <QtQml/qqml.h>
 #endif
 
 #include <QApplication>
@@ -96,6 +97,27 @@ void copyWindowGeometry(const QRect& rect, QObject* c) {
 
 void createQtQuick(const QString& name, const QString& qml, Model* model,
             QWidget* widgets, const QString& initialTab) {
+    static QString qqc2style;
+    static bool blocked = false;
+    if (blocked) {
+        return;
+    }
+    blocked = true;
+    if (qqc2style.isNull() && name.startsWith("QtQuick Controls 2")) {
+        qqc2style = name.mid(19);
+        QQuickStyle::setStyle(qqc2style);
+        QStringListModel& styles = model->styles;
+        int i = 0;
+        while (i < styles.rowCount()) {
+            QString style = styles.data(styles.index(i)).toString();
+            if (style.startsWith("QtQuick Controls 2") && style != name) {
+                styles.removeRows(i, 1);
+            } else {
+                ++i;
+            }
+        }
+    }
+    blocked = false;
     QQmlApplicationEngine* engine = new QQmlApplicationEngine();
     QQmlContext* c = engine->rootContext();
     c->setContextProperty("styles", &model->styles);
@@ -136,7 +158,11 @@ QComboBox* createStyleComboBox(Model* model) {
     box->addItem("QtQuick");
 #endif
 #ifdef QTQUICKCONTROLS2
-    box->addItem("QtQuick Controls 2");
+    for (auto style: QQuickStyle::availableStyles()) {
+        if (style != "Plasma") { // Plasma style is buggy
+            box->addItem("QtQuick Controls 2 " + style);
+        }
+    }
 #endif
 #ifdef KIRIGAMI2
     box->addItem("Kirigami 2");
@@ -169,8 +195,8 @@ QStatusBar* createStatusBar(Model* model, QWidget* main, QComboBox* box,
             }
             main->setVisible(false);
 #ifdef QTQUICKCONTROLS2
-            if (text == "QtQuick Controls 2") {
-                createQtQuick("QtQuick Controls 2", "qrc:///qml/demo-qtquick2.qml",
+            if (text.startsWith("QtQuick Controls 2")) {
+                createQtQuick(text, "qrc:///qml/demo-qtquick2.qml",
                     model, box, initialTab);
             } else
 #endif
