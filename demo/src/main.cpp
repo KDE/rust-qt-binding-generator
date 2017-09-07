@@ -95,6 +95,17 @@ void copyWindowGeometry(const QRect& rect, QObject* c) {
     }
 }
 
+bool isQQC2Style(const QString& name) {
+    return name == "Kirigami 2" || name.startsWith("QtQuick Controls 2");
+}
+
+QString qqc2Style(const QString& name) {
+    if (name.startsWith("QtQuick Controls 2")) {
+        return name.mid(19);
+    }
+    return QString("Default");
+}
+
 void createQtQuick(const QString& name, const QString& qml, Model* model,
             QWidget* widgets, const QString& initialTab) {
     static QString qqc2style;
@@ -103,14 +114,14 @@ void createQtQuick(const QString& name, const QString& qml, Model* model,
         return;
     }
     blocked = true;
-    if (qqc2style.isNull() && name.startsWith("QtQuick Controls 2")) {
-        qqc2style = name.mid(19);
+    if (qqc2style.isNull() && isQQC2Style(name)) {
+        qqc2style = qqc2Style(name);
         QQuickStyle::setStyle(qqc2style);
         QStringListModel& styles = model->styles;
         int i = 0;
         while (i < styles.rowCount()) {
             QString style = styles.data(styles.index(i)).toString();
-            if (style.startsWith("QtQuick Controls 2") && style != name) {
+            if (isQQC2Style(style) && style != name) {
                 styles.removeRows(i, 1);
             } else {
                 ++i;
