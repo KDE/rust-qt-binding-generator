@@ -432,6 +432,7 @@ pub trait FibonacciListTrait {
     fn new(emit: FibonacciListEmitter, model: FibonacciListList) -> Self;
     fn emit(&self) -> &FibonacciListEmitter;
     fn row_count(&self) -> usize;
+    fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
     fn can_fetch_more(&self) -> bool {
         false
     }
@@ -479,6 +480,10 @@ pub unsafe extern "C" fn fibonacci_list_free(ptr: *mut FibonacciList) {
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_row_count(ptr: *const FibonacciList) -> c_int {
     (&*ptr).row_count() as c_int
+}
+#[no_mangle]
+pub unsafe extern "C" fn fibonacci_list_insert_rows(ptr: *mut FibonacciList, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).insert_rows(row as usize, count as usize)
 }
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_can_fetch_more(ptr: *const FibonacciList) -> bool {
@@ -1082,6 +1087,7 @@ pub trait TimeSeriesTrait {
     fn new(emit: TimeSeriesEmitter, model: TimeSeriesList) -> Self;
     fn emit(&self) -> &TimeSeriesEmitter;
     fn row_count(&self) -> usize;
+    fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
     fn can_fetch_more(&self) -> bool {
         false
     }
@@ -1133,6 +1139,10 @@ pub unsafe extern "C" fn time_series_free(ptr: *mut TimeSeries) {
 #[no_mangle]
 pub unsafe extern "C" fn time_series_row_count(ptr: *const TimeSeries) -> c_int {
     (&*ptr).row_count() as c_int
+}
+#[no_mangle]
+pub unsafe extern "C" fn time_series_insert_rows(ptr: *mut TimeSeries, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).insert_rows(row as usize, count as usize)
 }
 #[no_mangle]
 pub unsafe extern "C" fn time_series_can_fetch_more(ptr: *const TimeSeries) -> bool {

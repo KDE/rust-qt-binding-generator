@@ -44,6 +44,7 @@ extern "C" {
     void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int persons_row_count(const Persons::Private*);
+    bool persons_insert_rows(Persons::Private*, int, int);
     bool persons_can_fetch_more(const Persons::Private*);
     void persons_fetch_more(Persons::Private*);
 }
@@ -60,6 +61,11 @@ bool Persons::hasChildren(const QModelIndex &parent) const
 int Persons::rowCount(const QModelIndex &parent) const
 {
     return (parent.isValid()) ? 0 : persons_row_count(m_d);
+}
+
+bool Persons::insertRows(int row, int count, const QModelIndex &parent)
+{
+    return persons_insert_rows(m_d, row, count);
 }
 
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const

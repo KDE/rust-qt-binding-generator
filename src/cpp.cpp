@@ -78,6 +78,7 @@ void writeHeaderItemModel(QTextStream& h, const Object& o) {
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
+    Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 )");
     if (modelIsWritable(o)) {
         h << "    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;\n";
@@ -224,6 +225,7 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
     if (o.type == ObjectType::List) {
         cpp << QString(R"(
     int %2_row_count(const %1::Private*);
+    bool %2_insert_rows(%1::Private*, int, int);
     bool %2_can_fetch_more(const %1::Private*);
     void %2_fetch_more(%1::Private*);
 }
@@ -240,6 +242,11 @@ bool %1::hasChildren(const QModelIndex &parent) const
 int %1::rowCount(const QModelIndex &parent) const
 {
     return (parent.isValid()) ? 0 : %2_row_count(m_d);
+}
+
+bool %1::insertRows(int row, int count, const QModelIndex &parent)
+{
+    return %2_insert_rows(m_d, row, count);
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
@@ -292,6 +299,11 @@ int %1::rowCount(const QModelIndex &parent) const
         return 0;
     }
     return %2_row_count(m_d, parent.internalId(), parent.isValid());
+}
+
+bool %1::insertRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
 }
 
 QModelIndex %1::index(int row, int column, const QModelIndex &parent) const

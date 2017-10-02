@@ -284,6 +284,7 @@ pub trait %1Trait {
     }
     if (o.type == ObjectType::List) {
         r << R"(    fn row_count(&self) -> usize;
+    fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
     fn can_fetch_more(&self) -> bool {
         false
     }
@@ -412,6 +413,10 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 #[no_mangle]
 pub unsafe extern "C" fn %2_row_count(ptr: *const %1) -> c_int {
     (&*ptr).row_count() as c_int
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_insert_rows(ptr: *mut %1, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).insert_rows(row as usize, count as usize)
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1) -> bool {

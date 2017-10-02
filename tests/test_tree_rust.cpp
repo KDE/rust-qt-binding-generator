@@ -68,6 +68,11 @@ int Persons::rowCount(const QModelIndex &parent) const
     return persons_row_count(m_d, parent.internalId(), parent.isValid());
 }
 
+bool Persons::insertRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
+}
+
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
 {
     if (row < 0 || column < 0 || column >= 1) {

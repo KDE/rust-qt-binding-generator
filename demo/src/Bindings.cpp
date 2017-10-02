@@ -152,6 +152,7 @@ extern "C" {
     void fibonacci_list_sort(FibonacciList::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int fibonacci_list_row_count(const FibonacciList::Private*);
+    bool fibonacci_list_insert_rows(FibonacciList::Private*, int, int);
     bool fibonacci_list_can_fetch_more(const FibonacciList::Private*);
     void fibonacci_list_fetch_more(FibonacciList::Private*);
 }
@@ -168,6 +169,11 @@ bool FibonacciList::hasChildren(const QModelIndex &parent) const
 int FibonacciList::rowCount(const QModelIndex &parent) const
 {
     return (parent.isValid()) ? 0 : fibonacci_list_row_count(m_d);
+}
+
+bool FibonacciList::insertRows(int row, int count, const QModelIndex &parent)
+{
+    return fibonacci_list_insert_rows(m_d, row, count);
 }
 
 QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
@@ -309,6 +315,11 @@ int FileSystemTree::rowCount(const QModelIndex &parent) const
         return 0;
     }
     return file_system_tree_row_count(m_d, parent.internalId(), parent.isValid());
+}
+
+bool FileSystemTree::insertRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
 }
 
 QModelIndex FileSystemTree::index(int row, int column, const QModelIndex &parent) const
@@ -533,6 +544,11 @@ int Processes::rowCount(const QModelIndex &parent) const
     return processes_row_count(m_d, parent.internalId(), parent.isValid());
 }
 
+bool Processes::insertRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
+}
+
 QModelIndex Processes::index(int row, int column, const QModelIndex &parent) const
 {
     if (row < 0 || column < 0 || column >= 3) {
@@ -725,6 +741,7 @@ extern "C" {
     void time_series_sort(TimeSeries::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int time_series_row_count(const TimeSeries::Private*);
+    bool time_series_insert_rows(TimeSeries::Private*, int, int);
     bool time_series_can_fetch_more(const TimeSeries::Private*);
     void time_series_fetch_more(TimeSeries::Private*);
 }
@@ -741,6 +758,11 @@ bool TimeSeries::hasChildren(const QModelIndex &parent) const
 int TimeSeries::rowCount(const QModelIndex &parent) const
 {
     return (parent.isValid()) ? 0 : time_series_row_count(m_d);
+}
+
+bool TimeSeries::insertRows(int row, int count, const QModelIndex &parent)
+{
+    return time_series_insert_rows(m_d, row, count);
 }
 
 QModelIndex TimeSeries::index(int row, int column, const QModelIndex &parent) const
