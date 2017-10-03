@@ -148,6 +148,7 @@ pub trait PersonsTrait {
     fn emit(&self) -> &PersonsEmitter;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
+    fn remove_rows(&mut self, row: usize, count: usize) -> bool { false }
     fn can_fetch_more(&self) -> bool {
         false
     }
@@ -199,6 +200,10 @@ pub unsafe extern "C" fn persons_row_count(ptr: *const Persons) -> c_int {
 #[no_mangle]
 pub unsafe extern "C" fn persons_insert_rows(ptr: *mut Persons, row: c_int, count: c_int) -> bool {
     (&mut *ptr).insert_rows(row as usize, count as usize)
+}
+#[no_mangle]
+pub unsafe extern "C" fn persons_remove_rows(ptr: *mut Persons, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).remove_rows(row as usize, count as usize)
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_can_fetch_more(ptr: *const Persons) -> bool {

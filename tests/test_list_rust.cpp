@@ -45,6 +45,7 @@ extern "C" {
 
     int persons_row_count(const Persons::Private*);
     bool persons_insert_rows(Persons::Private*, int, int);
+    bool persons_remove_rows(Persons::Private*, int, int);
     bool persons_can_fetch_more(const Persons::Private*);
     void persons_fetch_more(Persons::Private*);
 }
@@ -66,6 +67,11 @@ int Persons::rowCount(const QModelIndex &parent) const
 bool Persons::insertRows(int row, int count, const QModelIndex &parent)
 {
     return persons_insert_rows(m_d, row, count);
+}
+
+bool Persons::removeRows(int row, int count, const QModelIndex &parent)
+{
+    return persons_remove_rows(m_d, row, count);
 }
 
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const

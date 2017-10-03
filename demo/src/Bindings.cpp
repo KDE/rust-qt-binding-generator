@@ -153,6 +153,7 @@ extern "C" {
 
     int fibonacci_list_row_count(const FibonacciList::Private*);
     bool fibonacci_list_insert_rows(FibonacciList::Private*, int, int);
+    bool fibonacci_list_remove_rows(FibonacciList::Private*, int, int);
     bool fibonacci_list_can_fetch_more(const FibonacciList::Private*);
     void fibonacci_list_fetch_more(FibonacciList::Private*);
 }
@@ -174,6 +175,11 @@ int FibonacciList::rowCount(const QModelIndex &parent) const
 bool FibonacciList::insertRows(int row, int count, const QModelIndex &parent)
 {
     return fibonacci_list_insert_rows(m_d, row, count);
+}
+
+bool FibonacciList::removeRows(int row, int count, const QModelIndex &parent)
+{
+    return fibonacci_list_remove_rows(m_d, row, count);
 }
 
 QModelIndex FibonacciList::index(int row, int column, const QModelIndex &parent) const
@@ -318,6 +324,11 @@ int FileSystemTree::rowCount(const QModelIndex &parent) const
 }
 
 bool FileSystemTree::insertRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
+}
+
+bool FileSystemTree::removeRows(int, int, const QModelIndex &)
 {
     return false; // not supported yet
 }
@@ -549,6 +560,11 @@ bool Processes::insertRows(int, int, const QModelIndex &)
     return false; // not supported yet
 }
 
+bool Processes::removeRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
+}
+
 QModelIndex Processes::index(int row, int column, const QModelIndex &parent) const
 {
     if (row < 0 || column < 0 || column >= 3) {
@@ -742,6 +758,7 @@ extern "C" {
 
     int time_series_row_count(const TimeSeries::Private*);
     bool time_series_insert_rows(TimeSeries::Private*, int, int);
+    bool time_series_remove_rows(TimeSeries::Private*, int, int);
     bool time_series_can_fetch_more(const TimeSeries::Private*);
     void time_series_fetch_more(TimeSeries::Private*);
 }
@@ -763,6 +780,11 @@ int TimeSeries::rowCount(const QModelIndex &parent) const
 bool TimeSeries::insertRows(int row, int count, const QModelIndex &parent)
 {
     return time_series_insert_rows(m_d, row, count);
+}
+
+bool TimeSeries::removeRows(int row, int count, const QModelIndex &parent)
+{
+    return time_series_remove_rows(m_d, row, count);
 }
 
 QModelIndex TimeSeries::index(int row, int column, const QModelIndex &parent) const

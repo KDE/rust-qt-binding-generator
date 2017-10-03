@@ -73,6 +73,11 @@ bool Persons::insertRows(int, int, const QModelIndex &)
     return false; // not supported yet
 }
 
+bool Persons::removeRows(int, int, const QModelIndex &)
+{
+    return false; // not supported yet
+}
+
 QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
 {
     if (row < 0 || column < 0 || column >= 1) {
