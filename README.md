@@ -168,6 +168,8 @@ To get started quickly, the project comes with a `Dockerfile`. You can start a d
 
 ## More information on Qt
 
+* [Initial blog post](https://www.vandenoever.info/blog/2017/09/04/rust_qt_binding_generator.html)
+* [Rust and QML: a timely example](https://www.vandenoever.info/blog/2017/09/10/time_for_rust_and_qml.html)
 * [Qt](http://doc.qt.io/)
 * [Qt Examples and tutorials](http://doc.qt.io/qt-5/qtexamplesandtutorials.html)
 * [The QML Book](https://qmlbook.github.io/)
