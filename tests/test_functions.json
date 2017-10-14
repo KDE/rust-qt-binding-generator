@@ -1,0 +1,40 @@
+{
+    "cppFile": "test_functions_rust.cpp",
+    "rust": {
+        "dir": "rust_functions",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation"
+    },
+    "objects": {
+        "Person": {
+            "type": "Object",
+            "properties": {
+                "userName": {
+                    "type": "QString",
+                    "write": true
+                }
+            },
+            "functions": {
+                "greet": {
+                    "return": "QString",
+                    "mut": false,
+                    "arguments": [
+                        {
+                            "name": "Name",
+                            "type": "QString"
+                        }
+                    ]
+                },
+                "double_name": {
+                    "return": "void",
+                    "mut": true,
+                    "arguments": []
+                },
+                "vowels_in_name": {
+                    "return": "quint8",
+                    "arguments": []
+                }
+            }
+        }
+    }
+}

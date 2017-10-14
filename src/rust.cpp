@@ -282,6 +282,21 @@ pub trait %1Trait {
             }
         }
     }
+    for (const Function& f: o.functions) {
+        const QString lc(snakeCase(f.name));
+        QString argList;
+        if (f.args.size() > 0) {
+            argList.append(", ");
+            for (auto a = f.args.begin(); a < f.args.end(); a++) {
+                argList.append(
+                    QString("%1: %2%3")
+                    .arg(a->name, a->type.rustType, a + 1 < f.args.end() ? ", " : "")
+                );
+            }
+        }
+        r << QString("    fn %1(&%2self%4) -> %3;\n")
+            .arg(lc, f.mut ? "mut " : "", f.type.rustType, argList);
+    }
     if (o.type == ObjectType::List) {
         r << R"(    fn row_count(&self) -> usize;
     fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
@@ -407,6 +422,36 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 }
 )").arg(o.name, base, snakeCase(p.name), rustType(p));
             }
+        }
+    }
+    for (const Function& f: o.functions) {
+        QString argList;
+        QString noTypeArgs;
+        if (f.args.size() > 0) {
+            argList.append(", ");
+            for (auto a = f.args.begin(); a < f.args.end(); a++) {
+                const QString type = a->type.name == "QString" ? "QStringIn" : a->type.rustType;
+                const QString passAlong = a->type.name == "QString" ? QString("%1.convert()").arg(a->name) : a->name;
+                argList.append(QString("%1: %2%3").arg(a->name, type, a + 1 < f.args.end() ? ", " : ""));
+                noTypeArgs.append(QString("%1%3").arg(passAlong, a + 1 < f.args.end() ? ", " : ""));
+            }
+        }
+        if (f.type.isComplex()) {
+            r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7, d: *mut c_void, set: fn(*mut c_void, %5)) {
+    let data = (&%6*ptr).%2(%8);
+    set(d, (&data).into());
+}
+)").arg(lcname, f.name, f.mut ? "mut" : "const", o.name, f.type.name, f.mut ? "mut " : "", argList, noTypeArgs);
+
+        } else {
+            r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7) -> %5 {
+    (&%6*ptr).%2(%8)
+}
+)").arg(lcname, f.name, f.mut ? "mut" : "const", o.name, f.type.rustType, f.mut ? "mut " : "", argList, noTypeArgs);
         }
     }
     if (o.type == ObjectType::List) {

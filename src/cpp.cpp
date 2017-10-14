@@ -514,6 +514,15 @@ public:
             }
         }
     }
+    for (auto f: o.functions) {
+        h << "    Q_INVOKABLE " << f.type.name << " " << f.name << "(";
+        for (auto a = f.args.begin(); a < f.args.end(); a++) {
+            h << QString("%1 %2%3").arg(a->type.cppSetType, a->name, a + 1 < f.args.end() ? ", " : "");
+        }
+        h << QString(")%1;")
+            .arg(f.mut ? "" : " const");
+        h << endl;
+    }
     if (baseType(o) == "QAbstractItemModel") {
         writeHeaderItemModel(h, o);
     }
@@ -678,6 +687,22 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
             }
         }
     }
+
+    for (const Function& f: o.functions) {
+        const QString name = QString("%1_%2").arg(lcname, f.name);
+        cpp << QString("    %1 %2(%4%3::Private*")
+            .arg(f.type.cSetType, name, o.name, f.mut ? "" : "const ");
+        if (f.args.size() > 0) {
+            cpp << ", ";
+            for (auto a = f.args.begin(); a < f.args.end(); a++) {
+                cpp << QString("%2%3").arg(a->type.cSetType, a + 1 < f.args.end() ? ", " : "");
+            }
+        }
+        if (f.type.name == "QString") {
+            cpp << ", QString*, qstring_set";
+        }
+        cpp << ");" << endl;
+    }
 }
 
 void initializeMembersEmpty(QTextStream& cpp, const Object& o, const Configuration& conf)
@@ -810,6 +835,35 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
             }
             cpp << "}" << endl;
         }
+    }
+
+    for (const Function& f: o.functions) {
+        const QString base = QString("%1_%2")
+            .arg(lcname, snakeCase(f.name));
+        cpp << QString("%1 %2::%3(")
+            .arg(f.type.name, o.name, f.name);
+        for (auto a = f.args.begin(); a < f.args.end(); a++) {
+            cpp << QString("%1 %2%3").arg(a->type.cppSetType, a->name, a + 1 < f.args.end() ? ", " : "");
+        }
+        cpp << QString(") %4\n{\n")
+            .arg(f.mut ? "" : "const");
+        QString argList;
+        if (f.args.size() > 0) {
+            argList.append(", ");
+            for (auto a = f.args.begin(); a < f.args.end(); a++) {
+                argList.append(QString("%2%3").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
+            }
+        }
+        if (f.type.name == "QString") {
+            cpp << QString("    %1 s;").arg(f.type.name) << endl;
+            cpp << QString("    %1(m_d%2, &s, set_qstring);")
+                .arg(base, argList) << endl;
+            cpp << "    return s;" << endl;
+        } else {
+            cpp << QString("    return %1(m_d%2);")
+                .arg(base, argList) << endl;
+        }
+        cpp << "}" << endl;
     }
 }
 

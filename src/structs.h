@@ -42,6 +42,7 @@ enum class BindingType {
     QString,
     QByteArray,
     Object,
+    Void,
 };
 
 struct BindingTypeProperties {
@@ -72,6 +73,18 @@ struct Property {
     bool rustByValue;
 };
 
+struct Argument {
+    QString name;
+    BindingTypeProperties type;
+};
+
+struct Function {
+    QString name;
+    BindingTypeProperties type;
+    QList<Argument> args;
+    bool mut;
+};
+
 struct ItemProperty {
     QString name;
     BindingTypeProperties type;
@@ -86,6 +99,7 @@ struct Object {
     ObjectType type;
     QList<Property> properties;
     QList<ItemProperty> itemProperties;
+    QList<Function> functions;
     int columnCount;
     bool containsObject() {
         for (auto p: properties) {

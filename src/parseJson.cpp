@@ -97,6 +97,14 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
             .rustType = "Vec<u8>",
             .rustTypeInit = "Vec::new()"
         });
+        f.append({
+            .type = BindingType::Void,
+            .name = "void",
+            .cppSetType = "void",
+            .cSetType = "void",
+            .rustType = "()",
+            .rustTypeInit = "()",
+        });
         p = f;
     }
     return p;
@@ -131,6 +139,49 @@ parseProperty(const QString& name, const QJsonObject& json) {
     p.optional = json.value("optional").toBool();
     p.rustByValue = json.value("rustByValue").toBool();
     return p;
+}
+
+Argument
+parseArgument(const QJsonObject& json) {
+    Argument arg;
+    arg.name = json.value("name").toString();
+    arg.type = parseBindingType(json.value("type").toString());
+    QTextStream out(stdout);
+    out.flush();
+    if (arg.type.type == BindingType::Object) {
+        QTextStream err(stderr);
+        err << QCoreApplication::translate("main",
+            "'%1' is not a supported type in argument \"%2\". Only use the basic QT types for now\n").arg(arg.type.name, arg.name);
+        err.flush();
+        exit(1);
+    }
+    return arg;
+}
+
+QList<Argument>
+parseArguments(const QJsonArray& json) {
+    QList<Argument> args;
+    for(const auto& a: json) {
+        args.push_back(parseArgument(a.toObject()));
+    }
+    return args;
+}
+
+Function
+parseFunction(const QString& name, const QJsonObject& json) {
+    Function f;
+    f.name = name;
+    f.mut = json.value("mut").toBool();
+    f.type = parseBindingType(json.value("return").toString());
+    if (f.type.type == BindingType::Object) {
+        QTextStream err(stderr);
+        err << QCoreApplication::translate("main",
+            "'%1' is not a supported return type in function \"%2\". Only use the basic QT types for now\n").arg(f.type.name, f.name);
+        err.flush();
+        exit(1);
+    }
+    f.args = parseArguments(json.value("arguments").toArray());
+    return f;
 }
 
 Qt::ItemDataRole parseItemDataRole(const QString& s) {
@@ -181,6 +232,10 @@ parseObject(const QString& name, const QJsonObject& json) {
     const QJsonObject& properties = json.value("properties").toObject();
     for (const QString& key: properties.keys()) {
         o.properties.append(parseProperty(key, properties[key].toObject()));
+    }
+    const QJsonObject& functions = json.value("functions").toObject();
+    for (const QString& key: functions.keys()) {
+        o.functions.append(parseFunction(key, functions[key].toObject()));
     }
     QTextStream err(stderr);
     const QJsonObject& itemProperties = json.value("itemProperties").toObject();
