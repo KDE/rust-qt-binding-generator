@@ -10,11 +10,10 @@ function(rust_test NAME DIRECTORY)
 
     add_custom_command(
         OUTPUT "${DIR}/src/interface.rs"
-               "${DIR}/src/implementation.rs"
                "${SRC}/${NAME}_rust.h"
         # if the cpp file is marked GENERATED, CMake will not check it for moc
         #      "${SRC}/${NAME}_rust.cpp"
-        COMMAND "${GENERATOR}" --overwrite-implementation "${SRC}/${NAME}.json"
+        COMMAND "${GENERATOR}" "${SRC}/${NAME}.json"
         MAIN_DEPENDENCY "${NAME}.json"
         DEPENDS rust_qt_binding_generator
     )
