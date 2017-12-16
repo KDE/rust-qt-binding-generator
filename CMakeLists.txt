@@ -1,23 +1,29 @@
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
 project (rust_qt_binding_generator)
 
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
-cmake_policy(SET CMP0046 NEW)
-cmake_policy(SET CMP0063 NEW)
 set(QT_MIN_VERSION "5.6.0")
 set(KF5_MIN_VERSION "5.2.0")
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(ECM 1.0.0 NO_MODULE)
 if (ECM_FOUND)
-    set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR}
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+    LIST(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
     include(KDEInstallDirs)
     include(KDECMakeSettings)
-    include(KDECompilerSettings)
+    include(KDECompilerSettings NO_POLICY_SCOPE)
+    include(ECMPoQmTools)
+else()
+    if (POLICY CMP0063)
+        cmake_policy(SET CMP0063 NEW)
+    endif()
+    enable_testing()
+    set(CMAKE_AUTOMOC ON)
 endif()
 
+set(CMAKE_AUTOUIC ON)
+
 include(FeatureSummary)
-include(ECMPoQmTools)
 
 find_package(Cargo REQUIRED)
 find_package(Rust REQUIRED)
@@ -51,8 +57,6 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG
 )
 find_package(Qt5QuickControls2 EXACT ${Qt5Core_VERSION})
 find_package(Qt5Charts EXACT ${Qt5Core_VERSION})
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 
 find_package(KF5Kirigami2)
 
@@ -69,13 +73,13 @@ endif()
 
 add_subdirectory(src)
 
-enable_testing()
-
 add_subdirectory(tests)
 
 if(Qt5Widgets_FOUND AND Qt5Svg_FOUND)
     add_subdirectory(demo)
 endif()
 
-install(FILES org.kde.rust_qt_binding_generator.appdata.xml
-        DESTINATION ${KDE_INSTALL_METAINFODIR})
+if (ECM_FOUND)
+    install(FILES org.kde.rust_qt_binding_generator.appdata.xml
+            DESTINATION ${KDE_INSTALL_METAINFODIR})
+endif()

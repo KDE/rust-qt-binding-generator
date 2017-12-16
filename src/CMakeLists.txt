@@ -14,3 +14,9 @@ set_target_properties(rust_qt_binding_generator PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED ON
 )
+
+if (ECM_FOUND)
+    install(TARGETS rust_qt_binding_generator ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+else()
+    install(TARGETS rust_qt_binding_generator RUNTIME DESTINATION bin)
+endif()
