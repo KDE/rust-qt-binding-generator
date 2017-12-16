@@ -173,3 +173,7 @@ To get started quickly, the project comes with a `Dockerfile`. You can start a d
 * [Qt](http://doc.qt.io/)
 * [Qt Examples and tutorials](http://doc.qt.io/qt-5/qtexamplesandtutorials.html)
 * [The QML Book](https://qmlbook.github.io/)
+
+## Issues
+
+Please [report bugs and feature requests](https://bugs.kde.org/enter_bug.cgi?product=rust-qt-binding-generator) in the KDE issue tracker, product "rust-qt-binding-generator".
