@@ -40,7 +40,9 @@ if (KF5Kirigami2_FOUND)
     add_definitions(-DKIRIGAMI2)
 endif()
 
-ecm_create_qm_loader(Demo_QM_LOADER Demo_qt.pot)
+if (ECM_FOUND)
+    ecm_create_qm_loader(Demo_QM_LOADER rqbgdemo_qt)
+endif()
 
 set(Demo_SRCS src/main.cpp src/Bindings.cpp src/SortedModel.cpp
     resource_file.qrc ${Demo_QM_LOADER})
