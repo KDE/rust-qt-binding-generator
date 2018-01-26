@@ -25,12 +25,12 @@
                         }
                     ]
                 },
-                "double_name": {
+                "doubleName": {
                     "return": "void",
                     "mut": true,
                     "arguments": []
                 },
-                "vowels_in_name": {
+                "vowelsInName": {
                     "return": "quint8",
                     "arguments": []
                 }

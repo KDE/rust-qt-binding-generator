@@ -689,7 +689,8 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
     }
 
     for (const Function& f: o.functions) {
-        const QString name = QString("%1_%2").arg(lcname, f.name);
+        const QString lc(snakeCase(f.name));
+        const QString name = QString("%1_%2").arg(lcname, lc);
         cpp << QString("    %1 %2(%4%3::Private*")
             .arg(f.type.cSetType, name, o.name, f.mut ? "" : "const ");
         if (f.args.size() > 0) {
@@ -845,8 +846,8 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
         for (auto a = f.args.begin(); a < f.args.end(); a++) {
             cpp << QString("%1 %2%3").arg(a->type.cppSetType, a->name, a + 1 < f.args.end() ? ", " : "");
         }
-        cpp << QString(") %4\n{\n")
-            .arg(f.mut ? "" : "const");
+        cpp << QString(")%1\n{\n")
+            .arg(f.mut ? "" : " const");
         QString argList;
         if (f.args.size() > 0) {
             argList.append(", ");

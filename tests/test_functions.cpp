@@ -44,7 +44,7 @@ void TestRustObject::testSimpleFunction()
     person.setUserName("Konqi");
 
     // THEN
-    QCOMPARE((int)person.vowels_in_name(), 2);
+    QCOMPARE((int)person.vowelsInName(), 2);
 }
 
 void TestRustObject::testVoidFunction()
@@ -54,7 +54,7 @@ void TestRustObject::testVoidFunction()
     person.setUserName("Konqi");
 
     // THEN
-    person.double_name();
+    person.doubleName();
     QCOMPARE(person.userName(), QString("KonqiKonqi"));
 }
 

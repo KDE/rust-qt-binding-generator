@@ -22,9 +22,9 @@ public:
     ~Person();
     QString userName() const;
     void setUserName(const QString& v);
-    Q_INVOKABLE void double_name();
+    Q_INVOKABLE void doubleName();
     Q_INVOKABLE QString greet(const QString& Name) const;
-    Q_INVOKABLE quint8 vowels_in_name() const;
+    Q_INVOKABLE quint8 vowelsInName() const;
 signals:
     void userNameChanged();
 };

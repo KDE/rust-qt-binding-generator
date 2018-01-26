@@ -64,7 +64,7 @@ QString Person::userName() const
 void Person::setUserName(const QString& v) {
     person_user_name_set(m_d, v);
 }
-void Person::double_name() 
+void Person::doubleName()
 {
     return person_double_name(m_d);
 }
@@ -74,7 +74,7 @@ QString Person::greet(const QString& Name) const
     person_greet(m_d, Name, &s, set_qstring);
     return s;
 }
-quint8 Person::vowels_in_name() const
+quint8 Person::vowelsInName() const
 {
     return person_vowels_in_name(m_d);
 }

@@ -425,6 +425,7 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
         }
     }
     for (const Function& f: o.functions) {
+        const QString lc(snakeCase(f.name));
         QString argList;
         QString noTypeArgs;
         if (f.args.size() > 0) {
@@ -443,7 +444,7 @@ pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7, d: *mut c_void, set: fn(*mut c_voi
     let data = (&%6*ptr).%2(%8);
     set(d, (&data).into());
 }
-)").arg(lcname, f.name, f.mut ? "mut" : "const", o.name, f.type.name, f.mut ? "mut " : "", argList, noTypeArgs);
+)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.type.name, f.mut ? "mut " : "", argList, noTypeArgs);
 
         } else {
             r << QString(R"(
@@ -451,7 +452,7 @@ pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7, d: *mut c_void, set: fn(*mut c_voi
 pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7) -> %5 {
     (&%6*ptr).%2(%8)
 }
-)").arg(lcname, f.name, f.mut ? "mut" : "const", o.name, f.type.rustType, f.mut ? "mut " : "", argList, noTypeArgs);
+)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.type.rustType, f.mut ? "mut " : "", argList, noTypeArgs);
         }
     }
     if (o.type == ObjectType::List) {
