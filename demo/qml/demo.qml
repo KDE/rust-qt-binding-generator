@@ -52,7 +52,7 @@ ApplicationWindow {
     }
     statusBar: StatusBar {
         StyleSwitcher {
-            anchors.right: parent.right
+            anchors.fill: parent
         }
     }
     TabView {
