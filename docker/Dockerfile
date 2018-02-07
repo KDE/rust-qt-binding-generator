@@ -8,7 +8,7 @@ RUN apt-get update && apt-get dist-upgrade -y
 # build dependencies and many extra qml modules
 RUN apt-get update && apt-get dist-upgrade -y && \
   apt-get install -y --no-install-recommends \
-    qtcreator rustc cargo ninja-build cmake g++ extra-cmake-modules \
+    qtcreator rustc cargo ninja-build make cmake g++ extra-cmake-modules \
     kdesdk-scripts \
     gdb valgrind \
     qtdeclarative5-dev-tools qtdeclarative5-dev qtquickcontrols2-5-dev \

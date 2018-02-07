@@ -123,6 +123,8 @@ $ make rust_qt_binding_generator
 $ export PATH=$PATH:$PWD/src
 ```
 
+`cmake ..` uses `make` by default, but you can use another build tool, for example Ninja, like this: `cmake -GNinja ..`.
+
 Now build and run the template project.
 
 ```
