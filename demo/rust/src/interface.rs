@@ -644,11 +644,11 @@ pub unsafe extern "C" fn file_system_tree_free(ptr: *mut FileSystemTree) {
 pub unsafe extern "C" fn file_system_tree_path_get(
     ptr: *const FileSystemTree,
     p: *mut c_void,
-    set: fn(*mut c_void, QString),
+    set: fn(*mut c_void, *const QString),
 ) {
     let data = (&*ptr).path();
     if let Some(data) = data {
-        set(p, data.into());
+        set(p, &data.into());
     }
 }
 

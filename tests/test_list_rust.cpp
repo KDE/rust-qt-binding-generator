@@ -2,6 +2,8 @@
 #include "test_list_rust.h"
 
 namespace {
+    template <typename T>
+    inline T to_rust(T t) { return t; }
 
     struct option_quintptr {
     public:
@@ -15,28 +17,31 @@ namespace {
         }
     };
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
+    extern "C" {
+        struct qstring_t {
+            const void* data;
+            int len;
+        };
+    }
+    static_assert(std::is_pod<qstring_t>::value, "qstring_t must be a POD type.");
+    qstring_t to_rust(const QString& v) {
+        return qstring_t {
+            .data = static_cast<const void*>(v.data()),
+            .len = v.size()
+        };
+    }
     typedef void (*qstring_set)(QString*, qstring_t*);
     void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+        *v = QString::fromUtf8(static_cast<const char*>(val->data), val->len);
     }
 
-    struct qmodelindex_t {
-        int row;
-        quintptr id;
-    };
+    extern "C" {
+        struct qmodelindex_t {
+            int row;
+            quintptr id;
+        };
+    }
+    static_assert(std::is_pod<qmodelindex_t>::value, "qmodelindex_t must be a POD type.");
 }
 extern "C" {
     void persons_data_user_name(const Persons::Private*, int, QString*, qstring_set);
@@ -124,7 +129,7 @@ QVariant Persons::userName(int row) const
 bool Persons::setUserName(int row, const QVariant& value)
 {
     bool set = false;
-    set = persons_set_data_user_name(m_d, row, value.value<QString>());
+    set = persons_set_data_user_name(m_d, row, to_rust(value.value<QString>()));
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);

@@ -156,10 +156,10 @@ pub unsafe extern "C" fn inner_object_free(ptr: *mut InnerObject) {
 pub unsafe extern "C" fn inner_object_description_get(
     ptr: *const InnerObject,
     p: *mut c_void,
-    set: fn(*mut c_void, QString),
+    set: fn(*mut c_void, *const QString),
 ) {
     let data = (&*ptr).description();
-    set(p, data.into());
+    set(p, &data.into());
 }
 
 #[no_mangle]

@@ -2,41 +2,44 @@
 #include "test_object_types_rust.h"
 
 namespace {
+    template <typename T>
+    inline T to_rust(T t) { return t; }
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
+    extern "C" {
+        struct qstring_t {
+            const void* data;
+            int len;
+        };
+    }
+    static_assert(std::is_pod<qstring_t>::value, "qstring_t must be a POD type.");
+    qstring_t to_rust(const QString& v) {
+        return qstring_t {
+            .data = static_cast<const void*>(v.data()),
+            .len = v.size()
+        };
+    }
     typedef void (*qstring_set)(QString*, qstring_t*);
     void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+        *v = QString::fromUtf8(static_cast<const char*>(val->data), val->len);
     }
 
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
+    extern "C" {
+        struct qbytearray_t {
+            const char* data;
+            int len;
+        };
+    }
+    static_assert(std::is_pod<qbytearray_t>::value, "qbytearray_t must be a POD type.");
+    qbytearray_t to_rust(const QByteArray& v) {
+        return qbytearray_t {
+            .data = v.data(),
+            .len = v.size()
+        };
+    }
     typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
     void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-        *v = *val;
+        v->resize(0);
+        v->append(val->data, val->len);
     }
     inline void objectBooleanChanged(Object* o)
     {
@@ -126,7 +129,7 @@ bool Object::boolean() const
     return object_boolean_get(m_d);
 }
 void Object::setBoolean(bool v) {
-    object_boolean_set(m_d, v);
+    object_boolean_set(m_d, to_rust(v));
 }
 QByteArray Object::bytearray() const
 {
@@ -135,14 +138,14 @@ QByteArray Object::bytearray() const
     return v;
 }
 void Object::setBytearray(const QByteArray& v) {
-    object_bytearray_set(m_d, v);
+    object_bytearray_set(m_d, to_rust(v));
 }
 qint32 Object::integer() const
 {
     return object_integer_get(m_d);
 }
 void Object::setInteger(qint32 v) {
-    object_integer_set(m_d, v);
+    object_integer_set(m_d, to_rust(v));
 }
 QByteArray Object::optionalBytearray() const
 {
@@ -154,7 +157,7 @@ void Object::setOptionalBytearray(const QByteArray& v) {
     if (v.isNull()) {
         object_optional_bytearray_set_none(m_d);
     } else {
-        object_optional_bytearray_set(m_d, v);
+        object_optional_bytearray_set(m_d, to_rust(v));
     }
 }
 QString Object::optionalString() const
@@ -167,7 +170,7 @@ void Object::setOptionalString(const QString& v) {
     if (v.isNull()) {
         object_optional_string_set_none(m_d);
     } else {
-        object_optional_string_set(m_d, v);
+        object_optional_string_set(m_d, to_rust(v));
     }
 }
 QString Object::string() const
@@ -177,19 +180,19 @@ QString Object::string() const
     return v;
 }
 void Object::setString(const QString& v) {
-    object_string_set(m_d, v);
+    object_string_set(m_d, to_rust(v));
 }
 quint64 Object::u64() const
 {
     return object_u64_get(m_d);
 }
 void Object::setU64(quint64 v) {
-    object_u64_set(m_d, v);
+    object_u64_set(m_d, to_rust(v));
 }
 quint32 Object::uinteger() const
 {
     return object_uinteger_get(m_d);
 }
 void Object::setUinteger(uint v) {
-    object_uinteger_set(m_d, v);
+    object_uinteger_set(m_d, to_rust(v));
 }
