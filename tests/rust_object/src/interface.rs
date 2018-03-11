@@ -98,10 +98,10 @@ pub unsafe extern "C" fn person_free(ptr: *mut Person) {
 pub unsafe extern "C" fn person_user_name_get(
     ptr: *const Person,
     p: *mut c_void,
-    set: fn(*mut c_void, QString),
+    set: fn(*mut c_void, *const QString),
 ) {
     let data = (&*ptr).user_name();
-    set(p, data.into());
+    set(p, &data.into());
 }
 
 #[no_mangle]

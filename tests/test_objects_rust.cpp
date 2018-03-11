@@ -2,23 +2,25 @@
 #include "test_objects_rust.h"
 
 namespace {
+    template <typename T>
+    inline T to_rust(T t) { return t; }
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
+    extern "C" {
+        struct qstring_t {
+            const void* data;
+            int len;
+        };
+    }
+    static_assert(std::is_pod<qstring_t>::value, "qstring_t must be a POD type.");
+    qstring_t to_rust(const QString& v) {
+        return qstring_t {
+            .data = static_cast<const void*>(v.data()),
+            .len = v.size()
+        };
+    }
     typedef void (*qstring_set)(QString*, qstring_t*);
     void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+        *v = QString::fromUtf8(static_cast<const char*>(val->data), val->len);
     }
     inline void innerObjectDescriptionChanged(InnerObject* o)
     {
@@ -103,7 +105,7 @@ QString InnerObject::description() const
     return v;
 }
 void InnerObject::setDescription(const QString& v) {
-    inner_object_description_set(m_d, v);
+    inner_object_description_set(m_d, to_rust(v));
 }
 Person::Person(bool /*owned*/, QObject *parent):
     QObject(parent),

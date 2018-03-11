@@ -363,10 +363,10 @@ pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
 pub unsafe extern "C" fn %2_get(
     ptr: *const %1,
     p: *mut c_void,
-    set: fn(*mut c_void, %4),
+    set: fn(*mut c_void, *const %4),
 ) {
     let data = (&*ptr).%3();
-    set(p, %5data.into());
+    set(p, %5&data.into());
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name,
                 p.rustByValue ?"&" :"");
@@ -385,11 +385,11 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
 pub unsafe extern "C" fn %2_get(
     ptr: *const %1,
     p: *mut c_void,
-    set: fn(*mut c_void, %4),
+    set: fn(*mut c_void, *const %4),
 ) {
     let data = (&*ptr).%3();
     if let Some(data) = data {
-        set(p, %5data.into());
+        set(p, %5&data.into());
     }
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name,

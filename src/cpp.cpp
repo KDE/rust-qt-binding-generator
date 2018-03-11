@@ -172,7 +172,7 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
                 .arg(lcname, snakeCase(ip.name), idx) << endl;
         cpp << "    } else\n";
     }
-    QString val = QString("value.value<%1>()").arg(ip.type.name);
+    QString val = QString("to_rust(value.value<%1>())").arg(ip.type.name);
     cpp << QString("    set = %1_set_data_%2(m_d%3, %4);")
         .arg(lcname, snakeCase(ip.name), idx, val) << endl;
     if (o.type == ObjectType::List) {
@@ -829,10 +829,10 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
                 cpp << QString("    if (v.isNull()) {") << endl;
                 cpp << QString("        %1_set_none(m_d);").arg(base) << endl;
                 cpp << QString("    } else {") << endl;
-                cpp << QString("        %1_set(m_d, v);").arg(base) << endl;
+                cpp << QString("        %1_set(m_d, to_rust(v));").arg(base) << endl;
                 cpp << QString("    }") << endl;
             } else {
-                cpp << QString("    %1_set(m_d, v);").arg(base) << endl;
+                cpp << QString("    %1_set(m_d, to_rust(v));").arg(base) << endl;
             }
             cpp << "}" << endl;
         }
@@ -852,7 +852,7 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
         if (f.args.size() > 0) {
             argList.append(", ");
             for (auto a = f.args.begin(); a < f.args.end(); a++) {
-                argList.append(QString("%2%3").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
+                argList.append(QString("to_rust(%2)%3").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
             }
         }
         if (f.type.name == "QString") {
@@ -898,6 +898,8 @@ void writeCpp(const Configuration& conf) {
 #include "%1"
 
 namespace {
+    template <typename T>
+    inline T to_rust(T t) { return t; }
 )").arg(conf.hFile.fileName());
     for (auto option: conf.optionalTypes()) {
         cpp << QString(R"(
@@ -916,52 +918,56 @@ namespace {
     }
     if (conf.types().contains("QString")) {
         cpp << R"(
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
+    extern "C" {
+        struct qstring_t {
+            const void* data;
+            int len;
+        };
+    }
+    static_assert(std::is_pod<qstring_t>::value, "qstring_t must be a POD type.");
+    qstring_t to_rust(const QString& v) {
+        return qstring_t {
+            .data = static_cast<const void*>(v.data()),
+            .len = v.size()
+        };
+    }
     typedef void (*qstring_set)(QString*, qstring_t*);
     void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+        *v = QString::fromUtf8(static_cast<const char*>(val->data), val->len);
     }
 )";
     }
     if (conf.types().contains("QByteArray")) {
         cpp << R"(
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
+    extern "C" {
+        struct qbytearray_t {
+            const char* data;
+            int len;
+        };
+    }
+    static_assert(std::is_pod<qbytearray_t>::value, "qbytearray_t must be a POD type.");
+    qbytearray_t to_rust(const QByteArray& v) {
+        return qbytearray_t {
+            .data = v.data(),
+            .len = v.size()
+        };
+    }
     typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
     void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-        *v = *val;
+        v->resize(0);
+        v->append(val->data, val->len);
     }
 )";
     }
     if (conf.hasListOrTree()) {
         cpp << R"(
-    struct qmodelindex_t {
-        int row;
-        quintptr id;
-    };
+    extern "C" {
+        struct qmodelindex_t {
+            int row;
+            quintptr id;
+        };
+    }
+    static_assert(std::is_pod<qmodelindex_t>::value, "qmodelindex_t must be a POD type.");
 )";
     }
 

@@ -234,10 +234,10 @@ pub unsafe extern "C" fn object_boolean_set(ptr: *mut Object, v: bool) {
 pub unsafe extern "C" fn object_bytearray_get(
     ptr: *const Object,
     p: *mut c_void,
-    set: fn(*mut c_void, QByteArray),
+    set: fn(*mut c_void, *const QByteArray),
 ) {
     let data = (&*ptr).bytearray();
-    set(p, data.into());
+    set(p, &data.into());
 }
 
 #[no_mangle]
@@ -259,11 +259,11 @@ pub unsafe extern "C" fn object_integer_set(ptr: *mut Object, v: i32) {
 pub unsafe extern "C" fn object_optional_bytearray_get(
     ptr: *const Object,
     p: *mut c_void,
-    set: fn(*mut c_void, QByteArray),
+    set: fn(*mut c_void, *const QByteArray),
 ) {
     let data = (&*ptr).optional_bytearray();
     if let Some(data) = data {
-        set(p, data.into());
+        set(p, &data.into());
     }
 }
 
@@ -280,11 +280,11 @@ pub unsafe extern "C" fn object_optional_bytearray_set_none(ptr: *mut Object) {
 pub unsafe extern "C" fn object_optional_string_get(
     ptr: *const Object,
     p: *mut c_void,
-    set: fn(*mut c_void, QString),
+    set: fn(*mut c_void, *const QString),
 ) {
     let data = (&*ptr).optional_string();
     if let Some(data) = data {
-        set(p, data.into());
+        set(p, &data.into());
     }
 }
 
@@ -301,10 +301,10 @@ pub unsafe extern "C" fn object_optional_string_set_none(ptr: *mut Object) {
 pub unsafe extern "C" fn object_string_get(
     ptr: *const Object,
     p: *mut c_void,
-    set: fn(*mut c_void, QString),
+    set: fn(*mut c_void, *const QString),
 ) {
     let data = (&*ptr).string();
-    set(p, data.into());
+    set(p, &data.into());
 }
 
 #[no_mangle]
