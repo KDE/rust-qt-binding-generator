@@ -29,7 +29,7 @@
   <description>
     <p>Rust Qt Binding Generator is command-line program for using Rust code in Qt programs. It generates QObject types that give access to Rust code. The implementation of the QObject is written in a Rust trait.</p>
     <p xml:lang="ca">El Generador de vincles pel Rust a les Qt és un programa de línia d'ordres per usar el codi en Rust als programes Qt. Genera tipus QObject que donen accés al codi en Rust. La implementació del QObject està escrita en un tret de Rust.</p>
-    <p xml:lang="ca-valencia">El Generador de vincles pel Rust a les Qt és un programa de línia d'ordes per usar el codi en Rust als programes Qt. Genera tipus QObject que donen accés al codi en Rust. La implementació del QObject està escrita en un tret de Rust.</p>
+    <p xml:lang="ca-valencia">El Generador de vincles pel Rust a les Qt és un programa de línia d'ordres per usar el codi en Rust als programes Qt. Genera tipus QObject que donen accés al codi en Rust. La implementació del QObject està escrita en un tret de Rust.</p>
     <p xml:lang="en-GB">Rust Qt Binding Generator is command-line program for using Rust code in Qt programs. It generates QObject types that give access to Rust code. The implementation of the QObject is written in a Rust trait.</p>
     <p xml:lang="nl">Rust Qt Binding Generator is opdrachtregelprogramma voor gebruik van Rust-code in Qt programma's. Het genereert QObject typen die toegang geven tot Rust-code. De implementatie van het QObject is geschreven in een Rust-trait.</p>
     <p xml:lang="pl">Generator powiązań Qt Rust jest programem wiersza poleceń do używania kodu Rust w programach Qt. Tworzy rodzaje QObject, które dają dostęp do kodu Rust. Implementacja QObject została napisana w Rust.</p>
