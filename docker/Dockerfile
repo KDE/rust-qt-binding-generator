@@ -8,6 +8,7 @@ RUN apt-get update && apt-get dist-upgrade -y
 # build dependencies and many extra qml modules
 RUN apt-get update && apt-get dist-upgrade -y && \
   apt-get install -y --no-install-recommends \
+    ca-certificates \
     qtcreator rustc cargo ninja-build make cmake g++ extra-cmake-modules \
     kdesdk-scripts \
     gdb valgrind git \
