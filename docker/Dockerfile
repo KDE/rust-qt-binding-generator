@@ -1,5 +1,5 @@
 # Dockerfile for a development environment for rust_qt_binding_generator
-FROM ubuntu:17.10
+FROM ubuntu:18.04
 
 USER root
 
