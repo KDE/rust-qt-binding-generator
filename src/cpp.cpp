@@ -22,6 +22,7 @@
 #include "cpp.h"
 #include "helper.h"
 #include <QMetaEnum>
+#include <QDebug>
 
 template <typename T>
 QString cppSetType(const T& p)
@@ -679,8 +680,12 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
                 .arg(o.name, base, p.type.name) << endl;
         }
         if (p.write) {
+            QString t = p.type.cSetType;
+            if (t == "qstring_t") {
+                t = "const ushort *str, int len";
+            }
             cpp << QString("    void %2_set(%1::Private*, %3);")
-                .arg(o.name, base, p.type.cSetType) << endl;
+                .arg(o.name, base, t) << endl;
             if (p.optional) {
                 cpp << QString("    void %2_set_none(%1::Private*);")
                     .arg(o.name, base) << endl;
@@ -831,7 +836,10 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
                 cpp << QString("    } else {") << endl;
                 cpp << QString("        %1_set(m_d, v);").arg(base) << endl;
                 cpp << QString("    }") << endl;
+            } else if (p.type.name == "QString") {
+                cpp << QString("    %1_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());").arg(base) << endl;
             } else {
+                qWarning() << p.type.cppSetType;
                 cpp << QString("    %1_set(m_d, v);").arg(base) << endl;
             }
             cpp << "}" << endl;
@@ -916,22 +924,9 @@ namespace {
     }
     if (conf.types().contains("QString")) {
         cpp << R"(
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
 )";
     }

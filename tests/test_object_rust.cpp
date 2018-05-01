@@ -3,22 +3,9 @@
 
 namespace {
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
     inline void personUserNameChanged(Person* o)
     {
@@ -29,7 +16,7 @@ extern "C" {
     Person::Private* person_new(Person*, void (*)(Person*));
     void person_free(Person::Private*);
     void person_user_name_get(const Person::Private*, QString*, qstring_set);
-    void person_user_name_set(Person::Private*, qstring_t);
+    void person_user_name_set(Person::Private*, const ushort *str, int len);
 };
 
 Person::Person(bool /*owned*/, QObject *parent):
@@ -59,5 +46,5 @@ QString Person::userName() const
     return v;
 }
 void Person::setUserName(const QString& v) {
-    person_user_name_set(m_d, v);
+    person_user_name_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
 }
