@@ -683,6 +683,8 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
             QString t = p.type.cSetType;
             if (t == "qstring_t") {
                 t = "const ushort *str, int len";
+            } else if (t == "qbytearray_t") {
+                t = "const char* bytes, int len";
             }
             cpp << QString("    void %2_set(%1::Private*, %3);")
                 .arg(o.name, base, t) << endl;
@@ -834,10 +836,18 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
                 cpp << QString("    if (v.isNull()) {") << endl;
                 cpp << QString("        %1_set_none(m_d);").arg(base) << endl;
                 cpp << QString("    } else {") << endl;
-                cpp << QString("        %1_set(m_d, v);").arg(base) << endl;
+                if (p.type.name == "QString") {
+                    cpp << QString("    %1_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());").arg(base) << endl;
+                } else if (p.type.name == "QByteArray") {
+                    cpp << QString("    %1_set(m_d, v.data(), v.size());").arg(base) << endl;
+                } else {
+                    cpp << QString("        %1_set(m_d, v);").arg(base) << endl;
+                }
                 cpp << QString("    }") << endl;
             } else if (p.type.name == "QString") {
                 cpp << QString("    %1_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());").arg(base) << endl;
+            } else if (p.type.name == "QByteArray") {
+                cpp << QString("    %1_set(m_d, v.data(), v.size());").arg(base) << endl;
             } else {
                 qWarning() << p.type.cppSetType;
                 cpp << QString("    %1_set(m_d, v);").arg(base) << endl;
@@ -932,22 +942,10 @@ namespace {
     }
     if (conf.types().contains("QByteArray")) {
         cpp << R"(
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
-    typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-    void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-        *v = *val;
+    typedef void (*qbytearray_set)(QByteArray* val, const char* bytes, int nbytes);
+    void set_qbytearray(QByteArray* v, const char* bytes, int nbytes) {
+        v->truncate(0);
+        v->append(bytes, nbytes);
     }
 )";
     }

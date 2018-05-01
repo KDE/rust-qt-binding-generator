@@ -3,40 +3,15 @@
 
 namespace {
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
 
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
-    typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-    void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-        *v = *val;
+    typedef void (*qbytearray_set)(QByteArray* val, const char* bytes, int nbytes);
+    void set_qbytearray(QByteArray* v, const char* bytes, int nbytes) {
+        v->truncate(0);
+        v->append(bytes, nbytes);
     }
     inline void objectBooleanChanged(Object* o)
     {
@@ -77,17 +52,17 @@ extern "C" {
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
     void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
-    void object_bytearray_set(Object::Private*, qbytearray_t);
+    void object_bytearray_set(Object::Private*, const char* bytes, int len);
     qint32 object_integer_get(const Object::Private*);
     void object_integer_set(Object::Private*, qint32);
     void object_optional_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
-    void object_optional_bytearray_set(Object::Private*, qbytearray_t);
+    void object_optional_bytearray_set(Object::Private*, const char* bytes, int len);
     void object_optional_bytearray_set_none(Object::Private*);
     void object_optional_string_get(const Object::Private*, QString*, qstring_set);
-    void object_optional_string_set(Object::Private*, qstring_t);
+    void object_optional_string_set(Object::Private*, const ushort *str, int len);
     void object_optional_string_set_none(Object::Private*);
     void object_string_get(const Object::Private*, QString*, qstring_set);
-    void object_string_set(Object::Private*, qstring_t);
+    void object_string_set(Object::Private*, const ushort *str, int len);
     quint64 object_u64_get(const Object::Private*);
     void object_u64_set(Object::Private*, quint64);
     quint32 object_uinteger_get(const Object::Private*);
@@ -135,7 +110,7 @@ QByteArray Object::bytearray() const
     return v;
 }
 void Object::setBytearray(const QByteArray& v) {
-    object_bytearray_set(m_d, v);
+    object_bytearray_set(m_d, v.data(), v.size());
 }
 qint32 Object::integer() const
 {
@@ -154,7 +129,7 @@ void Object::setOptionalBytearray(const QByteArray& v) {
     if (v.isNull()) {
         object_optional_bytearray_set_none(m_d);
     } else {
-        object_optional_bytearray_set(m_d, v);
+    object_optional_bytearray_set(m_d, v.data(), v.size());
     }
 }
 QString Object::optionalString() const
@@ -167,7 +142,7 @@ void Object::setOptionalString(const QString& v) {
     if (v.isNull()) {
         object_optional_string_set_none(m_d);
     } else {
-        object_optional_string_set(m_d, v);
+    object_optional_string_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
     }
 }
 QString Object::string() const
@@ -177,7 +152,7 @@ QString Object::string() const
     return v;
 }
 void Object::setString(const QString& v) {
-    object_string_set(m_d, v);
+    object_string_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
 }
 quint64 Object::u64() const
 {

@@ -371,45 +371,72 @@ pub extern "C" fn %2_get(
     set(p, s, v.len() as c_int);
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name, p.rustByValue ?"&" :"");
-            if (p.write) {
-                const QString type = p.type.name == "QString" ? "*const c_ushort, len: c_int" : p.type.name;
+            if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set(ptr: *mut %1, v: %4) {
+pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
     let o = unsafe { &mut *ptr };
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_%3(s);
 }
-)").arg(o.name, base, snakeCase(p.name), type);
+)").arg(o.name, base, snakeCase(p.name));
+            } else if (p.write) {
+                r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
+    let o = unsafe { &mut *ptr };
+    let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
+    o.set_%3(v.into());
+}
+)").arg(o.name, base, snakeCase(p.name));
             }
         } else if (p.type.isComplex()) {
             r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_get(
+pub extern "C" fn %2_get(
     ptr: *const %1,
     p: *mut c_void,
-    set: fn(*mut c_void, %4),
+    set: fn(*mut c_void, *const c_char, c_int),
 ) {
-    let data = (&*ptr).%3();
-    if let Some(data) = data {
-        set(p, %5data.into());
+    let o = unsafe { &*ptr };
+    let v = o.%3();
+    if let Some(v) = v {
+        let s: *const c_char = v.as_ptr() as (*const c_char);
+        set(p, s, v.len() as c_int);
     }
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name,
                 p.rustByValue ?"&" :"");
-            if (p.write) {
-                const QString type = p.type.name == "QString" ? "QStringIn" : p.type.name;
+            if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
-    (&mut *ptr).set_%3(Some(v.convert()));
+pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
+    let o = unsafe { &mut *ptr };
+    let mut s = String::new();
+    set_string_from_utf16(&mut s, v, len);
+    o.set_%3(Some(s));
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_set_none(ptr: *mut %1) {
-    (&mut *ptr).set_%3(None);
+pub extern "C" fn %2_set_none(ptr: *mut %1) {
+    let o = unsafe { &mut *ptr };
+    o.set_%3(None);
 }
-)").arg(o.name, base, snakeCase(p.name), type);
+)").arg(o.name, base, snakeCase(p.name));
+            } else if (p.write) {
+                r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
+    let o = unsafe { &mut *ptr };
+    let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
+    o.set_%3(Some(v.into()));
+}
+#[no_mangle]
+pub extern "C" fn %2_set_none(ptr: *mut %1) {
+    let o = unsafe { &mut *ptr };
+    o.set_%3(None);
+}
+)").arg(o.name, base, snakeCase(p.name));
             }
         } else {
             r << QString(R"(
@@ -720,27 +747,7 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     if (hasByteArray) {
         r << R"(
 
-#[repr(C)]
-pub struct QByteArray {
-    data: *const uint8_t,
-    len: c_int,
-}
-
-impl QByteArray {
-    fn convert(&self) -> Vec<u8> {
-        let data = unsafe { slice::from_raw_parts(self.data, self.len as usize) };
-        Vec::from(data)
-    }
-}
-
-impl<'a> From<&'a [u8]> for QByteArray {
-    fn from(value: &'a [u8]) -> QByteArray {
-        QByteArray {
-            len: value.len() as c_int,
-            data: value.as_ptr(),
-        }
-    }
-}
+pub enum QByteArray {}
 )";
     }
     if (hasListOrTree) {
