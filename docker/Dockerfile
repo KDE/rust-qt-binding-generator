@@ -11,7 +11,7 @@ RUN apt-get update && apt-get dist-upgrade -y && \
     ca-certificates \
     qtcreator rustc cargo ninja-build make cmake g++ extra-cmake-modules \
     kdesdk-scripts \
-    gdb valgrind git \
+    gdb valgrind git vim less \
     qtdeclarative5-dev-tools qtdeclarative5-dev qtquickcontrols2-5-dev \
     libqt5charts5-dev libqt5svg5-dev qml-module-qtcharts \
     qt5-doc qtbase5-doc qtcharts5-doc qtcreator-doc qtquickcontrols2-5-doc \
