@@ -8,3 +8,6 @@ libc = "*"
 [lib]
 name = "rust"
 crate-type = ["staticlib"]
+
+[profile.release]
+debug = true

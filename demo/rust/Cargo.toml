@@ -9,3 +9,6 @@ sysinfo = "0.3.16"
 [lib]
 name = "rust"
 crate-type = ["staticlib"]
+
+[profile.release]
+debug = true
