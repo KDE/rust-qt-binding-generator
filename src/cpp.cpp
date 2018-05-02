@@ -174,6 +174,14 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
         cpp << "    } else\n";
     }
     QString val = QString("value.value<%1>()").arg(ip.type.name);
+    if (ip.type.isComplex()) {
+        cpp << QString("    const %1 s = %2;").arg(ip.type.name, val);
+        if (ip.type.name == "QString") {
+            val = "s.utf16(), s.length()";
+        } else {
+            val = "s.data(), s.length()";
+        }
+    }
     cpp << QString("    set = %1_set_data_%2(m_d%3, %4);")
         .arg(lcname, snakeCase(ip.name), idx, val) << endl;
     if (o.type == ObjectType::List) {
@@ -215,8 +223,16 @@ void writeCppModel(QTextStream& cpp, const Object& o) {
                 .arg(o.name, lcname, snakeCase(ip.name), cppSetType(ip), indexDecl);
         }
         if (ip.write) {
-            cpp << QString("    bool %2_set_data_%3(%1::Private*%5, %4);")
-                .arg(o.name, lcname, snakeCase(ip.name), ip.type.cSetType, indexDecl) << endl;
+            if (ip.type.name == "QString") {
+                cpp << QString("    bool %2_set_data_%3(%1::Private*%4, const ushort* s, int len);")
+                    .arg(o.name, lcname, snakeCase(ip.name), indexDecl) << endl;
+            } else if (ip.type.name == "QByteArray") {
+                cpp << QString("    bool %2_set_data_%3(%1::Private*%4, const char* s, int len);")
+                    .arg(o.name, lcname, snakeCase(ip.name), indexDecl) << endl;
+            } else {
+                cpp << QString("    bool %2_set_data_%3(%1::Private*%5, %4);")
+                    .arg(o.name, lcname, snakeCase(ip.name), ip.type.cSetType, indexDecl) << endl;
+            }
             if (ip.optional) {
                 cpp << QString("    bool %2_set_data_%3_none(%1::Private*%4);")
                     .arg(o.name, lcname, snakeCase(ip.name), indexDecl) << endl;

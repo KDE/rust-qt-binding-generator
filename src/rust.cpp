@@ -370,7 +370,7 @@ pub extern "C" fn %2_get(
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, v.len() as c_int);
 }
-)").arg(o.name, base, snakeCase(p.name), p.type.name, p.rustByValue ?"&" :"");
+)").arg(o.name, base, snakeCase(p.name));
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
@@ -406,8 +406,7 @@ pub extern "C" fn %2_get(
         set(p, s, v.len() as c_int);
     }
 }
-)").arg(o.name, base, snakeCase(p.name), p.type.name,
-                p.rustByValue ?"&" :"");
+)").arg(o.name, base, snakeCase(p.name));
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
@@ -603,49 +602,76 @@ pub unsafe extern "C" fn %2_row(ptr: *const %1, item: usize) -> c_int {
             if (ip.type.isComplex() && !ip.optional) {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_data_%3(
+pub extern "C" fn %2_data_%3(
     ptr: *const %1%5,
-    d: *mut c_void,
-    set: fn(*mut c_void, %4),
+    d: *mut QString,
+    set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let data = (&*ptr).%3(%6);
-    set(d, (%7data).into());
+    let o = unsafe { & *ptr };
+    let data = o.%3(%6);
+    let s: *const c_char = data.as_ptr() as (*const c_char);
+    set(d, s, data.len() as i32);
 }
-)").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index,
-                ip.rustByValue ?"&" :"");
-            } else if (ip.type.isComplex()) {
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
+            } else if (ip.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_data_%3(
+pub extern "C" fn %2_data_%3(
     ptr: *const %1%5,
-    d: *mut c_void,
-    set: fn(*mut c_void, %4),
+    d: *mut QString,
+    set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let data = (&*ptr).%3(%6);
+    let o = unsafe { &mut *ptr };
+    let data = o.%3(%6);
     if let Some(data) = data {
-        set(d, %4::from(&data));
+        let s: *const c_char = data.as_ptr() as (*const c_char);
+        set(d, s, data.len());
     }
 }
 )").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index);
             } else {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
-    (&*ptr).%3(%6).into()
+pub extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
+    let o = unsafe { &mut *ptr };
+    o.%3(%6).into()
 }
 )").arg(o.name, lcname, snakeCase(ip.name), rustCType(ip), indexDecl, index);
             }
             if (ip.write) {
                 QString val = "v";
-                QString type = ip.type.rustType;
-                if (ip.type.isComplex()) {
-                    val = val + ".convert()";
-                    type = ip.type.name == "QString" ? "QStringIn" : ip.type.name;
-                }
                 if (ip.optional) {
                     val = "Some(" + val + ")";
                 }
-                r << QString(R"(
+                if (ip.type.name == "QString") {
+                    r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %2_set_data_%3(
+    ptr: *mut %1%4,
+    s: *const c_ushort, len: c_int,
+) -> bool {
+    let o = unsafe { &mut *ptr };
+    let mut v = String::new();
+    set_string_from_utf16(&mut v, s, len);
+    o.set_%3(%5, %6)
+}
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, val);
+                } else if (ip.type.name == "QByteArray") {
+                    r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %2_set_data_%3(
+    ptr: *mut %1%4,
+    s: *const c_char, len: c_int,
+) -> bool {
+    let o = unsafe { &mut *ptr };
+    let mut v = Vec::new();
+    set_string_from_utf16(&mut v, s, len);
+    o.set_%3(%5, %6)
+}
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, val);
+                } else {
+                    const QString type = ip.type.rustType;
+                    r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_set_data_%3(
     ptr: *mut %1%4,
@@ -654,6 +680,7 @@ pub unsafe extern "C" fn %2_set_data_%3(
     (&mut *ptr).set_%3(%5, %7)
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, type, val);
+                }
             }
             if (ip.write && ip.optional) {
                 r << QString(R"(
