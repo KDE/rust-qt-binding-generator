@@ -15,22 +15,9 @@ namespace {
         }
     };
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
 
     struct qmodelindex_t {
@@ -40,7 +27,7 @@ namespace {
 }
 extern "C" {
     void persons_data_user_name(const Persons::Private*, quintptr, QString*, qstring_set);
-    bool persons_set_data_user_name(Persons::Private*, quintptr, qstring_t);
+    bool persons_set_data_user_name(Persons::Private*, quintptr, const ushort* s, int len);
     void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int persons_row_count(const Persons::Private*, quintptr, bool);
@@ -140,7 +127,7 @@ QVariant Persons::userName(const QModelIndex& index) const
 bool Persons::setUserName(const QModelIndex& index, const QVariant& value)
 {
     bool set = false;
-    set = persons_set_data_user_name(m_d, index.internalId(), value.value<QString>());
+    const QString s = value.value<QString>();    set = persons_set_data_user_name(m_d, index.internalId(), s.utf16(), s.length());
     if (set) {
         emit dataChanged(index, index);
     }

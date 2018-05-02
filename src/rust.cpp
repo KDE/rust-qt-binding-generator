@@ -607,33 +607,33 @@ pub extern "C" fn %2_data_%3(
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { & *ptr };
+    let o = unsafe { &*ptr };
     let data = o.%3(%6);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as i32);
+    set(d, s, data.len() as c_int);
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
             } else if (ip.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
 pub extern "C" fn %2_data_%3(
-    ptr: *const %1%5,
+    ptr: *const %1%4,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &mut *ptr };
-    let data = o.%3(%6);
+    let o = unsafe { &*ptr };
+    let data = o.%3(%5);
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
-        set(d, s, data.len());
+        set(d, s, data.len() as c_int);
     }
 }
-)").arg(o.name, lcname, snakeCase(ip.name), ip.type.name, indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
             } else {
                 r << QString(R"(
 #[no_mangle]
 pub extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
-    let o = unsafe { &mut *ptr };
+    let o = unsafe { &*ptr };
     o.%3(%6).into()
 }
 )").arg(o.name, lcname, snakeCase(ip.name), rustCType(ip), indexDecl, index);

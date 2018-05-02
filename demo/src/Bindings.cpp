@@ -39,40 +39,15 @@ namespace {
         }
     };
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
 
-    struct qbytearray_t {
-    private:
-        const char* data;
-        int len;
-    public:
-        qbytearray_t(const QByteArray& v):
-            data(v.data()),
-            len(v.size()) {
-        }
-        operator QByteArray() const {
-            return QByteArray(data, len);
-        }
-    };
-    typedef void (*qbytearray_set)(QByteArray*, qbytearray_t*);
-    void set_qbytearray(QByteArray* v, qbytearray_t* val) {
-        *v = *val;
+    typedef void (*qbytearray_set)(QByteArray* val, const char* bytes, int nbytes);
+    void set_qbytearray(QByteArray* v, const char* bytes, int nbytes) {
+        v->truncate(0);
+        v->append(bytes, nbytes);
     }
 
     struct qmodelindex_t {
@@ -516,7 +491,7 @@ extern "C" {
         void (*)(FileSystemTree*));
     void file_system_tree_free(FileSystemTree::Private*);
     void file_system_tree_path_get(const FileSystemTree::Private*, QString*, qstring_set);
-    void file_system_tree_path_set(FileSystemTree::Private*, qstring_t);
+    void file_system_tree_path_set(FileSystemTree::Private*, const ushort *str, int len);
     void file_system_tree_path_set_none(FileSystemTree::Private*);
 };
 
@@ -1380,7 +1355,7 @@ void FileSystemTree::setPath(const QString& v) {
     if (v.isNull()) {
         file_system_tree_path_set_none(m_d);
     } else {
-        file_system_tree_path_set(m_d, v);
+    file_system_tree_path_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
     }
 }
 Processes::Processes(bool /*owned*/, QObject *parent):

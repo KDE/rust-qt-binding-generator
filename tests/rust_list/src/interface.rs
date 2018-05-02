@@ -204,10 +204,10 @@ pub extern "C" fn persons_data_user_name(
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { & *ptr };
+    let o = unsafe { &*ptr };
     let data = o.user_name(row as usize);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as i32);
+    set(d, s, data.len() as c_int);
 }
 
 #[no_mangle]

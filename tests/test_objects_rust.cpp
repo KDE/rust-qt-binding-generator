@@ -3,22 +3,9 @@
 
 namespace {
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
     inline void innerObjectDescriptionChanged(InnerObject* o)
     {
@@ -35,7 +22,7 @@ extern "C" {
     InnerObject::Private* inner_object_new(InnerObject*, void (*)(InnerObject*));
     void inner_object_free(InnerObject::Private*);
     void inner_object_description_get(const InnerObject::Private*, QString*, qstring_set);
-    void inner_object_description_set(InnerObject::Private*, qstring_t);
+    void inner_object_description_set(InnerObject::Private*, const ushort *str, int len);
 };
 
 extern "C" {
@@ -103,7 +90,7 @@ QString InnerObject::description() const
     return v;
 }
 void InnerObject::setDescription(const QString& v) {
-    inner_object_description_set(m_d, v);
+    inner_object_description_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
 }
 Person::Person(bool /*owned*/, QObject *parent):
     QObject(parent),
