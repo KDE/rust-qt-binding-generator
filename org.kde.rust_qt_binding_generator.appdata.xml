@@ -20,7 +20,7 @@
   <summary xml:lang="ca">Genera vincles per usar el codi en Rust a les Qt i el QML</summary>
   <summary xml:lang="ca-valencia">Genera vincles per usar el codi en Rust a les Qt i el QML</summary>
   <summary xml:lang="en-GB">Generate bindings to use Rust code in Qt and QML</summary>
-  <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML.</summary>
+  <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML</summary>
   <summary xml:lang="nl">Genereert bindings om Rust-code in Qt en QML te gebruiken</summary>
   <summary xml:lang="pl">Utwórz powiązania do używania kodu Rust w Qt oraz QML</summary>
   <summary xml:lang="pt">Gera interfaces para usar o código em Rust com o Qt e o QML</summary>
