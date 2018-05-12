@@ -676,6 +676,38 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
     }
 }
 
+void writeFunctionCDecl(QTextStream& cpp, const Function& f, const QString& lcname, const Object& o) {
+    const QString lc(snakeCase(f.name));
+    cpp << "    ";
+    if (f.type.isComplex()) {
+        cpp << "void";
+    } else {
+        cpp << f.type.name;
+    }
+    const QString name = QString("%1_%2").arg(lcname, lc);
+    cpp << QString(" %1(%3%2::Private*").arg(name, o.name, f.mut ? "" : "const ");
+    // write all the input arguments, for QString and QByteArray, write
+    // pointers to their content and the length
+    for (auto a = f.args.begin(); a < f.args.end(); a++) {
+        if (a->type.name == "QString") {
+            cpp << ", const ushort*, int";
+        } else if (a->type.name == "QByteArray") {
+            cpp << ", const char*, int";
+        } else {
+            cpp << ", " << a->type.rustType;
+        }
+    }
+    // If the return type is QString or QByteArray, append a pointer to the
+    // variable that will be set to the argument list. Also add a setter
+    // function.
+    if (f.type.name == "QString") {
+        cpp << ", QString*, qstring_set";
+    } else if (f.type.name == "QByteArray") {
+        cpp << ", QByteArray*, qbytearray_set";
+    }
+    cpp << ");\n";
+}
+
 void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& conf) {
     const QString lcname(snakeCase(o.name));
     cpp << QString("    %1::Private* %2_new(").arg(o.name, lcname);
@@ -712,20 +744,7 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
     }
 
     for (const Function& f: o.functions) {
-        const QString lc(snakeCase(f.name));
-        const QString name = QString("%1_%2").arg(lcname, lc);
-        cpp << QString("    %1 %2(%4%3::Private*")
-            .arg(f.type.cSetType, name, o.name, f.mut ? "" : "const ");
-        if (f.args.size() > 0) {
-            cpp << ", ";
-            for (auto a = f.args.begin(); a < f.args.end(); a++) {
-                cpp << QString("%2%3").arg(a->type.cSetType, a + 1 < f.args.end() ? ", " : "");
-            }
-        }
-        if (f.type.name == "QString") {
-            cpp << ", QString*, qstring_set";
-        }
-        cpp << ");" << endl;
+        writeFunctionCDecl(cpp, f, lcname, o);
     }
 }
 
@@ -883,10 +902,11 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
         cpp << QString(")%1\n{\n")
             .arg(f.mut ? "" : " const");
         QString argList;
-        if (f.args.size() > 0) {
-            argList.append(", ");
-            for (auto a = f.args.begin(); a < f.args.end(); a++) {
-                argList.append(QString("%2%3").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
+        for (auto a = f.args.begin(); a < f.args.end(); a++) {
+            if (a->type.name == "QString") {
+                argList.append(QString(", %2%3.utf16(), %2%3.size()").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
+            } else {
+                argList.append(QString(", %2%3").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
             }
         }
         if (f.type.name == "QString") {

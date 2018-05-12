@@ -146,6 +146,91 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
     r << ");\n";
 }
 
+void writeFunction(QTextStream& r, const Function& f, const QString& lcname, const Object& o) {
+    const QString lc(snakeCase(f.name));
+    r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", o.name);
+    // write all the input arguments, for QString and QByteArray, write
+    // pointers to their content and the length which is int in Qt
+    for (auto a = f.args.begin(); a < f.args.end(); a++) {
+        r << ", ";
+        if (a->type.name == "QString") {
+            r << QString("%1_str: *const c_ushort, %1_len: c_int").arg(a->name);
+        } else {
+            r << a->name << ": " << a->type.rustType;
+        }
+    }
+    // If the return type is QString or QByteArray, append a pointer to the
+    // variable that will be set to the argument list. Also add a setter
+    // function.
+    if (f.type.name == "QString") {
+        r << ", d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {\n";
+    } else if (f.type.name == "QByteArray") {
+        r << ", d: *mut QByteArray, set: fn(*mut QString, str: *const c_char, len: c_int)) {\n";
+    } else {
+        r << ") -> " << f.type.rustType << " {\n";
+    }
+    for (auto a = f.args.begin(); a < f.args.end(); a++) {
+        if (a->type.name == "QString") {
+            r << "    let mut " << a->name << " = String::new();\n";
+            r << QString("    set_string_from_utf16(&mut %1, %1_str, %1_len);\n").arg(a->name);
+        } else if (a->type.name == "QByteArray") {
+        }
+    }
+    if (f.mut) {
+        r << "    let o = unsafe { &mut *ptr };\n";
+    } else {
+        r << "    let o = unsafe { &*ptr };\n";
+    }
+    r << "    let r = o." << lc << "(";
+    for (auto a = f.args.begin(); a < f.args.end(); a++) {
+        if (a != f.args.begin()) {
+            r << ", ";
+        }
+        r << a->name;
+    }
+    r << ");\n";
+    if (f.type.isComplex()) {
+        r << "    let s: *const c_char = r.as_ptr() as (*const c_char);\n";
+        r << "    set(d, s, r.len() as i32);\n";
+    } else if (f.type.rustType != "()") {
+        r << "    r\n";
+    }
+    r << "}\n";
+    /*
+        const QString type = a->type.name == "QString" ? "*const c_ushort, len: c_int" : a->type.rustType;
+        const QString passAlong = a->type.name == "QString" ? QString("%1.convert()").arg(a->name) : a->name;
+        argList.append(QString("%1: %2%3").arg(a->name, type, a + 1 < f.args.end() ? ", " : ""));
+        noTypeArgs.append(QString("%1%3").arg(passAlong, a + 1 < f.args.end() ? ", " : ""));
+    }
+    QString argList;
+    QString noTypeArgs;
+    if (f.args.size() > 0) {
+        argList.append(", ");
+    }
+    if (f.type.name == "QString") {
+        r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %1_%2(ptr: *%3 %4%6, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+let o = unsafe { &%5*ptr };
+let data = o.%2(%7);
+let s: *const c_char = data.as_ptr() as (*const c_char);
+set(d, s, data.len() as c_int);
+}
+)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.mut ? "mut " : "", argList, noTypeArgs);
+
+    } else {
+        r << QString(R"(
+#[no_mangle]
+pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7) -> %5 {
+(&%6*ptr).%2(%8)
+}
+)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.type.rustType, f.mut ? "mut " : "", argList, noTypeArgs);
+    }
+    */
+}
+
 void writeRustInterfaceObject(QTextStream& r, const Object& o, const Configuration& conf) {
     const QString lcname(snakeCase(o.name));
     r << QString(R"(
@@ -455,35 +540,7 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
         }
     }
     for (const Function& f: o.functions) {
-        const QString lc(snakeCase(f.name));
-        QString argList;
-        QString noTypeArgs;
-        if (f.args.size() > 0) {
-            argList.append(", ");
-            for (auto a = f.args.begin(); a < f.args.end(); a++) {
-                const QString type = a->type.name == "QString" ? "QStringIn" : a->type.rustType;
-                const QString passAlong = a->type.name == "QString" ? QString("%1.convert()").arg(a->name) : a->name;
-                argList.append(QString("%1: %2%3").arg(a->name, type, a + 1 < f.args.end() ? ", " : ""));
-                noTypeArgs.append(QString("%1%3").arg(passAlong, a + 1 < f.args.end() ? ", " : ""));
-            }
-        }
-        if (f.type.isComplex()) {
-            r << QString(R"(
-#[no_mangle]
-pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7, d: *mut c_void, set: fn(*mut c_void, %5)) {
-    let data = (&%6*ptr).%2(%8);
-    set(d, (&data).into());
-}
-)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.type.name, f.mut ? "mut " : "", argList, noTypeArgs);
-
-        } else {
-            r << QString(R"(
-#[no_mangle]
-pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7) -> %5 {
-    (&%6*ptr).%2(%8)
-}
-)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.type.rustType, f.mut ? "mut " : "", argList, noTypeArgs);
-        }
+        writeFunction(r, f, lcname, o);
     }
     if (o.type == ObjectType::List) {
         r << QString(R"(
@@ -866,10 +923,6 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
         } else {
             r << QString("            %1: %2,\n").arg(lc, rustTypeInit(p));
         }
-    }
-    if (o.type != ObjectType::Object) {
-        r << QString("            list: vec![%1Item::default(); 10],\n")
-            .arg(o.name);
     }
     r << QString(R"(        }
     }
