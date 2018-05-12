@@ -198,37 +198,6 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
         r << "    r\n";
     }
     r << "}\n";
-    /*
-        const QString type = a->type.name == "QString" ? "*const c_ushort, len: c_int" : a->type.rustType;
-        const QString passAlong = a->type.name == "QString" ? QString("%1.convert()").arg(a->name) : a->name;
-        argList.append(QString("%1: %2%3").arg(a->name, type, a + 1 < f.args.end() ? ", " : ""));
-        noTypeArgs.append(QString("%1%3").arg(passAlong, a + 1 < f.args.end() ? ", " : ""));
-    }
-    QString argList;
-    QString noTypeArgs;
-    if (f.args.size() > 0) {
-        argList.append(", ");
-    }
-    if (f.type.name == "QString") {
-        r << QString(R"(
-#[no_mangle]
-pub extern "C" fn %1_%2(ptr: *%3 %4%6, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
-let o = unsafe { &%5*ptr };
-let data = o.%2(%7);
-let s: *const c_char = data.as_ptr() as (*const c_char);
-set(d, s, data.len() as c_int);
-}
-)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.mut ? "mut " : "", argList, noTypeArgs);
-
-    } else {
-        r << QString(R"(
-#[no_mangle]
-pub unsafe extern "C" fn %1_%2(ptr: *%3 %4%7) -> %5 {
-(&%6*ptr).%2(%8)
-}
-)").arg(lcname, lc, f.mut ? "mut" : "const", o.name, f.type.rustType, f.mut ? "mut " : "", argList, noTypeArgs);
-    }
-    */
 }
 
 void writeRustInterfaceObject(QTextStream& r, const Object& o, const Configuration& conf) {
