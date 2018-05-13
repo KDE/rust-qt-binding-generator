@@ -162,6 +162,7 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
         cpp << QString("bool %1::set%2(const QModelIndex& index, const QVariant& value)\n{\n")
                 .arg(o.name, upperInitial(ip.name));
     }
+    cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
     cpp << "    bool set = false;\n";
     if (ip.optional) {
         QString test = "!value.isValid()";
@@ -173,10 +174,9 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
                 .arg(lcname, snakeCase(ip.name), idx) << endl;
         cpp << "    } else\n";
     }
-    cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
     QString val = QString("value.value<%1>()").arg(ip.type.name);
     if (ip.type.isComplex()) {
-        cpp << QString("    const %1 s = %2;").arg(ip.type.name, val);
+        cpp << QString("    const %1 s = %2;\n").arg(ip.type.name, val);
         if (ip.type.name == "QString") {
             val = "s.utf16(), s.length()";
         } else {
