@@ -42,7 +42,15 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
         QList<BindingTypeProperties> f;
         f.append(simpleType(BindingType::Bool, "bool", "true"));
         f.append({
-            .type = BindingType::UChar,
+            .type = BindingType::UInt8,
+            .name = "qint8",
+            .cppSetType = "qint8",
+            .cSetType = "qint8",
+            .rustType = "i8",
+            .rustTypeInit = "0",
+        });
+        f.append({
+            .type = BindingType::UInt8,
             .name = "quint8",
             .cppSetType = "quint8",
             .cSetType = "quint8",
@@ -50,7 +58,23 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
             .rustTypeInit = "0",
         });
         f.append({
-            .type = BindingType::Int,
+            .type = BindingType::Int16,
+            .name = "qint16",
+            .cppSetType = "qint16",
+            .cSetType = "qint16",
+            .rustType = "i16",
+            .rustTypeInit = "0",
+        });
+        f.append({
+            .type = BindingType::UInt16,
+            .name = "quint16",
+            .cppSetType = "uint",
+            .cSetType = "uint",
+            .rustType = "u16",
+            .rustTypeInit = "0"
+        });
+        f.append({
+            .type = BindingType::Int32,
             .name = "qint32",
             .cppSetType = "qint32",
             .cSetType = "qint32",
@@ -58,7 +82,7 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
             .rustTypeInit = "0",
         });
         f.append({
-            .type = BindingType::UInt,
+            .type = BindingType::UInt32,
             .name = "quint32",
             .cppSetType = "uint",
             .cSetType = "uint",
@@ -66,7 +90,15 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
             .rustTypeInit = "0"
         });
         f.append({
-            .type = BindingType::ULongLong,
+            .type = BindingType::Int64,
+            .name = "qint64",
+            .cppSetType = "qint64",
+            .cSetType = "qint64",
+            .rustType = "i64",
+            .rustTypeInit = "0",
+        });
+        f.append({
+            .type = BindingType::UInt64,
             .name = "quint64",
             .cppSetType = "quint64",
             .cSetType = "quint64",
@@ -79,6 +111,14 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
             .cppSetType = "float",
             .cSetType = "float",
             .rustType = "f32",
+            .rustTypeInit = "0.0"
+        });
+        f.append({
+            .type = BindingType::Double,
+            .name = "double",
+            .cppSetType = "double",
+            .cSetType = "double",
+            .rustType = "f64",
             .rustTypeInit = "0.0"
         });
         f.append({
