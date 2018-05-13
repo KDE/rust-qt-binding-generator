@@ -958,7 +958,8 @@ void writeCpp(const Configuration& conf) {
 namespace {
 )").arg(conf.hFile.fileName());
     for (auto option: conf.optionalTypes()) {
-        cpp << QString(R"(
+        if (option != "QString") {
+            cpp << QString(R"(
     struct option_%1 {
     public:
         %1 value;
@@ -970,7 +971,9 @@ namespace {
             return QVariant();
         }
     };
+    static_assert(std::is_pod<option_%1>::value, "option_%1 must be a POD type.");
 )").arg(option);
+        }
     }
     if (conf.types().contains("QString")) {
         cpp << R"(

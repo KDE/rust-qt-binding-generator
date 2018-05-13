@@ -14,18 +14,7 @@ namespace {
             return QVariant();
         }
     };
-
-    struct option_QString {
-    public:
-        QString value;
-        bool some;
-        operator QVariant() const {
-            if (some) {
-                return QVariant::fromValue(value);
-            }
-            return QVariant();
-        }
-    };
+    static_assert(std::is_pod<option_quintptr>::value, "option_quintptr must be a POD type.");
 
     struct option_quint64 {
     public:
@@ -38,6 +27,7 @@ namespace {
             return QVariant();
         }
     };
+    static_assert(std::is_pod<option_quint64>::value, "option_quint64 must be a POD type.");
 
     typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
     void set_qstring(QString* val, const char* utf8, int nbytes) {

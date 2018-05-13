@@ -14,6 +14,7 @@ namespace {
             return QVariant();
         }
     };
+    static_assert(std::is_pod<option_quintptr>::value, "option_quintptr must be a POD type.");
 
     typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
     void set_qstring(QString* val, const char* utf8, int nbytes) {
