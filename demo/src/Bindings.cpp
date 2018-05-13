@@ -816,6 +816,9 @@ QVariant TimeSeries::cos(int row) const
 bool TimeSeries::setCos(int row, const QVariant& value)
 {
     bool set = false;
+    if (!value.canConvert(qMetaTypeId<float>())) {
+        return false;
+    }
     set = time_series_set_data_cos(m_d, row, value.value<float>());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
@@ -834,6 +837,9 @@ QVariant TimeSeries::sin(int row) const
 bool TimeSeries::setSin(int row, const QVariant& value)
 {
     bool set = false;
+    if (!value.canConvert(qMetaTypeId<float>())) {
+        return false;
+    }
     set = time_series_set_data_sin(m_d, row, value.value<float>());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
@@ -852,6 +858,9 @@ QVariant TimeSeries::time(int row) const
 bool TimeSeries::setTime(int row, const QVariant& value)
 {
     bool set = false;
+    if (!value.canConvert(qMetaTypeId<float>())) {
+        return false;
+    }
     set = time_series_set_data_time(m_d, row, value.value<float>());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);

@@ -127,6 +127,9 @@ QVariant Persons::userName(const QModelIndex& index) const
 bool Persons::setUserName(const QModelIndex& index, const QVariant& value)
 {
     bool set = false;
+    if (!value.canConvert(qMetaTypeId<QString>())) {
+        return false;
+    }
     const QString s = value.value<QString>();    set = persons_set_data_user_name(m_d, index.internalId(), s.utf16(), s.length());
     if (set) {
         emit dataChanged(index, index);

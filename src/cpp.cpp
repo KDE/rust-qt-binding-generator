@@ -173,6 +173,7 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
                 .arg(lcname, snakeCase(ip.name), idx) << endl;
         cpp << "    } else\n";
     }
+    cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
     QString val = QString("value.value<%1>()").arg(ip.type.name);
     if (ip.type.isComplex()) {
         cpp << QString("    const %1 s = %2;").arg(ip.type.name, val);
