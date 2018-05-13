@@ -9,7 +9,7 @@ namespace {
         bool some;
         operator QVariant() const {
             if (some) {
-                return QVariant(value);
+                return QVariant::fromValue(value);
             }
             return QVariant();
         }

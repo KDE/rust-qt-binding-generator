@@ -142,6 +142,9 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
         cpp << QString("    %1_data_%2(m_d%4, &b, set_%3);\n")
                .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), idx);
         cpp << "    if (!b.isNull()) v.setValue<QByteArray>(b);\n";
+    } else if (!ip.optional) {
+        cpp << QString("    v.setValue(%1_data_%2(m_d%3));\n")
+               .arg(lcname, snakeCase(ip.name), idx);
     } else {
         cpp << QString("    v = %1_data_%2(m_d%3);\n")
                .arg(lcname, snakeCase(ip.name), idx);
@@ -962,7 +965,7 @@ namespace {
         bool some;
         operator QVariant() const {
             if (some) {
-                return QVariant(value);
+                return QVariant::fromValue(value);
             }
             return QVariant();
         }

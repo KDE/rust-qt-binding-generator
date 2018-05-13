@@ -9,7 +9,7 @@ namespace {
         bool some;
         operator QVariant() const {
             if (some) {
-                return QVariant(value);
+                return QVariant::fromValue(value);
             }
             return QVariant();
         }
@@ -21,7 +21,7 @@ namespace {
         bool some;
         operator QVariant() const {
             if (some) {
-                return QVariant(value);
+                return QVariant::fromValue(value);
             }
             return QVariant();
         }
@@ -33,7 +33,7 @@ namespace {
         bool some;
         operator QVariant() const {
             if (some) {
-                return QVariant(value);
+                return QVariant::fromValue(value);
             }
             return QVariant();
         }
@@ -195,14 +195,14 @@ Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
 QVariant FibonacciList::fibonacciNumber(int row) const
 {
     QVariant v;
-    v = fibonacci_list_data_fibonacci_number(m_d, row);
+    v.setValue(fibonacci_list_data_fibonacci_number(m_d, row));
     return v;
 }
 
 QVariant FibonacciList::row(int row) const
 {
     QVariant v;
-    v = fibonacci_list_data_row(m_d, row);
+    v.setValue(fibonacci_list_data_row(m_d, row));
     return v;
 }
 
@@ -385,7 +385,7 @@ QVariant FileSystemTree::filePath(const QModelIndex& index) const
 QVariant FileSystemTree::filePermissions(const QModelIndex& index) const
 {
     QVariant v;
-    v = file_system_tree_data_file_permissions(m_d, index.internalId());
+    v.setValue(file_system_tree_data_file_permissions(m_d, index.internalId()));
     return v;
 }
 
@@ -399,7 +399,7 @@ QVariant FileSystemTree::fileSize(const QModelIndex& index) const
 QVariant FileSystemTree::fileType(const QModelIndex& index) const
 {
     QVariant v;
-    v = file_system_tree_data_file_type(m_d, index.internalId());
+    v.setValue(file_system_tree_data_file_type(m_d, index.internalId()));
     return v;
 }
 
@@ -599,21 +599,21 @@ QVariant Processes::cmd(const QModelIndex& index) const
 QVariant Processes::cpuPercentage(const QModelIndex& index) const
 {
     QVariant v;
-    v = processes_data_cpu_percentage(m_d, index.internalId());
+    v.setValue(processes_data_cpu_percentage(m_d, index.internalId()));
     return v;
 }
 
 QVariant Processes::cpuUsage(const QModelIndex& index) const
 {
     QVariant v;
-    v = processes_data_cpu_usage(m_d, index.internalId());
+    v.setValue(processes_data_cpu_usage(m_d, index.internalId()));
     return v;
 }
 
 QVariant Processes::memory(const QModelIndex& index) const
 {
     QVariant v;
-    v = processes_data_memory(m_d, index.internalId());
+    v.setValue(processes_data_memory(m_d, index.internalId()));
     return v;
 }
 
@@ -629,14 +629,14 @@ QVariant Processes::name(const QModelIndex& index) const
 QVariant Processes::pid(const QModelIndex& index) const
 {
     QVariant v;
-    v = processes_data_pid(m_d, index.internalId());
+    v.setValue(processes_data_pid(m_d, index.internalId()));
     return v;
 }
 
 QVariant Processes::uid(const QModelIndex& index) const
 {
     QVariant v;
-    v = processes_data_uid(m_d, index.internalId());
+    v.setValue(processes_data_uid(m_d, index.internalId()));
     return v;
 }
 
@@ -809,7 +809,7 @@ Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
 QVariant TimeSeries::cos(int row) const
 {
     QVariant v;
-    v = time_series_data_cos(m_d, row);
+    v.setValue(time_series_data_cos(m_d, row));
     return v;
 }
 
@@ -830,7 +830,7 @@ bool TimeSeries::setCos(int row, const QVariant& value)
 QVariant TimeSeries::sin(int row) const
 {
     QVariant v;
-    v = time_series_data_sin(m_d, row);
+    v.setValue(time_series_data_sin(m_d, row));
     return v;
 }
 
@@ -851,7 +851,7 @@ bool TimeSeries::setSin(int row, const QVariant& value)
 QVariant TimeSeries::time(int row) const
 {
     QVariant v;
-    v = time_series_data_time(m_d, row);
+    v.setValue(time_series_data_time(m_d, row));
     return v;
 }
 
