@@ -3,22 +3,9 @@
 
 namespace {
 
-    struct qstring_t {
-    private:
-        const void* data;
-        int len;
-    public:
-        qstring_t(const QString& v):
-            data(static_cast<const void*>(v.utf16())),
-            len(v.size()) {
-        }
-        operator QString() const {
-            return QString::fromUtf8(static_cast<const char*>(data), len);
-        }
-    };
-    typedef void (*qstring_set)(QString*, qstring_t*);
-    void set_qstring(QString* v, qstring_t* val) {
-        *v = *val;
+    typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
+    void set_qstring(QString* val, const char* utf8, int nbytes) {
+        *val = QString::fromUtf8(utf8, nbytes);
     }
     inline void simpleMessageChanged(Simple* o)
     {
@@ -29,7 +16,7 @@ extern "C" {
     Simple::Private* simple_new(Simple*, void (*)(Simple*));
     void simple_free(Simple::Private*);
     void simple_message_get(const Simple::Private*, QString*, qstring_set);
-    void simple_message_set(Simple::Private*, qstring_t);
+    void simple_message_set(Simple::Private*, const ushort *str, int len);
 };
 
 Simple::Simple(bool /*owned*/, QObject *parent):
@@ -59,5 +46,5 @@ QString Simple::message() const
     return v;
 }
 void Simple::setMessage(const QString& v) {
-    simple_message_set(m_d, v);
+    simple_message_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
 }
