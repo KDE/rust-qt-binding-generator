@@ -3,6 +3,19 @@
 
 namespace {
 
+    struct option_bool {
+    public:
+        bool value;
+        bool some;
+        operator QVariant() const {
+            if (some) {
+                return QVariant::fromValue(value);
+            }
+            return QVariant();
+        }
+    };
+    static_assert(std::is_pod<option_bool>::value, "option_bool must be a POD type.");
+
     struct option_quintptr {
     public:
         quintptr value;
@@ -53,6 +66,9 @@ extern "C" {
     bool list_set_data_i64(List::Private*, int, qint64);
     qint8 list_data_i8(const List::Private*, int);
     bool list_set_data_i8(List::Private*, int, qint8);
+    option_bool list_data_optional_boolean(const List::Private*, int);
+    bool list_set_data_optional_boolean(List::Private*, int, bool);
+    bool list_set_data_optional_boolean_none(List::Private*, int);
     void list_data_optional_bytearray(const List::Private*, int, QByteArray*, qbytearray_set);
     bool list_set_data_optional_bytearray(List::Private*, int, const char* s, int len);
     bool list_set_data_optional_bytearray_none(List::Private*, int);
@@ -311,6 +327,31 @@ bool List::setI8(int row, const QVariant& value)
     return set;
 }
 
+QVariant List::optionalBoolean(int row) const
+{
+    QVariant v;
+    v = list_data_optional_boolean(m_d, row);
+    return v;
+}
+
+bool List::setOptionalBoolean(int row, const QVariant& value)
+{
+    bool set = false;
+    if (!value.isValid()) {
+        set = list_set_data_optional_boolean_none(m_d, row);
+    } else {
+    if (!value.canConvert(qMetaTypeId<bool>())) {
+        return false;
+    }
+    set = list_set_data_optional_boolean(m_d, row, value.value<bool>());
+    }
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
+}
+
 QVariant List::optionalBytearray(int row) const
 {
     QVariant v;
@@ -498,20 +539,22 @@ QVariant List::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 7:
             return i8(index.row());
         case Qt::UserRole + 8:
-            return optionalBytearray(index.row());
+            return optionalBoolean(index.row());
         case Qt::UserRole + 9:
+            return optionalBytearray(index.row());
+        case Qt::UserRole + 10:
             return optionalString(index.row());
         case Qt::DisplayRole:
         case Qt::EditRole:
-        case Qt::UserRole + 10:
-            return string(index.row());
         case Qt::UserRole + 11:
-            return u16(index.row());
+            return string(index.row());
         case Qt::UserRole + 12:
-            return u32(index.row());
+            return u16(index.row());
         case Qt::UserRole + 13:
-            return u64(index.row());
+            return u32(index.row());
         case Qt::UserRole + 14:
+            return u64(index.row());
+        case Qt::UserRole + 15:
             return u8(index.row());
         }
     }
@@ -528,13 +571,14 @@ QHash<int, QByteArray> List::roleNames() const {
     names.insert(Qt::UserRole + 5, "i32");
     names.insert(Qt::UserRole + 6, "i64");
     names.insert(Qt::UserRole + 7, "i8");
-    names.insert(Qt::UserRole + 8, "optionalBytearray");
-    names.insert(Qt::UserRole + 9, "optionalString");
-    names.insert(Qt::UserRole + 10, "string");
-    names.insert(Qt::UserRole + 11, "u16");
-    names.insert(Qt::UserRole + 12, "u32");
-    names.insert(Qt::UserRole + 13, "u64");
-    names.insert(Qt::UserRole + 14, "u8");
+    names.insert(Qt::UserRole + 8, "optionalBoolean");
+    names.insert(Qt::UserRole + 9, "optionalBytearray");
+    names.insert(Qt::UserRole + 10, "optionalString");
+    names.insert(Qt::UserRole + 11, "string");
+    names.insert(Qt::UserRole + 12, "u16");
+    names.insert(Qt::UserRole + 13, "u32");
+    names.insert(Qt::UserRole + 14, "u64");
+    names.insert(Qt::UserRole + 15, "u8");
     return names;
 }
 QVariant List::headerData(int section, Qt::Orientation orientation, int role) const
@@ -582,24 +626,27 @@ bool List::setData(const QModelIndex &index, const QVariant &value, int role)
             return setI8(index.row(), value);
         }
         if (role == Qt::UserRole + 8) {
-            return setOptionalBytearray(index.row(), value);
+            return setOptionalBoolean(index.row(), value);
         }
         if (role == Qt::UserRole + 9) {
+            return setOptionalBytearray(index.row(), value);
+        }
+        if (role == Qt::UserRole + 10) {
             return setOptionalString(index.row(), value);
         }
-        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 10) {
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 11) {
             return setString(index.row(), value);
         }
-        if (role == Qt::UserRole + 11) {
+        if (role == Qt::UserRole + 12) {
             return setU16(index.row(), value);
         }
-        if (role == Qt::UserRole + 12) {
+        if (role == Qt::UserRole + 13) {
             return setU32(index.row(), value);
         }
-        if (role == Qt::UserRole + 13) {
+        if (role == Qt::UserRole + 14) {
             return setU64(index.row(), value);
         }
-        if (role == Qt::UserRole + 14) {
+        if (role == Qt::UserRole + 15) {
             return setU8(index.row(), value);
         }
     }

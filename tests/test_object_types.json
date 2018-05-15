@@ -13,6 +13,11 @@
                     "type": "bool",
                     "write": true
                 },
+                "optionalBoolean": {
+                    "optional": true,
+                    "type": "bool",
+                    "write": true
+                },
                 "i8": {
                     "type": "qint8",
                     "write": true
@@ -42,6 +47,11 @@
                     "write": true
                 },
                 "u64": {
+                    "type": "quint64",
+                    "write": true
+                },
+                "optionalU64": {
+                    "optional": true,
                     "type": "quint64",
                     "write": true
                 },

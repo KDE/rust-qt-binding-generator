@@ -6,6 +6,7 @@ use interface::*;
 pub struct Object {
     emit: ObjectEmitter,
     boolean: bool,
+    optional_boolean: Option<bool>,
     i8: i8,
     u8: u8,
     i16: i16,
@@ -14,6 +15,7 @@ pub struct Object {
     u32: u32,
     i64: i64,
     u64: u64,
+    optional_u64: Option<u64>,
     f32: f32,
     f64: f64,
     bytearray: Vec<u8>,
@@ -27,6 +29,7 @@ impl ObjectTrait for Object {
         Object {
             emit,
             boolean: false,
+            optional_boolean: None,
             i8: 0,
             u8: 0,
             i16: 0,
@@ -35,6 +38,7 @@ impl ObjectTrait for Object {
             u32: 0,
             i64: 0,
             u64: 0,
+            optional_u64: None,
             f32: 0.,
             f64: 0.,
             bytearray: Vec::new(),
@@ -52,6 +56,13 @@ impl ObjectTrait for Object {
     fn set_boolean(&mut self, value: bool) {
         self.boolean = value;
         self.emit.boolean_changed();
+    }
+    fn optional_boolean(&self) -> Option<bool> {
+        self.optional_boolean
+    }
+    fn set_optional_boolean(&mut self, b: Option<bool>) {
+        self.optional_boolean = b;
+        self.emit.optional_boolean_changed();
     }
     fn i8(&self) -> i8 {
         self.i8
@@ -109,6 +120,13 @@ impl ObjectTrait for Object {
         self.u64 = value;
         self.emit.u64_changed();
     }
+    fn optional_u64(&self) -> Option<u64> {
+        self.optional_u64
+    }
+    fn set_optional_u64(&mut self, v: Option<u64>) {
+        self.optional_u64 = v;
+        self.emit.optional_u64_changed();
+    }
     fn f32(&self) -> f32 {
         self.f32
     }
@@ -123,14 +141,6 @@ impl ObjectTrait for Object {
         self.f64 = value;
         self.emit.f64_changed();
     }
-    /*
-    fn optional_boolean(&self) -> Option<bool> {
-        self.optional_boolean
-    }
-    fn set_optional_boolean(&mut self, b: Option<bool>) {
-        self.optional_boolean = b;
-    }
-    */
     fn bytearray(&self) -> &[u8] {
         &self.bytearray
     }

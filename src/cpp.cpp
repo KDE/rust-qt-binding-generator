@@ -516,8 +516,12 @@ private:
 )";
     for (auto p: o.properties) {
         bool obj = p.type.type == BindingType::Object;
+        auto t = p.type.name;
+        if (p.optional && !p.type.isComplex()) {
+            t = "QVariant";
+        }
         h << QString("    Q_PROPERTY(%1 %2 READ %2 %3NOTIFY %2Changed FINAL)")
-                .arg(p.type.name + (obj ?"*" :""),
+                .arg(t + (obj ?"*" :""),
                      p.name,
                      p.write ? writeProperty(p.name) :"")
              << endl;
@@ -532,9 +536,15 @@ public:
             h << "    const " << p.type.name << "* " << p.name << "() const;" << endl;
             h << "    " << p.type.name << "* " << p.name << "();" << endl;
         } else {
-            h << "    " << p.type.name << " " << p.name << "() const;" << endl;
+            auto t = p.type.name;
+            auto t2 = p.type.cppSetType;
+            if (p.optional && !p.type.isComplex()) {
+                t = "QVariant";
+                t2 = "const QVariant&";
+            }
+            h << "    " << t << " " << p.name << "() const;" << endl;
             if (p.write) {
-                h << "    void set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v);" << endl;
+                h << "    void set" << upperInitial(p.name) << "(" << t2 << " v);" << endl;
             }
         }
     }
@@ -730,6 +740,9 @@ void writeObjectCDecl(QTextStream& cpp, const Object& o, const Configuration& co
         } else if (p.type.isComplex()) {
             cpp << QString("    void %2_get(const %1::Private*, %3);")
                 .arg(o.name, base, cGetType(p.type)) << endl;
+        } else if (p.optional) {
+            cpp << QString("    option_%3 %2_get(const %1::Private*);")
+                .arg(o.name, base, p.type.name) << endl;
         } else {
             cpp << QString("    %3 %2_get(const %1::Private*);")
                 .arg(o.name, base, p.type.name) << endl;
@@ -868,20 +881,39 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
             cpp << "    " << base << "_get(m_d, &v, set_" << p.type.name.toLower()
                 << ");\n";
             cpp << "    return v;\n}\n";
+        } else if (p.optional) {
+            cpp << QString("QVariant %1::%2() const\n{\n").arg(o.name, p.name);
+            cpp << "    QVariant v;\n";
+            cpp << QString("    auto r = %1_get(m_d);\n").arg(base);
+            cpp << "    if (r.some) {\n";
+            cpp << "        v.setValue(r.value);\n";
+            cpp << "    }\n";
+            cpp << "    return r;\n";
+            cpp << "}\n";
         } else {
             cpp << QString("%3 %1::%2() const\n{\n").arg(o.name, p.name, p.type.name);
             cpp << QString("    return %1_get(m_d);\n}\n").arg(base);
         }
         if (p.write) {
-            cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << p.type.cppSetType << " v) {" << endl;
+            auto t = p.type.cppSetType;
+            if (p.optional && !p.type.isComplex()) {
+                t = "const QVariant&";
+            }
+            cpp << "void " << o.name << "::set" << upperInitial(p.name) << "(" << t << " v) {" << endl;
             if (p.optional) {
-                cpp << QString("    if (v.isNull()) {") << endl;
+                if (p.type.isComplex()) {
+                    cpp << "    if (v.isNull()) {" << endl;
+                } else {
+                    cpp << QString("    if (v.isNull() || !v.canConvert<%1>()) {").arg(p.type.name) << endl;
+                }
                 cpp << QString("        %1_set_none(m_d);").arg(base) << endl;
                 cpp << QString("    } else {") << endl;
                 if (p.type.name == "QString") {
                     cpp << QString("    %1_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());").arg(base) << endl;
                 } else if (p.type.name == "QByteArray") {
                     cpp << QString("    %1_set(m_d, v.data(), v.size());").arg(base) << endl;
+                } else if (p.optional) {
+                    cpp << QString("        %1_set(m_d, v.value<%2>());").arg(base, p.type.name) << endl;
                 } else {
                     cpp << QString("        %1_set(m_d, v);").arg(base) << endl;
                 }

@@ -13,6 +13,11 @@
                     "type": "bool",
                     "write": true
                 },
+                "optionalBoolean": {
+                    "optional": true,
+                    "type": "bool",
+                    "write": true
+                },
                 "i8": {
                     "type": "qint8",
                     "write": true

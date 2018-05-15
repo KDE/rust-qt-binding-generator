@@ -8,6 +8,7 @@ class TestRustObjectTypes : public QObject
     Q_OBJECT
 private slots:
     void testBool();
+    void testOptionalBool();
     void testInt8();
     void testUint8();
     void testInt16();
@@ -16,6 +17,7 @@ private slots:
     void testUint32();
     void testInt64();
     void testUint64();
+    void testOptionalUint64();
     void testFloat();
     void testDouble();
     void testString();
@@ -46,6 +48,16 @@ void TestRustObjectTypes::testBool()
         &Object::boolean, &Object::booleanChanged);
     testSetter(false, &Object::setBoolean,
         &Object::boolean, &Object::booleanChanged);
+}
+
+void TestRustObjectTypes::testOptionalBool()
+{
+    testSetter(QVariant(), &Object::setOptionalBoolean,
+        &Object::optionalBoolean, &Object::optionalBooleanChanged);
+    testSetter(QVariant::fromValue(true), &Object::setOptionalBoolean,
+        &Object::optionalBoolean, &Object::optionalBooleanChanged);
+    testSetter(QVariant::fromValue(false), &Object::setOptionalBoolean,
+        &Object::optionalBoolean, &Object::optionalBooleanChanged);
 }
 
 void TestRustObjectTypes::testInt8()
@@ -142,6 +154,22 @@ void TestRustObjectTypes::testUint64()
         &Object::u64, &Object::u64Changed);
     testSetter(std::numeric_limits<uint64_t>::max(), &Object::setU64,
         &Object::u64, &Object::u64Changed);
+}
+
+void TestRustObjectTypes::testOptionalUint64()
+{
+    testSetter(QVariant(), &Object::setOptionalU64,
+        &Object::optionalU64, &Object::optionalU64Changed);
+    testSetter(QVariant::fromValue(0), &Object::setOptionalU64,
+        &Object::optionalU64, &Object::optionalU64Changed);
+    testSetter(QVariant::fromValue(1), &Object::setOptionalU64,
+        &Object::optionalU64, &Object::optionalU64Changed);
+    testSetter(QVariant::fromValue(std::numeric_limits<uint64_t>::min()),
+        &Object::setOptionalU64, &Object::optionalU64,
+        &Object::optionalU64Changed);
+    testSetter(QVariant::fromValue(std::numeric_limits<uint64_t>::max()),
+        &Object::setOptionalU64, &Object::optionalU64,
+        &Object::optionalU64Changed);
 }
 
 void TestRustObjectTypes::testFloat()

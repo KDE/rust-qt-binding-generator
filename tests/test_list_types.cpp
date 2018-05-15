@@ -30,6 +30,7 @@ private slots:
     void testStringGetter();
     void testStringSetter();
     void testBool();
+    void testOptionalBool();
     void testInt8();
     void testUint8();
     void testInt16();
@@ -52,6 +53,26 @@ void testSetter(const V v, Set set, Get get)
     // GIVEN
     List list;
     QSignalSpy spy(&list, &List::dataChanged);
+
+    // WHEN
+    const QVariant vv = QVariant::fromValue(v);
+    QVERIFY(!vv.isNull());
+    bool ok = (list.*set)(0, vv);
+    QVERIFY(ok);
+
+    // THEN
+    QVERIFY(spy.isValid());
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE((list.*get)(0), vv);
+}
+
+template <typename V, typename Set, typename Get>
+void testOptionalSetter(const V v, Set set, Get get)
+{
+    // GIVEN
+    List list;
+    QSignalSpy spy(&list, &List::dataChanged);
+    QVERIFY((list.*get)(0).isNull());
 
     // WHEN
     QVariant vv = QVariant::fromValue(v);
@@ -90,6 +111,28 @@ void testDataSetter(const char* roleName, const V v)
     // WHEN
     int role = getRoleFromName(list, roleName);
     auto index = list.index(1, 0);
+    const QVariant vv = QVariant::fromValue(v);
+    QVERIFY(!vv.isNull());
+    bool ok = list.setData(index, vv, role);
+    QVERIFY(ok);
+
+    // THEN
+    QVERIFY(spy.isValid());
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(list.data(index, role), vv);
+}
+
+template <typename V>
+void testOptionalDataSetter(const char* roleName, const V v)
+{
+    // GIVEN
+    List list;
+    QSignalSpy spy(&list, &List::dataChanged);
+    int role = getRoleFromName(list, roleName);
+    auto index = list.index(1, 0);
+    QVERIFY(list.data(index, role).isNull());
+
+    // WHEN
     QVariant vv = QVariant::fromValue(v);
     if (vv.isNull()) {
         vv = QVariant();
@@ -107,7 +150,14 @@ template <typename V, typename Set, typename Get>
 void test(const V v, Set set, Get get, const char* roleName)
 {
     testSetter(v, set, get);
-    //testDataSetter(roleName, v);
+    testDataSetter(roleName, v);
+}
+
+template <typename V, typename Set, typename Get>
+void testOptional(const V v, Set set, Get get, const char* roleName)
+{
+    testOptionalSetter(v, set, get);
+    testOptionalDataSetter(roleName, v);
 }
 
 void TestRustListTypes::testConstructor()
@@ -119,6 +169,14 @@ void TestRustListTypes::testBool()
 {
     test(true, &List::setBoolean, &List::boolean, "boolean");
     test(false, &List::setBoolean, &List::boolean, "boolean");
+}
+
+void TestRustListTypes::testOptionalBool()
+{
+    testOptional(true, &List::setOptionalBoolean, &List::optionalBoolean,
+            "optionalBoolean");
+    testOptional(false, &List::setOptionalBoolean, &List::optionalBoolean,
+            "optionalBoolean");
 }
 
 void TestRustListTypes::testInt8()
@@ -210,14 +268,14 @@ void TestRustListTypes::testString()
 
 void TestRustListTypes::testOptionalString()
 {
-    test(QString(), &List::setOptionalString, &List::optionalString,
+    testOptional(QString(), &List::setOptionalString, &List::optionalString,
             "optionalString");
-    test(QString(""), &List::setOptionalString, &List::optionalString,
+    testOptional(QString(""), &List::setOptionalString, &List::optionalString,
             "optionalString");
-    test(QString("Konqi"), &List::setOptionalString, &List::optionalString,
-            "optionalString");
-    test(QString("$𐐷𤭢"), &List::setOptionalString, &List::optionalString,
-            "optionalString");
+    testOptional(QString("Konqi"), &List::setOptionalString,
+            &List::optionalString, "optionalString");
+    testOptional(QString("$𐐷𤭢"), &List::setOptionalString,
+            &List::optionalString, "optionalString");
 }
 
 void TestRustListTypes::testByteArray()
@@ -231,15 +289,14 @@ void TestRustListTypes::testByteArray()
 
 void TestRustListTypes::testOptionalByteArray()
 {
-    test(QByteArray(), &List::setOptionalBytearray, &List::optionalBytearray,
-            "optionalBytearray");
+    testOptional(QByteArray(), &List::setOptionalBytearray,
+            &List::optionalBytearray, "optionalBytearray");
     const char data[10] = {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9};
-    test(QByteArray(data, 0), &List::setOptionalBytearray,
+    testOptional(QByteArray(data, 0), &List::setOptionalBytearray,
         &List::optionalBytearray, "optionalBytearray");
-    test(QByteArray(data, 10), &List::setOptionalBytearray,
+    testOptional(QByteArray(data, 10), &List::setOptionalBytearray,
         &List::optionalBytearray, "optionalBytearray");
 }
-
 
 void TestRustListTypes::testStringGetter()
 {

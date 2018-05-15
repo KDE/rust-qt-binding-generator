@@ -3,6 +3,32 @@
 
 namespace {
 
+    struct option_bool {
+    public:
+        bool value;
+        bool some;
+        operator QVariant() const {
+            if (some) {
+                return QVariant::fromValue(value);
+            }
+            return QVariant();
+        }
+    };
+    static_assert(std::is_pod<option_bool>::value, "option_bool must be a POD type.");
+
+    struct option_quint64 {
+    public:
+        quint64 value;
+        bool some;
+        operator QVariant() const {
+            if (some) {
+                return QVariant::fromValue(value);
+            }
+            return QVariant();
+        }
+    };
+    static_assert(std::is_pod<option_quint64>::value, "option_quint64 must be a POD type.");
+
     typedef void (*qstring_set)(QString* val, const char* utf8, int nbytes);
     void set_qstring(QString* val, const char* utf8, int nbytes) {
         *val = QString::fromUtf8(utf8, nbytes);
@@ -49,6 +75,10 @@ namespace {
     {
         emit o->i8Changed();
     }
+    inline void objectOptionalBooleanChanged(Object* o)
+    {
+        emit o->optionalBooleanChanged();
+    }
     inline void objectOptionalBytearrayChanged(Object* o)
     {
         emit o->optionalBytearrayChanged();
@@ -56,6 +86,10 @@ namespace {
     inline void objectOptionalStringChanged(Object* o)
     {
         emit o->optionalStringChanged();
+    }
+    inline void objectOptionalU64Changed(Object* o)
+    {
+        emit o->optionalU64Changed();
     }
     inline void objectStringChanged(Object* o)
     {
@@ -79,7 +113,7 @@ namespace {
     }
 }
 extern "C" {
-    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
+    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(Object::Private*);
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
@@ -97,12 +131,18 @@ extern "C" {
     void object_i64_set(Object::Private*, qint64);
     qint8 object_i8_get(const Object::Private*);
     void object_i8_set(Object::Private*, qint8);
+    option_bool object_optional_boolean_get(const Object::Private*);
+    void object_optional_boolean_set(Object::Private*, bool);
+    void object_optional_boolean_set_none(Object::Private*);
     void object_optional_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
     void object_optional_bytearray_set(Object::Private*, const char* bytes, int len);
     void object_optional_bytearray_set_none(Object::Private*);
     void object_optional_string_get(const Object::Private*, QString*, qstring_set);
     void object_optional_string_set(Object::Private*, const ushort *str, int len);
     void object_optional_string_set_none(Object::Private*);
+    option_quint64 object_optional_u64_get(const Object::Private*);
+    void object_optional_u64_set(Object::Private*, quint64);
+    void object_optional_u64_set_none(Object::Private*);
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, const ushort *str, int len);
     quint16 object_u16_get(const Object::Private*);
@@ -133,8 +173,10 @@ Object::Object(QObject *parent):
         objectI32Changed,
         objectI64Changed,
         objectI8Changed,
+        objectOptionalBooleanChanged,
         objectOptionalBytearrayChanged,
         objectOptionalStringChanged,
+        objectOptionalU64Changed,
         objectStringChanged,
         objectU16Changed,
         objectU32Changed,
@@ -207,6 +249,22 @@ qint8 Object::i8() const
 void Object::setI8(qint8 v) {
     object_i8_set(m_d, v);
 }
+QVariant Object::optionalBoolean() const
+{
+    QVariant v;
+    auto r = object_optional_boolean_get(m_d);
+    if (r.some) {
+        v.setValue(r.value);
+    }
+    return r;
+}
+void Object::setOptionalBoolean(const QVariant& v) {
+    if (v.isNull() || !v.canConvert<bool>()) {
+        object_optional_boolean_set_none(m_d);
+    } else {
+        object_optional_boolean_set(m_d, v.value<bool>());
+    }
+}
 QByteArray Object::optionalBytearray() const
 {
     QByteArray v;
@@ -231,6 +289,22 @@ void Object::setOptionalString(const QString& v) {
         object_optional_string_set_none(m_d);
     } else {
     object_optional_string_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
+    }
+}
+QVariant Object::optionalU64() const
+{
+    QVariant v;
+    auto r = object_optional_u64_get(m_d);
+    if (r.some) {
+        v.setValue(r.value);
+    }
+    return r;
+}
+void Object::setOptionalU64(const QVariant& v) {
+    if (v.isNull() || !v.canConvert<quint64>()) {
+        object_optional_u64_set_none(m_d);
+    } else {
+        object_optional_u64_set(m_d, v.value<quint64>());
     }
 }
 QString Object::string() const

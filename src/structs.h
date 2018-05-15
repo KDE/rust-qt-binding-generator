@@ -155,6 +155,11 @@ struct Configuration {
     QList<QString> optionalTypes() const {
         QList<QString> ops;
         for (auto o: objects) {
+            for (auto ip: o.properties) {
+                if (ip.optional && !ops.contains(ip.type.name)) {
+                    ops.append(ip.type.name);
+                }
+            }
             for (auto ip: o.itemProperties) {
                 if (ip.optional && !ops.contains(ip.type.name)) {
                     ops.append(ip.type.name);

@@ -6,6 +6,7 @@ use interface::*;
 #[derive(Default, Clone)]
 struct ListItem {
     boolean: bool,
+    optional_boolean: Option<bool>,
     i8: i8,
     u8: u8,
     i16: i16,
@@ -47,6 +48,13 @@ impl ListTrait for List {
     }
     fn set_boolean(&mut self, item: usize, v: bool) -> bool {
         self.list[item].boolean = v;
+        true
+    }
+    fn optional_boolean(&self, item: usize) -> Option<bool> {
+        self.list[item].optional_boolean
+    }
+    fn set_optional_boolean(&mut self, item: usize, v: Option<bool>) -> bool {
+        self.list[item].optional_boolean = v;
         true
     }
     fn i8(&self, item: usize) -> i8 {

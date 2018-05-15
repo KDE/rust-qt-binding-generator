@@ -23,8 +23,10 @@ private:
     Q_PROPERTY(qint32 i32 READ i32 WRITE setI32 NOTIFY i32Changed FINAL)
     Q_PROPERTY(qint64 i64 READ i64 WRITE setI64 NOTIFY i64Changed FINAL)
     Q_PROPERTY(qint8 i8 READ i8 WRITE setI8 NOTIFY i8Changed FINAL)
+    Q_PROPERTY(QVariant optionalBoolean READ optionalBoolean WRITE setOptionalBoolean NOTIFY optionalBooleanChanged FINAL)
     Q_PROPERTY(QByteArray optionalBytearray READ optionalBytearray WRITE setOptionalBytearray NOTIFY optionalBytearrayChanged FINAL)
     Q_PROPERTY(QString optionalString READ optionalString WRITE setOptionalString NOTIFY optionalStringChanged FINAL)
+    Q_PROPERTY(QVariant optionalU64 READ optionalU64 WRITE setOptionalU64 NOTIFY optionalU64Changed FINAL)
     Q_PROPERTY(QString string READ string WRITE setString NOTIFY stringChanged FINAL)
     Q_PROPERTY(quint16 u16 READ u16 WRITE setU16 NOTIFY u16Changed FINAL)
     Q_PROPERTY(quint32 u32 READ u32 WRITE setU32 NOTIFY u32Changed FINAL)
@@ -50,10 +52,14 @@ public:
     void setI64(qint64 v);
     qint8 i8() const;
     void setI8(qint8 v);
+    QVariant optionalBoolean() const;
+    void setOptionalBoolean(const QVariant& v);
     QByteArray optionalBytearray() const;
     void setOptionalBytearray(const QByteArray& v);
     QString optionalString() const;
     void setOptionalString(const QString& v);
+    QVariant optionalU64() const;
+    void setOptionalU64(const QVariant& v);
     QString string() const;
     void setString(const QString& v);
     quint16 u16() const;
@@ -73,8 +79,10 @@ signals:
     void i32Changed();
     void i64Changed();
     void i8Changed();
+    void optionalBooleanChanged();
     void optionalBytearrayChanged();
     void optionalStringChanged();
+    void optionalU64Changed();
     void stringChanged();
     void u16Changed();
     void u32Changed();

@@ -52,6 +52,8 @@ public:
     Q_INVOKABLE bool setI64(int row, const QVariant& value);
     Q_INVOKABLE QVariant i8(int row) const;
     Q_INVOKABLE bool setI8(int row, const QVariant& value);
+    Q_INVOKABLE QVariant optionalBoolean(int row) const;
+    Q_INVOKABLE bool setOptionalBoolean(int row, const QVariant& value);
     Q_INVOKABLE QVariant optionalBytearray(int row) const;
     Q_INVOKABLE bool setOptionalBytearray(int row, const QVariant& value);
     Q_INVOKABLE QVariant optionalString(int row) const;
