@@ -639,7 +639,7 @@ pub extern "C" fn %2_data_%3(
     set(d, s, data.len() as c_int);
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
-            } else if (ip.type.name == "QString") {
+            } else if (ip.type.isComplex()) {
                 r << QString(R"(
 #[no_mangle]
 pub extern "C" fn %2_data_%3(
@@ -691,7 +691,8 @@ pub extern "C" fn %2_set_data_%3(
 ) -> bool {
     let o = unsafe { &mut *ptr };
     let mut v = Vec::new();
-    set_string_from_utf16(&mut v, s, len);
+    let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, len as usize) };
+    v.extend_from_slice(slice);
     o.set_%3(%5, %6)
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, val);
@@ -711,8 +712,8 @@ pub unsafe extern "C" fn %2_set_data_%3(
             if (ip.write && ip.optional) {
                 r << QString(R"(
 #[no_mangle]
-pub unsafe extern "C" fn %2_set_data_%3_none(ptr: *mut %1, row: c_int%4) -> bool {
-    (&mut *ptr).set_%3(%5row as usize, None)
+pub unsafe extern "C" fn %2_set_data_%3_none(ptr: *mut %1%4) -> bool {
+    (&mut *ptr).set_%3(%5, None)
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
             }

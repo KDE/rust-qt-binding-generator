@@ -59,12 +59,19 @@ pub struct ObjectEmitter {
     qobject: Arc<Mutex<*const ObjectQObject>>,
     boolean_changed: fn(*const ObjectQObject),
     bytearray_changed: fn(*const ObjectQObject),
-    integer_changed: fn(*const ObjectQObject),
+    f32_changed: fn(*const ObjectQObject),
+    f64_changed: fn(*const ObjectQObject),
+    i16_changed: fn(*const ObjectQObject),
+    i32_changed: fn(*const ObjectQObject),
+    i64_changed: fn(*const ObjectQObject),
+    i8_changed: fn(*const ObjectQObject),
     optional_bytearray_changed: fn(*const ObjectQObject),
     optional_string_changed: fn(*const ObjectQObject),
     string_changed: fn(*const ObjectQObject),
+    u16_changed: fn(*const ObjectQObject),
+    u32_changed: fn(*const ObjectQObject),
     u64_changed: fn(*const ObjectQObject),
-    uinteger_changed: fn(*const ObjectQObject),
+    u8_changed: fn(*const ObjectQObject),
 }
 
 unsafe impl Send for ObjectEmitter {}
@@ -85,10 +92,40 @@ impl ObjectEmitter {
             (self.bytearray_changed)(ptr);
         }
     }
-    pub fn integer_changed(&self) {
+    pub fn f32_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.integer_changed)(ptr);
+            (self.f32_changed)(ptr);
+        }
+    }
+    pub fn f64_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.f64_changed)(ptr);
+        }
+    }
+    pub fn i16_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.i16_changed)(ptr);
+        }
+    }
+    pub fn i32_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.i32_changed)(ptr);
+        }
+    }
+    pub fn i64_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.i64_changed)(ptr);
+        }
+    }
+    pub fn i8_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.i8_changed)(ptr);
         }
     }
     pub fn optional_bytearray_changed(&self) {
@@ -109,16 +146,28 @@ impl ObjectEmitter {
             (self.string_changed)(ptr);
         }
     }
+    pub fn u16_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.u16_changed)(ptr);
+        }
+    }
+    pub fn u32_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.u32_changed)(ptr);
+        }
+    }
     pub fn u64_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
             (self.u64_changed)(ptr);
         }
     }
-    pub fn uinteger_changed(&self) {
+    pub fn u8_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.uinteger_changed)(ptr);
+            (self.u8_changed)(ptr);
         }
     }
 }
@@ -130,18 +179,32 @@ pub trait ObjectTrait {
     fn set_boolean(&mut self, value: bool);
     fn bytearray(&self) -> &[u8];
     fn set_bytearray(&mut self, value: Vec<u8>);
-    fn integer(&self) -> i32;
-    fn set_integer(&mut self, value: i32);
+    fn f32(&self) -> f32;
+    fn set_f32(&mut self, value: f32);
+    fn f64(&self) -> f64;
+    fn set_f64(&mut self, value: f64);
+    fn i16(&self) -> i16;
+    fn set_i16(&mut self, value: i16);
+    fn i32(&self) -> i32;
+    fn set_i32(&mut self, value: i32);
+    fn i64(&self) -> i64;
+    fn set_i64(&mut self, value: i64);
+    fn i8(&self) -> i8;
+    fn set_i8(&mut self, value: i8);
     fn optional_bytearray(&self) -> Option<&[u8]>;
     fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>);
     fn optional_string(&self) -> Option<&str>;
     fn set_optional_string(&mut self, value: Option<String>);
     fn string(&self) -> &str;
     fn set_string(&mut self, value: String);
+    fn u16(&self) -> u16;
+    fn set_u16(&mut self, value: u16);
+    fn u32(&self) -> u32;
+    fn set_u32(&mut self, value: u32);
     fn u64(&self) -> u64;
     fn set_u64(&mut self, value: u64);
-    fn uinteger(&self) -> u32;
-    fn set_uinteger(&mut self, value: u32);
+    fn u8(&self) -> u8;
+    fn set_u8(&mut self, value: u8);
 }
 
 #[no_mangle]
@@ -149,23 +212,37 @@ pub extern "C" fn object_new(
     object: *mut ObjectQObject,
     boolean_changed: fn(*const ObjectQObject),
     bytearray_changed: fn(*const ObjectQObject),
-    integer_changed: fn(*const ObjectQObject),
+    f32_changed: fn(*const ObjectQObject),
+    f64_changed: fn(*const ObjectQObject),
+    i16_changed: fn(*const ObjectQObject),
+    i32_changed: fn(*const ObjectQObject),
+    i64_changed: fn(*const ObjectQObject),
+    i8_changed: fn(*const ObjectQObject),
     optional_bytearray_changed: fn(*const ObjectQObject),
     optional_string_changed: fn(*const ObjectQObject),
     string_changed: fn(*const ObjectQObject),
+    u16_changed: fn(*const ObjectQObject),
+    u32_changed: fn(*const ObjectQObject),
     u64_changed: fn(*const ObjectQObject),
-    uinteger_changed: fn(*const ObjectQObject),
+    u8_changed: fn(*const ObjectQObject),
 ) -> *mut Object {
     let object_emit = ObjectEmitter {
         qobject: Arc::new(Mutex::new(object)),
         boolean_changed: boolean_changed,
         bytearray_changed: bytearray_changed,
-        integer_changed: integer_changed,
+        f32_changed: f32_changed,
+        f64_changed: f64_changed,
+        i16_changed: i16_changed,
+        i32_changed: i32_changed,
+        i64_changed: i64_changed,
+        i8_changed: i8_changed,
         optional_bytearray_changed: optional_bytearray_changed,
         optional_string_changed: optional_string_changed,
         string_changed: string_changed,
+        u16_changed: u16_changed,
+        u32_changed: u32_changed,
         u64_changed: u64_changed,
-        uinteger_changed: uinteger_changed,
+        u8_changed: u8_changed,
     };
     let d_object = Object::new(object_emit);
     Box::into_raw(Box::new(d_object))
@@ -206,13 +283,63 @@ pub extern "C" fn object_bytearray_set(ptr: *mut Object, v: *const c_char, len: 
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_integer_get(ptr: *const Object) -> i32 {
-    (&*ptr).integer()
+pub unsafe extern "C" fn object_f32_get(ptr: *const Object) -> f32 {
+    (&*ptr).f32()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_integer_set(ptr: *mut Object, v: i32) {
-    (&mut *ptr).set_integer(v);
+pub unsafe extern "C" fn object_f32_set(ptr: *mut Object, v: f32) {
+    (&mut *ptr).set_f32(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_f64_get(ptr: *const Object) -> f64 {
+    (&*ptr).f64()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_f64_set(ptr: *mut Object, v: f64) {
+    (&mut *ptr).set_f64(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i16_get(ptr: *const Object) -> i16 {
+    (&*ptr).i16()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i16_set(ptr: *mut Object, v: i16) {
+    (&mut *ptr).set_i16(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i32_get(ptr: *const Object) -> i32 {
+    (&*ptr).i32()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i32_set(ptr: *mut Object, v: i32) {
+    (&mut *ptr).set_i32(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i64_get(ptr: *const Object) -> i64 {
+    (&*ptr).i64()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i64_set(ptr: *mut Object, v: i64) {
+    (&mut *ptr).set_i64(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i8_get(ptr: *const Object) -> i8 {
+    (&*ptr).i8()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_i8_set(ptr: *mut Object, v: i8) {
+    (&mut *ptr).set_i8(v);
 }
 
 #[no_mangle]
@@ -289,6 +416,26 @@ pub extern "C" fn object_string_set(ptr: *mut Object, v: *const c_ushort, len: c
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn object_u16_get(ptr: *const Object) -> u16 {
+    (&*ptr).u16()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_u16_set(ptr: *mut Object, v: u16) {
+    (&mut *ptr).set_u16(v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_u32_get(ptr: *const Object) -> u32 {
+    (&*ptr).u32()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn object_u32_set(ptr: *mut Object, v: u32) {
+    (&mut *ptr).set_u32(v);
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn object_u64_get(ptr: *const Object) -> u64 {
     (&*ptr).u64()
 }
@@ -299,11 +446,11 @@ pub unsafe extern "C" fn object_u64_set(ptr: *mut Object, v: u64) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_uinteger_get(ptr: *const Object) -> u32 {
-    (&*ptr).uinteger()
+pub unsafe extern "C" fn object_u8_get(ptr: *const Object) -> u8 {
+    (&*ptr).u8()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn object_uinteger_set(ptr: *mut Object, v: u32) {
-    (&mut *ptr).set_uinteger(v);
+pub unsafe extern "C" fn object_u8_set(ptr: *mut Object, v: u8) {
+    (&mut *ptr).set_u8(v);
 }

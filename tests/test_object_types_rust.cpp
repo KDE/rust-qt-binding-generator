@@ -10,8 +10,12 @@ namespace {
 
     typedef void (*qbytearray_set)(QByteArray* val, const char* bytes, int nbytes);
     void set_qbytearray(QByteArray* v, const char* bytes, int nbytes) {
-        v->truncate(0);
-        v->append(bytes, nbytes);
+        if (v->isNull() && nbytes == 0) {
+            *v = QByteArray(bytes, nbytes);
+        } else {
+            v->truncate(0);
+            v->append(bytes, nbytes);
+        }
     }
     inline void objectBooleanChanged(Object* o)
     {
@@ -21,9 +25,29 @@ namespace {
     {
         emit o->bytearrayChanged();
     }
-    inline void objectIntegerChanged(Object* o)
+    inline void objectF32Changed(Object* o)
     {
-        emit o->integerChanged();
+        emit o->f32Changed();
+    }
+    inline void objectF64Changed(Object* o)
+    {
+        emit o->f64Changed();
+    }
+    inline void objectI16Changed(Object* o)
+    {
+        emit o->i16Changed();
+    }
+    inline void objectI32Changed(Object* o)
+    {
+        emit o->i32Changed();
+    }
+    inline void objectI64Changed(Object* o)
+    {
+        emit o->i64Changed();
+    }
+    inline void objectI8Changed(Object* o)
+    {
+        emit o->i8Changed();
     }
     inline void objectOptionalBytearrayChanged(Object* o)
     {
@@ -37,24 +61,42 @@ namespace {
     {
         emit o->stringChanged();
     }
+    inline void objectU16Changed(Object* o)
+    {
+        emit o->u16Changed();
+    }
+    inline void objectU32Changed(Object* o)
+    {
+        emit o->u32Changed();
+    }
     inline void objectU64Changed(Object* o)
     {
         emit o->u64Changed();
     }
-    inline void objectUintegerChanged(Object* o)
+    inline void objectU8Changed(Object* o)
     {
-        emit o->uintegerChanged();
+        emit o->u8Changed();
     }
 }
 extern "C" {
-    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
+    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(Object::Private*);
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
     void object_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
     void object_bytearray_set(Object::Private*, const char* bytes, int len);
-    qint32 object_integer_get(const Object::Private*);
-    void object_integer_set(Object::Private*, qint32);
+    float object_f32_get(const Object::Private*);
+    void object_f32_set(Object::Private*, float);
+    double object_f64_get(const Object::Private*);
+    void object_f64_set(Object::Private*, double);
+    qint16 object_i16_get(const Object::Private*);
+    void object_i16_set(Object::Private*, qint16);
+    qint32 object_i32_get(const Object::Private*);
+    void object_i32_set(Object::Private*, qint32);
+    qint64 object_i64_get(const Object::Private*);
+    void object_i64_set(Object::Private*, qint64);
+    qint8 object_i8_get(const Object::Private*);
+    void object_i8_set(Object::Private*, qint8);
     void object_optional_bytearray_get(const Object::Private*, QByteArray*, qbytearray_set);
     void object_optional_bytearray_set(Object::Private*, const char* bytes, int len);
     void object_optional_bytearray_set_none(Object::Private*);
@@ -63,10 +105,14 @@ extern "C" {
     void object_optional_string_set_none(Object::Private*);
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, const ushort *str, int len);
+    quint16 object_u16_get(const Object::Private*);
+    void object_u16_set(Object::Private*, uint);
+    quint32 object_u32_get(const Object::Private*);
+    void object_u32_set(Object::Private*, uint);
     quint64 object_u64_get(const Object::Private*);
     void object_u64_set(Object::Private*, quint64);
-    quint32 object_uinteger_get(const Object::Private*);
-    void object_uinteger_set(Object::Private*, uint);
+    quint8 object_u8_get(const Object::Private*);
+    void object_u8_set(Object::Private*, quint8);
 };
 
 Object::Object(bool /*owned*/, QObject *parent):
@@ -81,12 +127,19 @@ Object::Object(QObject *parent):
     m_d(object_new(this,
         objectBooleanChanged,
         objectBytearrayChanged,
-        objectIntegerChanged,
+        objectF32Changed,
+        objectF64Changed,
+        objectI16Changed,
+        objectI32Changed,
+        objectI64Changed,
+        objectI8Changed,
         objectOptionalBytearrayChanged,
         objectOptionalStringChanged,
         objectStringChanged,
+        objectU16Changed,
+        objectU32Changed,
         objectU64Changed,
-        objectUintegerChanged)),
+        objectU8Changed)),
     m_ownsPrivate(true)
 {
 }
@@ -112,12 +165,47 @@ QByteArray Object::bytearray() const
 void Object::setBytearray(const QByteArray& v) {
     object_bytearray_set(m_d, v.data(), v.size());
 }
-qint32 Object::integer() const
+float Object::f32() const
 {
-    return object_integer_get(m_d);
+    return object_f32_get(m_d);
 }
-void Object::setInteger(qint32 v) {
-    object_integer_set(m_d, v);
+void Object::setF32(float v) {
+    object_f32_set(m_d, v);
+}
+double Object::f64() const
+{
+    return object_f64_get(m_d);
+}
+void Object::setF64(double v) {
+    object_f64_set(m_d, v);
+}
+qint16 Object::i16() const
+{
+    return object_i16_get(m_d);
+}
+void Object::setI16(qint16 v) {
+    object_i16_set(m_d, v);
+}
+qint32 Object::i32() const
+{
+    return object_i32_get(m_d);
+}
+void Object::setI32(qint32 v) {
+    object_i32_set(m_d, v);
+}
+qint64 Object::i64() const
+{
+    return object_i64_get(m_d);
+}
+void Object::setI64(qint64 v) {
+    object_i64_set(m_d, v);
+}
+qint8 Object::i8() const
+{
+    return object_i8_get(m_d);
+}
+void Object::setI8(qint8 v) {
+    object_i8_set(m_d, v);
 }
 QByteArray Object::optionalBytearray() const
 {
@@ -154,6 +242,20 @@ QString Object::string() const
 void Object::setString(const QString& v) {
     object_string_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
 }
+quint16 Object::u16() const
+{
+    return object_u16_get(m_d);
+}
+void Object::setU16(uint v) {
+    object_u16_set(m_d, v);
+}
+quint32 Object::u32() const
+{
+    return object_u32_get(m_d);
+}
+void Object::setU32(uint v) {
+    object_u32_set(m_d, v);
+}
 quint64 Object::u64() const
 {
     return object_u64_get(m_d);
@@ -161,10 +263,10 @@ quint64 Object::u64() const
 void Object::setU64(quint64 v) {
     object_u64_set(m_d, v);
 }
-quint32 Object::uinteger() const
+quint8 Object::u8() const
 {
-    return object_uinteger_get(m_d);
+    return object_u8_get(m_d);
 }
-void Object::setUinteger(uint v) {
-    object_uinteger_set(m_d, v);
+void Object::setU8(quint8 v) {
+    object_u8_set(m_d, v);
 }

@@ -8,9 +8,16 @@ class TestRustObjectTypes : public QObject
     Q_OBJECT
 private slots:
     void testBool();
-    void testInteger();
-    void testUinteger();
+    void testInt8();
+    void testUint8();
+    void testInt16();
+    void testUint16();
+    void testInt32();
+    void testUint32();
+    void testInt64();
     void testUint64();
+    void testFloat();
+    void testDouble();
     void testString();
     void testOptionalString();
     void testByteArray();
@@ -41,28 +48,88 @@ void TestRustObjectTypes::testBool()
         &Object::boolean, &Object::booleanChanged);
 }
 
-void TestRustObjectTypes::testInteger()
+void TestRustObjectTypes::testInt8()
 {
-    testSetter(0, &Object::setInteger,
-        &Object::integer, &Object::integerChanged);
-    testSetter(1, &Object::setInteger,
-        &Object::integer, &Object::integerChanged);
-    testSetter(std::numeric_limits<int>::min(), &Object::setInteger,
-        &Object::integer, &Object::integerChanged);
-    testSetter(std::numeric_limits<int>::max(), &Object::setInteger,
-        &Object::integer, &Object::integerChanged);
+    testSetter(0, &Object::setI8,
+        &Object::i8, &Object::i8Changed);
+    testSetter(1, &Object::setI8,
+        &Object::i8, &Object::i8Changed);
+    testSetter(std::numeric_limits<int8_t>::min(), &Object::setI8,
+        &Object::i8, &Object::i8Changed);
+    testSetter(std::numeric_limits<int8_t>::max(), &Object::setI8,
+        &Object::i8, &Object::i8Changed);
 }
 
-void TestRustObjectTypes::testUinteger()
+void TestRustObjectTypes::testUint8()
 {
-    testSetter(0, &Object::setUinteger,
-        &Object::uinteger, &Object::uintegerChanged);
-    testSetter(1, &Object::setUinteger,
-        &Object::uinteger, &Object::uintegerChanged);
-    testSetter(std::numeric_limits<uint>::min(), &Object::setUinteger,
-        &Object::uinteger, &Object::uintegerChanged);
-    testSetter(std::numeric_limits<uint>::max(), &Object::setUinteger,
-        &Object::uinteger, &Object::uintegerChanged);
+    testSetter(0, &Object::setU8,
+        &Object::u8, &Object::u8Changed);
+    testSetter(1, &Object::setU8,
+        &Object::u8, &Object::u8Changed);
+    testSetter(std::numeric_limits<uint8_t>::min(), &Object::setU8,
+        &Object::u8, &Object::u8Changed);
+    testSetter(std::numeric_limits<uint8_t>::max(), &Object::setU8,
+        &Object::u8, &Object::u8Changed);
+}
+
+void TestRustObjectTypes::testInt16()
+{
+    testSetter(0, &Object::setI16,
+        &Object::i16, &Object::i16Changed);
+    testSetter(1, &Object::setI16,
+        &Object::i16, &Object::i16Changed);
+    testSetter(std::numeric_limits<int16_t>::min(), &Object::setI16,
+        &Object::i16, &Object::i16Changed);
+    testSetter(std::numeric_limits<int16_t>::max(), &Object::setI16,
+        &Object::i16, &Object::i16Changed);
+}
+
+void TestRustObjectTypes::testUint16()
+{
+    testSetter(0, &Object::setU16,
+        &Object::u16, &Object::u16Changed);
+    testSetter(1, &Object::setU16,
+        &Object::u16, &Object::u16Changed);
+    testSetter(std::numeric_limits<uint16_t>::min(), &Object::setU16,
+        &Object::u16, &Object::u16Changed);
+    testSetter(std::numeric_limits<uint16_t>::max(), &Object::setU16,
+        &Object::u16, &Object::u16Changed);
+}
+
+void TestRustObjectTypes::testInt32()
+{
+    testSetter(0, &Object::setI32,
+        &Object::i32, &Object::i32Changed);
+    testSetter(1, &Object::setI32,
+        &Object::i32, &Object::i32Changed);
+    testSetter(std::numeric_limits<int32_t>::min(), &Object::setI32,
+        &Object::i32, &Object::i32Changed);
+    testSetter(std::numeric_limits<int32_t>::max(), &Object::setI32,
+        &Object::i32, &Object::i32Changed);
+}
+
+void TestRustObjectTypes::testUint32()
+{
+    testSetter(0, &Object::setU32,
+        &Object::u32, &Object::u32Changed);
+    testSetter(1, &Object::setU32,
+        &Object::u32, &Object::u32Changed);
+    testSetter(std::numeric_limits<uint32_t>::min(), &Object::setU32,
+        &Object::u32, &Object::u32Changed);
+    testSetter(std::numeric_limits<uint32_t>::max(), &Object::setU32,
+        &Object::u32, &Object::u32Changed);
+}
+
+void TestRustObjectTypes::testInt64()
+{
+    testSetter(0, &Object::setI64,
+        &Object::i64, &Object::i64Changed);
+    testSetter(1, &Object::setI64,
+        &Object::i64, &Object::i64Changed);
+    testSetter(std::numeric_limits<int64_t>::min(), &Object::setI64,
+        &Object::i64, &Object::i64Changed);
+    testSetter(std::numeric_limits<int64_t>::max(), &Object::setI64,
+        &Object::i64, &Object::i64Changed);
 }
 
 void TestRustObjectTypes::testUint64()
@@ -71,10 +138,34 @@ void TestRustObjectTypes::testUint64()
         &Object::u64, &Object::u64Changed);
     testSetter(1, &Object::setU64,
         &Object::u64, &Object::u64Changed);
-    testSetter(std::numeric_limits<uint>::min(), &Object::setU64,
+    testSetter(std::numeric_limits<uint64_t>::min(), &Object::setU64,
         &Object::u64, &Object::u64Changed);
-    testSetter(std::numeric_limits<uint>::max(), &Object::setU64,
+    testSetter(std::numeric_limits<uint64_t>::max(), &Object::setU64,
         &Object::u64, &Object::u64Changed);
+}
+
+void TestRustObjectTypes::testFloat()
+{
+    testSetter(0, &Object::setF32,
+        &Object::f32, &Object::f32Changed);
+    testSetter(1, &Object::setF32,
+        &Object::f32, &Object::f32Changed);
+    testSetter(std::numeric_limits<float>::min(), &Object::setF32,
+        &Object::f32, &Object::f32Changed);
+    testSetter(std::numeric_limits<float>::max(), &Object::setF32,
+        &Object::f32, &Object::f32Changed);
+}
+
+void TestRustObjectTypes::testDouble()
+{
+    testSetter(0, &Object::setF64,
+        &Object::f64, &Object::f64Changed);
+    testSetter(1, &Object::setF64,
+        &Object::f64, &Object::f64Changed);
+    testSetter(std::numeric_limits<double>::min(), &Object::setF64,
+        &Object::f64, &Object::f64Changed);
+    testSetter(std::numeric_limits<double>::max(), &Object::setF64,
+        &Object::f64, &Object::f64Changed);
 }
 
 void TestRustObjectTypes::testString()

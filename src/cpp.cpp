@@ -165,7 +165,6 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
         cpp << QString("bool %1::set%2(const QModelIndex& index, const QVariant& value)\n{\n")
                 .arg(o.name, upperInitial(ip.name));
     }
-    cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
     cpp << "    bool set = false;\n";
     if (ip.optional) {
         QString test = "!value.isValid()";
@@ -175,8 +174,9 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
         cpp << "    if (" << test << ") {\n";
         cpp << QString("        set = %1_set_data_%2_none(m_d%3);")
                 .arg(lcname, snakeCase(ip.name), idx) << endl;
-        cpp << "    } else\n";
+        cpp << "    } else {\n";
     }
+    cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
     QString val = QString("value.value<%1>()").arg(ip.type.name);
     if (ip.type.isComplex()) {
         cpp << QString("    const %1 s = %2;\n").arg(ip.type.name, val);
@@ -188,6 +188,9 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
     }
     cpp << QString("    set = %1_set_data_%2(m_d%3, %4);")
         .arg(lcname, snakeCase(ip.name), idx, val) << endl;
+    if (ip.optional) {
+        cpp << "    }\n";
+    }
     if (o.type == ObjectType::List) {
         cpp << R"(    if (set) {
         QModelIndex index = createIndex(row, 0, row);
@@ -958,7 +961,7 @@ void writeCpp(const Configuration& conf) {
 namespace {
 )").arg(conf.hFile.fileName());
     for (auto option: conf.optionalTypes()) {
-        if (option != "QString") {
+        if (option != "QString" && option != "QByteArray") {
             cpp << QString(R"(
     struct option_%1 {
     public:
@@ -987,8 +990,12 @@ namespace {
         cpp << R"(
     typedef void (*qbytearray_set)(QByteArray* val, const char* bytes, int nbytes);
     void set_qbytearray(QByteArray* v, const char* bytes, int nbytes) {
-        v->truncate(0);
-        v->append(bytes, nbytes);
+        if (v->isNull() && nbytes == 0) {
+            *v = QByteArray(bytes, nbytes);
+        } else {
+            v->truncate(0);
+            v->append(bytes, nbytes);
+        }
     }
 )";
     }

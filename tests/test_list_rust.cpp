@@ -111,10 +111,10 @@ QVariant Persons::userName(int row) const
 
 bool Persons::setUserName(int row, const QVariant& value)
 {
+    bool set = false;
     if (!value.canConvert(qMetaTypeId<QString>())) {
         return false;
     }
-    bool set = false;
     const QString s = value.value<QString>();
     set = persons_set_data_user_name(m_d, row, s.utf16(), s.length());
     if (set) {

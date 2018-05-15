@@ -1,14 +1,14 @@
 {
-    "cppFile": "test_object_types_rust.cpp",
+    "cppFile": "test_list_types_rust.cpp",
     "rust": {
-        "dir": "rust_object_types",
+        "dir": "rust_list_types",
         "interfaceModule": "interface",
         "implementationModule": "implementation"
     },
     "objects": {
-        "Object": {
-            "type": "Object",
-            "properties": {
+        "List": {
+            "type": "List",
+            "itemProperties": {
                 "boolean": {
                     "type": "bool",
                     "write": true
@@ -55,7 +55,8 @@
                 },
                 "string": {
                     "type": "QString",
-                    "write": true
+                    "write": true,
+                    "roles": [ [ "display", "edit" ] ]
                 },
                 "optionalString": {
                     "type": "QString",
