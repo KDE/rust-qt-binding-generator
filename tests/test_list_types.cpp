@@ -55,37 +55,13 @@ void testSetter(const V v, Set set, Get get)
     QSignalSpy spy(&list, &List::dataChanged);
 
     // WHEN
-    const QVariant vv = QVariant::fromValue(v);
-    QVERIFY(!vv.isNull());
-    bool ok = (list.*set)(0, vv);
+    bool ok = (list.*set)(0, v);
     QVERIFY(ok);
 
     // THEN
     QVERIFY(spy.isValid());
     QCOMPARE(spy.count(), 1);
-    QCOMPARE((list.*get)(0), vv);
-}
-
-template <typename V, typename Set, typename Get>
-void testOptionalSetter(const V v, Set set, Get get)
-{
-    // GIVEN
-    List list;
-    QSignalSpy spy(&list, &List::dataChanged);
-    QVERIFY((list.*get)(0).isNull());
-
-    // WHEN
-    QVariant vv = QVariant::fromValue(v);
-    if (vv.isNull()) {
-        vv = QVariant();
-    }
-    bool ok = (list.*set)(0, vv);
-    QVERIFY(ok);
-
-    // THEN
-    QVERIFY(spy.isValid());
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE((list.*get)(0), vv);
+    QCOMPARE((V)(list.*get)(0), v);
 }
 
 int getRoleFromName(const QAbstractItemModel& model, const char* name)
@@ -156,7 +132,7 @@ void test(const V v, Set set, Get get, const char* roleName)
 template <typename V, typename Set, typename Get>
 void testOptional(const V v, Set set, Get get, const char* roleName)
 {
-    testOptionalSetter(v, set, get);
+    testSetter(v, set, get);
     testOptionalDataSetter(roleName, v);
 }
 
@@ -173,9 +149,11 @@ void TestRustListTypes::testBool()
 
 void TestRustListTypes::testOptionalBool()
 {
-    testOptional(true, &List::setOptionalBoolean, &List::optionalBoolean,
+    testOptional(QVariant(), &List::setOptionalBoolean, &List::optionalBoolean,
             "optionalBoolean");
-    testOptional(false, &List::setOptionalBoolean, &List::optionalBoolean,
+    testOptional(QVariant(true), &List::setOptionalBoolean, &List::optionalBoolean,
+            "optionalBoolean");
+    testOptional(QVariant(false), &List::setOptionalBoolean, &List::optionalBoolean,
             "optionalBoolean");
 }
 

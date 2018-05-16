@@ -48,6 +48,9 @@ namespace {
         int row;
         quintptr id;
     };
+    inline QVariant cleanNullQVariant(const QVariant& v) {
+        return (v.isNull()) ?QVariant() :v;
+    }
     inline void fibonacciInputChanged(Fibonacci* o)
     {
         emit o->inputChanged();
@@ -186,18 +189,14 @@ Qt::ItemFlags FibonacciList::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant FibonacciList::fibonacciNumber(int row) const
+quint64 FibonacciList::fibonacciNumber(int row) const
 {
-    QVariant v;
-    v.setValue(fibonacci_list_data_fibonacci_number(m_d, row));
-    return v;
+    return fibonacci_list_data_fibonacci_number(m_d, row);
 }
 
-QVariant FibonacciList::row(int row) const
+quint64 FibonacciList::row(int row) const
 {
-    QVariant v;
-    v.setValue(fibonacci_list_data_row(m_d, row));
-    return v;
+    return fibonacci_list_data_row(m_d, row);
 }
 
 QVariant FibonacciList::data(const QModelIndex &index, int role) const
@@ -207,16 +206,16 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::UserRole + 0:
-            return fibonacciNumber(index.row());
+            return QVariant::fromValue(fibonacciNumber(index.row()));
         case Qt::DisplayRole:
         case Qt::UserRole + 1:
-            return row(index.row());
+            return QVariant::fromValue(row(index.row()));
         }
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 0:
-            return fibonacciNumber(index.row());
+            return QVariant::fromValue(fibonacciNumber(index.row()));
         }
     }
     return QVariant();
@@ -349,38 +348,30 @@ Qt::ItemFlags FileSystemTree::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant FileSystemTree::fileIcon(const QModelIndex& index) const
+QByteArray FileSystemTree::fileIcon(const QModelIndex& index) const
 {
-    QVariant v;
     QByteArray b;
     file_system_tree_data_file_icon(m_d, index.internalId(), &b, set_qbytearray);
-    if (!b.isNull()) v.setValue<QByteArray>(b);
-    return v;
+    return b;
 }
 
-QVariant FileSystemTree::fileName(const QModelIndex& index) const
+QString FileSystemTree::fileName(const QModelIndex& index) const
 {
-    QVariant v;
     QString s;
     file_system_tree_data_file_name(m_d, index.internalId(), &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-QVariant FileSystemTree::filePath(const QModelIndex& index) const
+QString FileSystemTree::filePath(const QModelIndex& index) const
 {
-    QVariant v;
     QString s;
     file_system_tree_data_file_path(m_d, index.internalId(), &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-QVariant FileSystemTree::filePermissions(const QModelIndex& index) const
+qint32 FileSystemTree::filePermissions(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(file_system_tree_data_file_permissions(m_d, index.internalId()));
-    return v;
+    return file_system_tree_data_file_permissions(m_d, index.internalId());
 }
 
 QVariant FileSystemTree::fileSize(const QModelIndex& index) const
@@ -390,11 +381,9 @@ QVariant FileSystemTree::fileSize(const QModelIndex& index) const
     return v;
 }
 
-QVariant FileSystemTree::fileType(const QModelIndex& index) const
+qint32 FileSystemTree::fileType(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(file_system_tree_data_file_type(m_d, index.internalId()));
-    return v;
+    return file_system_tree_data_file_type(m_d, index.internalId());
 }
 
 QVariant FileSystemTree::data(const QModelIndex &index, int role) const
@@ -405,18 +394,18 @@ QVariant FileSystemTree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DecorationRole:
         case Qt::UserRole + 0:
-            return fileIcon(index);
+            return QVariant::fromValue(fileIcon(index));
         case Qt::DisplayRole:
         case Qt::UserRole + 1:
-            return fileName(index);
+            return QVariant::fromValue(fileName(index));
         case Qt::UserRole + 2:
-            return filePath(index);
+            return cleanNullQVariant(QVariant::fromValue(filePath(index)));
         case Qt::UserRole + 3:
-            return filePermissions(index);
+            return QVariant::fromValue(filePermissions(index));
         case Qt::UserRole + 4:
             return fileSize(index);
         case Qt::UserRole + 5:
-            return fileType(index);
+            return QVariant::fromValue(fileType(index));
         }
     case 1:
         switch (role) {
@@ -428,19 +417,19 @@ QVariant FileSystemTree::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
-            return filePath(index);
+            return cleanNullQVariant(QVariant::fromValue(filePath(index)));
         }
     case 3:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
-            return filePermissions(index);
+            return QVariant::fromValue(filePermissions(index));
         }
     case 4:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 5:
-            return fileType(index);
+            return QVariant::fromValue(fileType(index));
         }
     }
     return QVariant();
@@ -581,57 +570,43 @@ Qt::ItemFlags Processes::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant Processes::cmd(const QModelIndex& index) const
+QString Processes::cmd(const QModelIndex& index) const
 {
-    QVariant v;
     QString s;
     processes_data_cmd(m_d, index.internalId(), &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-QVariant Processes::cpuPercentage(const QModelIndex& index) const
+quint8 Processes::cpuPercentage(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(processes_data_cpu_percentage(m_d, index.internalId()));
-    return v;
+    return processes_data_cpu_percentage(m_d, index.internalId());
 }
 
-QVariant Processes::cpuUsage(const QModelIndex& index) const
+float Processes::cpuUsage(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(processes_data_cpu_usage(m_d, index.internalId()));
-    return v;
+    return processes_data_cpu_usage(m_d, index.internalId());
 }
 
-QVariant Processes::memory(const QModelIndex& index) const
+quint64 Processes::memory(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(processes_data_memory(m_d, index.internalId()));
-    return v;
+    return processes_data_memory(m_d, index.internalId());
 }
 
-QVariant Processes::name(const QModelIndex& index) const
+QString Processes::name(const QModelIndex& index) const
 {
-    QVariant v;
     QString s;
     processes_data_name(m_d, index.internalId(), &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-QVariant Processes::pid(const QModelIndex& index) const
+quint32 Processes::pid(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(processes_data_pid(m_d, index.internalId()));
-    return v;
+    return processes_data_pid(m_d, index.internalId());
 }
 
-QVariant Processes::uid(const QModelIndex& index) const
+quint32 Processes::uid(const QModelIndex& index) const
 {
-    QVariant v;
-    v.setValue(processes_data_uid(m_d, index.internalId()));
-    return v;
+    return processes_data_uid(m_d, index.internalId());
 }
 
 QVariant Processes::data(const QModelIndex &index, int role) const
@@ -641,33 +616,33 @@ QVariant Processes::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::UserRole + 0:
-            return cmd(index);
+            return QVariant::fromValue(cmd(index));
         case Qt::UserRole + 1:
-            return cpuPercentage(index);
+            return QVariant::fromValue(cpuPercentage(index));
         case Qt::UserRole + 2:
-            return cpuUsage(index);
+            return QVariant::fromValue(cpuUsage(index));
         case Qt::UserRole + 3:
-            return memory(index);
+            return QVariant::fromValue(memory(index));
         case Qt::DisplayRole:
         case Qt::UserRole + 4:
-            return name(index);
+            return QVariant::fromValue(name(index));
         case Qt::ToolTipRole:
         case Qt::UserRole + 5:
-            return pid(index);
+            return QVariant::fromValue(pid(index));
         case Qt::UserRole + 6:
-            return uid(index);
+            return QVariant::fromValue(uid(index));
         }
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
-            return cpuUsage(index);
+            return QVariant::fromValue(cpuUsage(index));
         }
     case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
-            return memory(index);
+            return QVariant::fromValue(memory(index));
         }
     }
     return QVariant();
@@ -800,20 +775,15 @@ Qt::ItemFlags TimeSeries::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant TimeSeries::cos(int row) const
+float TimeSeries::cos(int row) const
 {
-    QVariant v;
-    v.setValue(time_series_data_cos(m_d, row));
-    return v;
+    return time_series_data_cos(m_d, row);
 }
 
-bool TimeSeries::setCos(int row, const QVariant& value)
+bool TimeSeries::setCos(int row, float value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<float>())) {
-        return false;
-    }
-    set = time_series_set_data_cos(m_d, row, value.value<float>());
+    set = time_series_set_data_cos(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -821,20 +791,15 @@ bool TimeSeries::setCos(int row, const QVariant& value)
     return set;
 }
 
-QVariant TimeSeries::sin(int row) const
+float TimeSeries::sin(int row) const
 {
-    QVariant v;
-    v.setValue(time_series_data_sin(m_d, row));
-    return v;
+    return time_series_data_sin(m_d, row);
 }
 
-bool TimeSeries::setSin(int row, const QVariant& value)
+bool TimeSeries::setSin(int row, float value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<float>())) {
-        return false;
-    }
-    set = time_series_set_data_sin(m_d, row, value.value<float>());
+    set = time_series_set_data_sin(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -842,20 +807,15 @@ bool TimeSeries::setSin(int row, const QVariant& value)
     return set;
 }
 
-QVariant TimeSeries::time(int row) const
+float TimeSeries::time(int row) const
 {
-    QVariant v;
-    v.setValue(time_series_data_time(m_d, row));
-    return v;
+    return time_series_data_time(m_d, row);
 }
 
-bool TimeSeries::setTime(int row, const QVariant& value)
+bool TimeSeries::setTime(int row, float value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<float>())) {
-        return false;
-    }
-    set = time_series_set_data_time(m_d, row, value.value<float>());
+    set = time_series_set_data_time(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -870,27 +830,27 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::UserRole + 0:
-            return cos(index.row());
+            return QVariant::fromValue(cos(index.row()));
         case Qt::UserRole + 1:
-            return sin(index.row());
+            return QVariant::fromValue(sin(index.row()));
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 2:
-            return time(index.row());
+            return QVariant::fromValue(time(index.row()));
         }
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 1:
-            return sin(index.row());
+            return QVariant::fromValue(sin(index.row()));
         }
     case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            return cos(index.row());
+            return QVariant::fromValue(cos(index.row()));
         }
     }
     return QVariant();
@@ -924,23 +884,33 @@ bool TimeSeries::setData(const QModelIndex &index, const QVariant &value, int ro
 {
     if (index.column() == 0) {
         if (role == Qt::UserRole + 0) {
-            return setCos(index.row(), value);
+            if (value.canConvert(qMetaTypeId<float>())) {
+                return setCos(index.row(), value.value<float>());
+            }
         }
         if (role == Qt::UserRole + 1) {
-            return setSin(index.row(), value);
+            if (value.canConvert(qMetaTypeId<float>())) {
+                return setSin(index.row(), value.value<float>());
+            }
         }
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 2) {
-            return setTime(index.row(), value);
+            if (value.canConvert(qMetaTypeId<float>())) {
+                return setTime(index.row(), value.value<float>());
+            }
         }
     }
     if (index.column() == 1) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 1) {
-            return setSin(index.row(), value);
+            if (value.canConvert(qMetaTypeId<float>())) {
+                return setSin(index.row(), value.value<float>());
+            }
         }
     }
     if (index.column() == 2) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            return setCos(index.row(), value);
+            if (value.canConvert(qMetaTypeId<float>())) {
+                return setCos(index.row(), value.value<float>());
+            }
         }
     }
     return false;

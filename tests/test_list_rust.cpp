@@ -25,6 +25,9 @@ namespace {
         int row;
         quintptr id;
     };
+    inline QVariant cleanNullQVariant(const QVariant& v) {
+        return (v.isNull()) ?QVariant() :v;
+    }
 }
 extern "C" {
     void persons_data_user_name(const Persons::Private*, int, QString*, qstring_set);
@@ -100,23 +103,17 @@ Qt::ItemFlags Persons::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant Persons::userName(int row) const
+QString Persons::userName(int row) const
 {
-    QVariant v;
     QString s;
     persons_data_user_name(m_d, row, &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-bool Persons::setUserName(int row, const QVariant& value)
+bool Persons::setUserName(int row, const QString& value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<QString>())) {
-        return false;
-    }
-    const QString s = value.value<QString>();
-    set = persons_set_data_user_name(m_d, row, s.utf16(), s.length());
+    set = persons_set_data_user_name(m_d, row, value.utf16(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -133,7 +130,7 @@ QVariant Persons::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 0:
-            return userName(index.row());
+            return QVariant::fromValue(userName(index.row()));
         }
     }
     return QVariant();
@@ -165,7 +162,9 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.column() == 0) {
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 0) {
-            return setUserName(index.row(), value);
+            if (value.canConvert(qMetaTypeId<QString>())) {
+                return setUserName(index.row(), value.value<QString>());
+            }
         }
     }
     return false;

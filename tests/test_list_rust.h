@@ -36,8 +36,8 @@ public:
     Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-    Q_INVOKABLE QVariant userName(int row) const;
-    Q_INVOKABLE bool setUserName(int row, const QVariant& value);
+    Q_INVOKABLE QString userName(int row) const;
+    Q_INVOKABLE bool setUserName(int row, const QString& value);
 
 signals:
     // new data is ready to be made available to the model with fetchMore()

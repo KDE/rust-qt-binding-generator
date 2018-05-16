@@ -144,15 +144,25 @@ impl ListTrait for List {
     fn bytearray(&self, item: usize) -> &[u8] {
         &self.list[item].bytearray
     }
-    fn set_bytearray(&mut self, item: usize, v: Vec<u8>) -> bool {
-        self.list[item].bytearray = v;
+    fn set_bytearray(&mut self, item: usize, v: &[u8]) -> bool {
+        self.list[item].bytearray.truncate(0);
+        self.list[item].bytearray.extend_from_slice(v);
         true
     }
     fn optional_bytearray(&self, item: usize) -> Option<&[u8]> {
         self.list[item].optional_bytearray.as_ref().map(|p|&p[..])
     }
-    fn set_optional_bytearray(&mut self, item: usize, v: Option<Vec<u8>>) -> bool {
-        self.list[item].optional_bytearray = v;
+    fn set_optional_bytearray(&mut self, item: usize, v: Option<&[u8]>) -> bool {
+        match (v, &mut self.list[item].optional_bytearray) {
+            (Some(value), &mut Some(ref mut b)) => {
+                b.truncate(0);
+                b.extend_from_slice(value);
+            },
+            (Some(value), b) => {
+                *b = Some(value.into())
+            },
+            (None, b) => {*b = None;}
+        };
         true
     }
 }

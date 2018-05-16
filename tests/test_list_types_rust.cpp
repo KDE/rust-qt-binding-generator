@@ -48,6 +48,9 @@ namespace {
         int row;
         quintptr id;
     };
+    inline QVariant cleanNullQVariant(const QVariant& v) {
+        return (v.isNull()) ?QVariant() :v;
+    }
 }
 extern "C" {
     bool list_data_boolean(const List::Private*, int);
@@ -156,20 +159,15 @@ Qt::ItemFlags List::flags(const QModelIndex &i) const
     return flags;
 }
 
-QVariant List::boolean(int row) const
+bool List::boolean(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_boolean(m_d, row));
-    return v;
+    return list_data_boolean(m_d, row);
 }
 
-bool List::setBoolean(int row, const QVariant& value)
+bool List::setBoolean(int row, bool value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<bool>())) {
-        return false;
-    }
-    set = list_set_data_boolean(m_d, row, value.value<bool>());
+    set = list_set_data_boolean(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -177,23 +175,17 @@ bool List::setBoolean(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::bytearray(int row) const
+QByteArray List::bytearray(int row) const
 {
-    QVariant v;
     QByteArray b;
     list_data_bytearray(m_d, row, &b, set_qbytearray);
-    if (!b.isNull()) v.setValue<QByteArray>(b);
-    return v;
+    return b;
 }
 
-bool List::setBytearray(int row, const QVariant& value)
+bool List::setBytearray(int row, const QByteArray& value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<QByteArray>())) {
-        return false;
-    }
-    const QByteArray s = value.value<QByteArray>();
-    set = list_set_data_bytearray(m_d, row, s.data(), s.length());
+    set = list_set_data_bytearray(m_d, row, value.data(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -201,20 +193,15 @@ bool List::setBytearray(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::f32(int row) const
+float List::f32(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_f32(m_d, row));
-    return v;
+    return list_data_f32(m_d, row);
 }
 
-bool List::setF32(int row, const QVariant& value)
+bool List::setF32(int row, float value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<float>())) {
-        return false;
-    }
-    set = list_set_data_f32(m_d, row, value.value<float>());
+    set = list_set_data_f32(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -222,20 +209,15 @@ bool List::setF32(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::f64(int row) const
+double List::f64(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_f64(m_d, row));
-    return v;
+    return list_data_f64(m_d, row);
 }
 
-bool List::setF64(int row, const QVariant& value)
+bool List::setF64(int row, double value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<double>())) {
-        return false;
-    }
-    set = list_set_data_f64(m_d, row, value.value<double>());
+    set = list_set_data_f64(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -243,20 +225,15 @@ bool List::setF64(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::i16(int row) const
+qint16 List::i16(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_i16(m_d, row));
-    return v;
+    return list_data_i16(m_d, row);
 }
 
-bool List::setI16(int row, const QVariant& value)
+bool List::setI16(int row, qint16 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<qint16>())) {
-        return false;
-    }
-    set = list_set_data_i16(m_d, row, value.value<qint16>());
+    set = list_set_data_i16(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -264,20 +241,15 @@ bool List::setI16(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::i32(int row) const
+qint32 List::i32(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_i32(m_d, row));
-    return v;
+    return list_data_i32(m_d, row);
 }
 
-bool List::setI32(int row, const QVariant& value)
+bool List::setI32(int row, qint32 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<qint32>())) {
-        return false;
-    }
-    set = list_set_data_i32(m_d, row, value.value<qint32>());
+    set = list_set_data_i32(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -285,20 +257,15 @@ bool List::setI32(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::i64(int row) const
+qint64 List::i64(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_i64(m_d, row));
-    return v;
+    return list_data_i64(m_d, row);
 }
 
-bool List::setI64(int row, const QVariant& value)
+bool List::setI64(int row, qint64 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<qint64>())) {
-        return false;
-    }
-    set = list_set_data_i64(m_d, row, value.value<qint64>());
+    set = list_set_data_i64(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -306,20 +273,15 @@ bool List::setI64(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::i8(int row) const
+qint8 List::i8(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_i8(m_d, row));
-    return v;
+    return list_data_i8(m_d, row);
 }
 
-bool List::setI8(int row, const QVariant& value)
+bool List::setI8(int row, qint8 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<qint8>())) {
-        return false;
-    }
-    set = list_set_data_i8(m_d, row, value.value<qint8>());
+    set = list_set_data_i8(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -337,7 +299,7 @@ QVariant List::optionalBoolean(int row) const
 bool List::setOptionalBoolean(int row, const QVariant& value)
 {
     bool set = false;
-    if (!value.isValid()) {
+    if (value.isNull() || !value.isValid()) {
         set = list_set_data_optional_boolean_none(m_d, row);
     } else {
     if (!value.canConvert(qMetaTypeId<bool>())) {
@@ -352,26 +314,20 @@ bool List::setOptionalBoolean(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::optionalBytearray(int row) const
+QByteArray List::optionalBytearray(int row) const
 {
-    QVariant v;
     QByteArray b;
     list_data_optional_bytearray(m_d, row, &b, set_qbytearray);
-    if (!b.isNull()) v.setValue<QByteArray>(b);
-    return v;
+    return b;
 }
 
-bool List::setOptionalBytearray(int row, const QVariant& value)
+bool List::setOptionalBytearray(int row, const QByteArray& value)
 {
     bool set = false;
-    if (!value.isValid() || value.isNull()) {
+    if (value.isNull()) {
         set = list_set_data_optional_bytearray_none(m_d, row);
     } else {
-    if (!value.canConvert(qMetaTypeId<QByteArray>())) {
-        return false;
-    }
-    const QByteArray s = value.value<QByteArray>();
-    set = list_set_data_optional_bytearray(m_d, row, s.data(), s.length());
+    set = list_set_data_optional_bytearray(m_d, row, value.data(), value.length());
     }
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
@@ -380,26 +336,20 @@ bool List::setOptionalBytearray(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::optionalString(int row) const
+QString List::optionalString(int row) const
 {
-    QVariant v;
     QString s;
     list_data_optional_string(m_d, row, &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-bool List::setOptionalString(int row, const QVariant& value)
+bool List::setOptionalString(int row, const QString& value)
 {
     bool set = false;
-    if (!value.isValid() || value.isNull()) {
+    if (value.isNull()) {
         set = list_set_data_optional_string_none(m_d, row);
     } else {
-    if (!value.canConvert(qMetaTypeId<QString>())) {
-        return false;
-    }
-    const QString s = value.value<QString>();
-    set = list_set_data_optional_string(m_d, row, s.utf16(), s.length());
+    set = list_set_data_optional_string(m_d, row, value.utf16(), value.length());
     }
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
@@ -408,23 +358,17 @@ bool List::setOptionalString(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::string(int row) const
+QString List::string(int row) const
 {
-    QVariant v;
     QString s;
     list_data_string(m_d, row, &s, set_qstring);
-    if (!s.isNull()) v.setValue<QString>(s);
-    return v;
+    return s;
 }
 
-bool List::setString(int row, const QVariant& value)
+bool List::setString(int row, const QString& value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<QString>())) {
-        return false;
-    }
-    const QString s = value.value<QString>();
-    set = list_set_data_string(m_d, row, s.utf16(), s.length());
+    set = list_set_data_string(m_d, row, value.utf16(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -432,20 +376,15 @@ bool List::setString(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::u16(int row) const
+quint16 List::u16(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_u16(m_d, row));
-    return v;
+    return list_data_u16(m_d, row);
 }
 
-bool List::setU16(int row, const QVariant& value)
+bool List::setU16(int row, quint16 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<quint16>())) {
-        return false;
-    }
-    set = list_set_data_u16(m_d, row, value.value<quint16>());
+    set = list_set_data_u16(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -453,20 +392,15 @@ bool List::setU16(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::u32(int row) const
+quint32 List::u32(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_u32(m_d, row));
-    return v;
+    return list_data_u32(m_d, row);
 }
 
-bool List::setU32(int row, const QVariant& value)
+bool List::setU32(int row, quint32 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<quint32>())) {
-        return false;
-    }
-    set = list_set_data_u32(m_d, row, value.value<quint32>());
+    set = list_set_data_u32(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -474,20 +408,15 @@ bool List::setU32(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::u64(int row) const
+quint64 List::u64(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_u64(m_d, row));
-    return v;
+    return list_data_u64(m_d, row);
 }
 
-bool List::setU64(int row, const QVariant& value)
+bool List::setU64(int row, quint64 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<quint64>())) {
-        return false;
-    }
-    set = list_set_data_u64(m_d, row, value.value<quint64>());
+    set = list_set_data_u64(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -495,20 +424,15 @@ bool List::setU64(int row, const QVariant& value)
     return set;
 }
 
-QVariant List::u8(int row) const
+quint8 List::u8(int row) const
 {
-    QVariant v;
-    v.setValue(list_data_u8(m_d, row));
-    return v;
+    return list_data_u8(m_d, row);
 }
 
-bool List::setU8(int row, const QVariant& value)
+bool List::setU8(int row, quint8 value)
 {
     bool set = false;
-    if (!value.canConvert(qMetaTypeId<quint8>())) {
-        return false;
-    }
-    set = list_set_data_u8(m_d, row, value.value<quint8>());
+    set = list_set_data_u8(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
         emit dataChanged(index, index);
@@ -523,39 +447,39 @@ QVariant List::data(const QModelIndex &index, int role) const
     case 0:
         switch (role) {
         case Qt::UserRole + 0:
-            return boolean(index.row());
+            return QVariant::fromValue(boolean(index.row()));
         case Qt::UserRole + 1:
-            return bytearray(index.row());
+            return QVariant::fromValue(bytearray(index.row()));
         case Qt::UserRole + 2:
-            return f32(index.row());
+            return QVariant::fromValue(f32(index.row()));
         case Qt::UserRole + 3:
-            return f64(index.row());
+            return QVariant::fromValue(f64(index.row()));
         case Qt::UserRole + 4:
-            return i16(index.row());
+            return QVariant::fromValue(i16(index.row()));
         case Qt::UserRole + 5:
-            return i32(index.row());
+            return QVariant::fromValue(i32(index.row()));
         case Qt::UserRole + 6:
-            return i64(index.row());
+            return QVariant::fromValue(i64(index.row()));
         case Qt::UserRole + 7:
-            return i8(index.row());
+            return QVariant::fromValue(i8(index.row()));
         case Qt::UserRole + 8:
             return optionalBoolean(index.row());
         case Qt::UserRole + 9:
-            return optionalBytearray(index.row());
+            return cleanNullQVariant(QVariant::fromValue(optionalBytearray(index.row())));
         case Qt::UserRole + 10:
-            return optionalString(index.row());
+            return cleanNullQVariant(QVariant::fromValue(optionalString(index.row())));
         case Qt::DisplayRole:
         case Qt::EditRole:
         case Qt::UserRole + 11:
-            return string(index.row());
+            return QVariant::fromValue(string(index.row()));
         case Qt::UserRole + 12:
-            return u16(index.row());
+            return QVariant::fromValue(u16(index.row()));
         case Qt::UserRole + 13:
-            return u32(index.row());
+            return QVariant::fromValue(u32(index.row()));
         case Qt::UserRole + 14:
-            return u64(index.row());
+            return QVariant::fromValue(u64(index.row()));
         case Qt::UserRole + 15:
-            return u8(index.row());
+            return QVariant::fromValue(u8(index.row()));
         }
     }
     return QVariant();
@@ -602,52 +526,82 @@ bool List::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.column() == 0) {
         if (role == Qt::UserRole + 0) {
-            return setBoolean(index.row(), value);
+            if (value.canConvert(qMetaTypeId<bool>())) {
+                return setBoolean(index.row(), value.value<bool>());
+            }
         }
         if (role == Qt::UserRole + 1) {
-            return setBytearray(index.row(), value);
+            if (value.canConvert(qMetaTypeId<QByteArray>())) {
+                return setBytearray(index.row(), value.value<QByteArray>());
+            }
         }
         if (role == Qt::UserRole + 2) {
-            return setF32(index.row(), value);
+            if (value.canConvert(qMetaTypeId<float>())) {
+                return setF32(index.row(), value.value<float>());
+            }
         }
         if (role == Qt::UserRole + 3) {
-            return setF64(index.row(), value);
+            if (value.canConvert(qMetaTypeId<double>())) {
+                return setF64(index.row(), value.value<double>());
+            }
         }
         if (role == Qt::UserRole + 4) {
-            return setI16(index.row(), value);
+            if (value.canConvert(qMetaTypeId<qint16>())) {
+                return setI16(index.row(), value.value<qint16>());
+            }
         }
         if (role == Qt::UserRole + 5) {
-            return setI32(index.row(), value);
+            if (value.canConvert(qMetaTypeId<qint32>())) {
+                return setI32(index.row(), value.value<qint32>());
+            }
         }
         if (role == Qt::UserRole + 6) {
-            return setI64(index.row(), value);
+            if (value.canConvert(qMetaTypeId<qint64>())) {
+                return setI64(index.row(), value.value<qint64>());
+            }
         }
         if (role == Qt::UserRole + 7) {
-            return setI8(index.row(), value);
+            if (value.canConvert(qMetaTypeId<qint8>())) {
+                return setI8(index.row(), value.value<qint8>());
+            }
         }
         if (role == Qt::UserRole + 8) {
             return setOptionalBoolean(index.row(), value);
         }
         if (role == Qt::UserRole + 9) {
-            return setOptionalBytearray(index.row(), value);
+            if (!value.isValid() || value.isNull() ||value.canConvert(qMetaTypeId<QByteArray>())) {
+                return setOptionalBytearray(index.row(), value.value<QByteArray>());
+            }
         }
         if (role == Qt::UserRole + 10) {
-            return setOptionalString(index.row(), value);
+            if (!value.isValid() || value.isNull() ||value.canConvert(qMetaTypeId<QString>())) {
+                return setOptionalString(index.row(), value.value<QString>());
+            }
         }
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole + 11) {
-            return setString(index.row(), value);
+            if (value.canConvert(qMetaTypeId<QString>())) {
+                return setString(index.row(), value.value<QString>());
+            }
         }
         if (role == Qt::UserRole + 12) {
-            return setU16(index.row(), value);
+            if (value.canConvert(qMetaTypeId<quint16>())) {
+                return setU16(index.row(), value.value<quint16>());
+            }
         }
         if (role == Qt::UserRole + 13) {
-            return setU32(index.row(), value);
+            if (value.canConvert(qMetaTypeId<quint32>())) {
+                return setU32(index.row(), value.value<quint32>());
+            }
         }
         if (role == Qt::UserRole + 14) {
-            return setU64(index.row(), value);
+            if (value.canConvert(qMetaTypeId<quint64>())) {
+                return setU64(index.row(), value.value<quint64>());
+            }
         }
         if (role == Qt::UserRole + 15) {
-            return setU8(index.row(), value);
+            if (value.canConvert(qMetaTypeId<quint8>())) {
+                return setU8(index.row(), value.value<quint8>());
+            }
         }
     }
     return false;

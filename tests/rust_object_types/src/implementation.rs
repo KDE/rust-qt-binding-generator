@@ -144,15 +144,25 @@ impl ObjectTrait for Object {
     fn bytearray(&self) -> &[u8] {
         &self.bytearray
     }
-    fn set_bytearray(&mut self, value: Vec<u8>) {
-        self.bytearray = value;
+    fn set_bytearray(&mut self, value: &[u8]) {
+        self.bytearray.truncate(0);
+        self.bytearray.extend_from_slice(value);
         self.emit.bytearray_changed();
     }
     fn optional_bytearray(&self) -> Option<&[u8]> {
         self.optional_bytearray.as_ref().map(|p|&p[..])
     }
-    fn set_optional_bytearray(&mut self, value: Option<Vec<u8>>) {
-        self.optional_bytearray = value;
+    fn set_optional_bytearray(&mut self, value: Option<&[u8]>) {
+        match (value, &mut self.optional_bytearray) {
+            (Some(value), &mut Some(ref mut b)) => {
+                b.truncate(0);
+                b.extend_from_slice(value);
+            },
+            (Some(value), b) => {
+                *b = Some(value.into())
+            },
+            (None, b) => {*b = None;}
+        };
         self.emit.optional_bytearray_changed();
     }
     fn optional_string(&self) -> Option<&str> {

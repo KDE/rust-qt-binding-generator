@@ -164,10 +164,8 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
     // If the return type is QString or QByteArray, append a pointer to the
     // variable that will be set to the argument list. Also add a setter
     // function.
-    if (f.type.name == "QString") {
-        r << ", d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {\n";
-    } else if (f.type.name == "QByteArray") {
-        r << ", d: *mut QByteArray, set: fn(*mut QString, str: *const c_char, len: c_int)) {\n";
+    if (f.type.isComplex()) {
+        r << QString(", d: *mut %1, set: fn(*mut %1, str: *const c_char, len: c_int)) {\n").arg(f.type.name);
     } else {
         r << ") -> " << f.type.rustType << " {\n";
     }
@@ -332,7 +330,15 @@ pub trait %1Trait {
         } else {
             r << QString("    fn %1(&self) -> %2;\n").arg(lc, rustReturnType(p));
             if (p.write) {
-                r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
+                if (p.type.name == "QByteArray") {
+                    if (p.optional) {
+                        r << QString("    fn set_%1(&mut self, value: Option<&[u8]>);\n").arg(lc);
+                    } else {
+                        r << QString("    fn set_%1(&mut self, value: &[u8]);\n").arg(lc);
+                    }
+                } else {
+                    r << QString("    fn set_%1(&mut self, value: %2);\n").arg(lc, rustType(p));
+                }
             }
         }
     }
@@ -378,8 +384,18 @@ pub trait %1Trait {
             r << QString("    fn %1(&self, item: usize) -> %2;\n")
                     .arg(snakeCase(ip.name), rustReturnType(ip));
             if (ip.write) {
-                r << QString("    fn set_%1(&mut self, item: usize, %2) -> bool;\n")
-                    .arg(snakeCase(ip.name), rustType(ip));
+                if (ip.type.name == "QByteArray") {
+                    if (ip.optional) {
+                        r << QString("    fn set_%1(&mut self, item: usize, Option<&[u8]>) -> bool;\n")
+                            .arg(snakeCase(ip.name));
+                    } else {
+                        r << QString("    fn set_%1(&mut self, item: usize, &[u8]) -> bool;\n")
+                            .arg(snakeCase(ip.name));
+                    }
+                } else {
+                    r << QString("    fn set_%1(&mut self, item: usize, %2) -> bool;\n")
+                        .arg(snakeCase(ip.name), rustType(ip));
+                }
             }
         }
     }
@@ -416,15 +432,15 @@ pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
 #[no_mangle]
 pub extern "C" fn %2_get(
     ptr: *const %1,
-    p: *mut c_void,
-    set: fn(*mut c_void, *const c_char, c_int),
+    p: *mut %4,
+    set: fn(*mut %4, *const c_char, c_int),
 ) {
     let o = unsafe { &*ptr };
     let v = o.%3();
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, v.len() as c_int);
 }
-)").arg(o.name, base, snakeCase(p.name));
+)").arg(o.name, base, snakeCase(p.name), p.type.name);
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
@@ -441,7 +457,7 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
 pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
     let o = unsafe { &mut *ptr };
     let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
-    o.set_%3(v.into());
+    o.set_%3(v);
 }
 )").arg(o.name, base, snakeCase(p.name));
             }
@@ -450,8 +466,8 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
 #[no_mangle]
 pub extern "C" fn %2_get(
     ptr: *const %1,
-    p: *mut c_void,
-    set: fn(*mut c_void, *const c_char, c_int),
+    p: *mut %4,
+    set: fn(*mut %4, *const c_char, c_int),
 ) {
     let o = unsafe { &*ptr };
     let v = o.%3();
@@ -460,7 +476,7 @@ pub extern "C" fn %2_get(
         set(p, s, v.len() as c_int);
     }
 }
-)").arg(o.name, base, snakeCase(p.name));
+)").arg(o.name, base, snakeCase(p.name), p.type.name);
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
@@ -646,23 +662,23 @@ pub unsafe extern "C" fn %2_row(ptr: *const %1, item: usize) -> c_int {
                 r << QString(R"(
 #[no_mangle]
 pub extern "C" fn %2_data_%3(
-    ptr: *const %1%5,
-    d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    ptr: *const %1%4,
+    d: *mut %6,
+    set: fn(*mut %6, *const c_char, len: c_int),
 ) {
     let o = unsafe { &*ptr };
-    let data = o.%3(%6);
+    let data = o.%3(%5);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, data.len() as c_int);
 }
-)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.type.name);
             } else if (ip.type.isComplex()) {
                 r << QString(R"(
 #[no_mangle]
 pub extern "C" fn %2_data_%3(
     ptr: *const %1%4,
-    d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    d: *mut %6,
+    set: fn(*mut %6, *const c_char, len: c_int),
 ) {
     let o = unsafe { &*ptr };
     let data = o.%3(%5);
@@ -671,7 +687,7 @@ pub extern "C" fn %2_data_%3(
         set(d, s, data.len() as c_int);
     }
 }
-)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index);
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.type.name);
             } else {
                 r << QString(R"(
 #[no_mangle]
@@ -707,12 +723,10 @@ pub extern "C" fn %2_set_data_%3(
     s: *const c_char, len: c_int,
 ) -> bool {
     let o = unsafe { &mut *ptr };
-    let mut v = Vec::new();
     let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, len as usize) };
-    v.extend_from_slice(slice);
     o.set_%3(%5, %6)
 }
-)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, val);
+)").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.optional ?"Some(slice)" :"slice");
                 } else {
                     const QString type = ip.type.rustType;
                     r << QString(R"(
@@ -845,7 +859,7 @@ void writeRustInterface(const Configuration& conf) {
     r << QString(R"(/* generated by rust_qt_binding_generator */
 #![allow(unknown_lints)]
 #![allow(mutex_atomic, needless_pass_by_value)]
-use libc::{c_char, c_ushort, c_int, c_void};
+use libc::{c_char, c_ushort, c_int};
 use std::slice;
 use std::char::decode_utf16;
 

@@ -104,8 +104,8 @@ public:
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
     Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
-    Q_INVOKABLE QVariant fibonacciNumber(int row) const;
-    Q_INVOKABLE QVariant row(int row) const;
+    Q_INVOKABLE quint64 fibonacciNumber(int row) const;
+    Q_INVOKABLE quint64 row(int row) const;
 
 signals:
     // new data is ready to be made available to the model with fetchMore()
@@ -148,12 +148,12 @@ public:
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
     Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
-    Q_INVOKABLE QVariant fileIcon(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant fileName(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant filePath(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant filePermissions(const QModelIndex& index) const;
+    Q_INVOKABLE QByteArray fileIcon(const QModelIndex& index) const;
+    Q_INVOKABLE QString fileName(const QModelIndex& index) const;
+    Q_INVOKABLE QString filePath(const QModelIndex& index) const;
+    Q_INVOKABLE qint32 filePermissions(const QModelIndex& index) const;
     Q_INVOKABLE QVariant fileSize(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant fileType(const QModelIndex& index) const;
+    Q_INVOKABLE qint32 fileType(const QModelIndex& index) const;
 
 signals:
     // new data is ready to be made available to the model with fetchMore()
@@ -197,13 +197,13 @@ public:
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
     Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
-    Q_INVOKABLE QVariant cmd(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant cpuPercentage(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant cpuUsage(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant memory(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant name(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant pid(const QModelIndex& index) const;
-    Q_INVOKABLE QVariant uid(const QModelIndex& index) const;
+    Q_INVOKABLE QString cmd(const QModelIndex& index) const;
+    Q_INVOKABLE quint8 cpuPercentage(const QModelIndex& index) const;
+    Q_INVOKABLE float cpuUsage(const QModelIndex& index) const;
+    Q_INVOKABLE quint64 memory(const QModelIndex& index) const;
+    Q_INVOKABLE QString name(const QModelIndex& index) const;
+    Q_INVOKABLE quint32 pid(const QModelIndex& index) const;
+    Q_INVOKABLE quint32 uid(const QModelIndex& index) const;
 
 signals:
     // new data is ready to be made available to the model with fetchMore()
@@ -245,12 +245,12 @@ public:
     Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-    Q_INVOKABLE QVariant cos(int row) const;
-    Q_INVOKABLE bool setCos(int row, const QVariant& value);
-    Q_INVOKABLE QVariant sin(int row) const;
-    Q_INVOKABLE bool setSin(int row, const QVariant& value);
-    Q_INVOKABLE QVariant time(int row) const;
-    Q_INVOKABLE bool setTime(int row, const QVariant& value);
+    Q_INVOKABLE float cos(int row) const;
+    Q_INVOKABLE bool setCos(int row, float value);
+    Q_INVOKABLE float sin(int row) const;
+    Q_INVOKABLE bool setSin(int row, float value);
+    Q_INVOKABLE float time(int row) const;
+    Q_INVOKABLE bool setTime(int row, float value);
 
 signals:
     // new data is ready to be made available to the model with fetchMore()

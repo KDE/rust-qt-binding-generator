@@ -33,6 +33,12 @@ QString cppSetType(const T& p)
     return p.type.cppSetType;
 }
 
+template <typename T>
+QString propertyType(const T& p)
+{
+    return (p.optional && !p.type.isComplex()) ?"QVariant" :p.type.name;
+}
+
 QString upperInitial(const QString& name) {
     return name.left(1).toUpper() + name.mid(1);
 }
@@ -86,15 +92,20 @@ void writeHeaderItemModel(QTextStream& h, const Object& o) {
         h << "    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;\n";
     }
     for (auto ip: o.itemProperties) {
+        auto r = propertyType(ip);
+        auto rw = r;
+        if (r == "QVariant" || ip.type.isComplex()) {
+            rw = "const " + r + "&";
+        }
         if (o.type == ObjectType::List) {
-            h << QString("    Q_INVOKABLE QVariant %1(int row) const;\n").arg(ip.name);
+            h << QString("    Q_INVOKABLE %2 %1(int row) const;\n").arg(ip.name, r);
             if (ip.write) {
-                h << QString("    Q_INVOKABLE bool set%1(int row, const QVariant& value);\n").arg(upperInitial(ip.name));
+                h << QString("    Q_INVOKABLE bool set%1(int row, %2 value);\n").arg(upperInitial(ip.name), rw);
             }
         } else {
-            h << QString("    Q_INVOKABLE QVariant %1(const QModelIndex& index) const;\n").arg(ip.name);
+            h << QString("    Q_INVOKABLE %2 %1(const QModelIndex& index) const;\n").arg(ip.name, r);
             if (ip.write) {
-                h << QString("    Q_INVOKABLE bool set%1(const QModelIndex& index, const QVariant& value);\n").arg(upperInitial(ip.name));
+                h << QString("    Q_INVOKABLE bool set%1(const QModelIndex& index, %2 value);\n").arg(upperInitial(ip.name), rw);
             }
         }
     }
@@ -123,33 +134,34 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
     QString idx = index;
 
     // getter
+    auto r = propertyType(ip);
     if (o.type == ObjectType::List) {
         idx = ", row";
-        cpp << QString("QVariant %1::%2(int row) const\n{\n")
-                .arg(o.name, ip.name);
+        cpp << QString("%3 %1::%2(int row) const\n{\n")
+                .arg(o.name, ip.name, r);
     } else {
-        cpp << QString("QVariant %1::%2(const QModelIndex& index) const\n{\n")
-                .arg(o.name, ip.name);
+        cpp << QString("%3 %1::%2(const QModelIndex& index) const\n{\n")
+                .arg(o.name, ip.name, r);
     }
-    cpp << "    QVariant v;\n";
     if (ip.type.name == "QString") {
         cpp << "    QString s;\n";
         cpp << QString("    %1_data_%2(m_d%4, &s, set_%3);\n")
                .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), idx);
-        cpp << "    if (!s.isNull()) v.setValue<QString>(s);\n";
+        cpp << "    return s;\n";
     } else if (ip.type.name == "QByteArray") {
         cpp << "    QByteArray b;\n";
         cpp << QString("    %1_data_%2(m_d%4, &b, set_%3);\n")
                .arg(lcname, snakeCase(ip.name), ip.type.name.toLower(), idx);
-        cpp << "    if (!b.isNull()) v.setValue<QByteArray>(b);\n";
-    } else if (!ip.optional) {
-        cpp << QString("    v.setValue(%1_data_%2(m_d%3));\n")
-               .arg(lcname, snakeCase(ip.name), idx);
-    } else {
+        cpp << "    return b;\n";
+    } else if (ip.optional) {
+        cpp << "    QVariant v;\n";
         cpp << QString("    v = %1_data_%2(m_d%3);\n")
                .arg(lcname, snakeCase(ip.name), idx);
+        cpp << "    return v;\n";
+    } else {
+        cpp << QString("    return %1_data_%2(m_d%3);\n")
+               .arg(lcname, snakeCase(ip.name), idx);
     }
-    cpp << "    return v;\n";
     cpp << "}\n\n";
 
     if (!ip.write) {
@@ -157,37 +169,44 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
     }
 
     // setter
+    if (r == "QVariant" || ip.type.isComplex()) {
+        r = "const " + r + "&";
+    }
     if (o.type == ObjectType::List) {
         idx = ", row";
-        cpp << QString("bool %1::set%2(int row, const QVariant& value)\n{\n")
-                .arg(o.name, upperInitial(ip.name));
+        cpp << QString("bool %1::set%2(int row, %3 value)\n{\n")
+                .arg(o.name, upperInitial(ip.name), r);
     } else {
-        cpp << QString("bool %1::set%2(const QModelIndex& index, const QVariant& value)\n{\n")
-                .arg(o.name, upperInitial(ip.name));
+        cpp << QString("bool %1::set%2(const QModelIndex& index, %3 value)\n{\n")
+                .arg(o.name, upperInitial(ip.name), r);
     }
     cpp << "    bool set = false;\n";
     if (ip.optional) {
-        QString test = "!value.isValid()";
-        if (ip.type.isComplex()) {
-            test += " || value.isNull()";
+        QString test = "value.isNull()";
+        if (!ip.type.isComplex()) {
+            test += " || !value.isValid()";
         }
         cpp << "    if (" << test << ") {\n";
         cpp << QString("        set = %1_set_data_%2_none(m_d%3);")
                 .arg(lcname, snakeCase(ip.name), idx) << endl;
         cpp << "    } else {\n";
     }
-    cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
-    QString val = QString("value.value<%1>()").arg(ip.type.name);
-    if (ip.type.isComplex()) {
-        cpp << QString("    const %1 s = %2;\n").arg(ip.type.name, val);
-        if (ip.type.name == "QString") {
-            val = "s.utf16(), s.length()";
-        } else {
-            val = "s.data(), s.length()";
+    if (ip.optional && !ip.type.isComplex()) {
+        cpp << QString("    if (!value.canConvert(qMetaTypeId<%1>())) {\n        return false;\n    }\n").arg(ip.type.name);
+        cpp << QString("    set = %1_set_data_%2(m_d%3, value.value<%4>());")
+            .arg(lcname, snakeCase(ip.name), idx, ip.type.name) << endl;
+    } else {
+        QString val = "value";
+        if (ip.type.isComplex()) {
+            if (ip.type.name == "QString") {
+                val = "value.utf16(), value.length()";
+            } else {
+                val = "value.data(), value.length()";
+            }
         }
+        cpp << QString("    set = %1_set_data_%2(m_d%3, %4);")
+            .arg(lcname, snakeCase(ip.name), idx, val) << endl;
     }
-    cpp << QString("    set = %1_set_data_%2(m_d%3, %4);")
-        .arg(lcname, snakeCase(ip.name), idx, val) << endl;
     if (ip.optional) {
         cpp << "    }\n";
     }
@@ -420,10 +439,13 @@ Qt::ItemFlags %1::flags(const QModelIndex &i) const
                 cpp << QString("        case Qt::%1:\n").arg(metaRoles.valueToKey(role));
             }
             cpp << QString("        case Qt::UserRole + %1:\n").arg(i);
-            if (o.type == ObjectType::List) {
-                cpp << QString("            return %1(index.row());\n").arg(ip.name);
+            auto ii = (o.type == ObjectType::List) ?".row()" :"";
+            if (ip.optional && !ip.type.isComplex()) {
+                cpp << QString("            return %1(index%2);\n").arg(ip.name, ii);
+            } else if (ip.optional) {
+                cpp << QString("            return cleanNullQVariant(QVariant::fromValue(%1(index%2)));\n").arg(ip.name, ii);
             } else {
-                cpp << QString("            return %1(index);\n").arg(ip.name);
+                cpp << QString("            return QVariant::fromValue(%1(index%2));\n").arg(ip.name, ii);
             }
         }
         cpp << "        }\n";
@@ -476,12 +498,18 @@ bool %1::setHeaderData(int section, Qt::Orientation orientation, const QVariant 
                     cpp << QString("role == Qt::%1 || ").arg(metaRoles.valueToKey(role));
                 }
                 cpp << "role == Qt::UserRole + " << i << ") {\n";
-                if (o.type == ObjectType::List) {
-                    cpp << QString("            return set%1(index.row(), value);\n")
-                        .arg(upperInitial(ip.name));
+                auto ii = (o.type == ObjectType::List) ?".row()" :"";
+                if (ip.optional && !ip.type.isComplex()) {
+                    cpp << QString("            return set%1(index%2, value);\n")
+                            .arg(upperInitial(ip.name), ii);
                 } else {
-                    cpp << QString("            return set%1(index, value);\n")
-                        .arg(upperInitial(ip.name));
+                    QString pre = "";
+                    if (ip.optional) {
+                        pre = "!value.isValid() || value.isNull() ||";
+                    }
+                    cpp << QString("            if (%2value.canConvert(qMetaTypeId<%1>())) {\n").arg(ip.type.name, pre);
+                    cpp << QString("                return set%1(index%2, value.value<%3>());\n").arg(upperInitial(ip.name), ii, ip.type.name);
+                    cpp << QString("            }\n");
                 }
                 cpp << "        }\n";
             }
@@ -1037,6 +1065,9 @@ namespace {
         int row;
         quintptr id;
     };
+    inline QVariant cleanNullQVariant(const QVariant& v) {
+        return (v.isNull()) ?QVariant() :v;
+    }
 )";
     }
 
