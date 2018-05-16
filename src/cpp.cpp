@@ -289,12 +289,12 @@ int %1::rowCount(const QModelIndex &parent) const
     return (parent.isValid()) ? 0 : %2_row_count(m_d);
 }
 
-bool %1::insertRows(int row, int count, const QModelIndex &parent)
+bool %1::insertRows(int row, int count, const QModelIndex &)
 {
     return %2_insert_rows(m_d, row, count);
 }
 
-bool %1::removeRows(int row, int count, const QModelIndex &parent)
+bool %1::removeRows(int row, int count, const QModelIndex &)
 {
     return %2_remove_rows(m_d, row, count);
 }
@@ -951,7 +951,6 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
             } else if (p.type.name == "QByteArray") {
                 cpp << QString("    %1_set(m_d, v.data(), v.size());").arg(base) << endl;
             } else {
-                qWarning() << p.type.cppSetType;
                 cpp << QString("    %1_set(m_d, v);").arg(base) << endl;
             }
             cpp << "}" << endl;
@@ -961,24 +960,29 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
     for (const Function& f: o.functions) {
         const QString base = QString("%1_%2")
             .arg(lcname, snakeCase(f.name));
-        cpp << QString("%1 %2::%3(")
-            .arg(f.type.name, o.name, f.name);
+        cpp << QString("%1 %2::%3(").arg(f.type.name, o.name, f.name);
         for (auto a = f.args.begin(); a < f.args.end(); a++) {
             cpp << QString("%1 %2%3").arg(a->type.cppSetType, a->name, a + 1 < f.args.end() ? ", " : "");
         }
-        cpp << QString(")%1\n{\n")
-            .arg(f.mut ? "" : " const");
+        cpp << QString(")%1\n{\n").arg(f.mut ? "" : " const");
         QString argList;
         for (auto a = f.args.begin(); a < f.args.end(); a++) {
             if (a->type.name == "QString") {
-                argList.append(QString(", %2%3.utf16(), %2%3.size()").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
+                argList.append(QString(", %1.utf16(), %1.size()").arg(a->name));
+            } else if (a->type.name == "QByteArray") {
+                argList.append(QString(", %1.data(), %1.size()").arg(a->name));
             } else {
-                argList.append(QString(", %2%3").arg(a->name, a + 1 < f.args.end() ? ", " : ""));
+                argList.append(QString(", %1").arg(a->name));
             }
         }
         if (f.type.name == "QString") {
             cpp << QString("    %1 s;").arg(f.type.name) << endl;
             cpp << QString("    %1(m_d%2, &s, set_qstring);")
+                .arg(base, argList) << endl;
+            cpp << "    return s;" << endl;
+        } else if (f.type.name == "QByteArray") {
+            cpp << QString("    %1 s;").arg(f.type.name) << endl;
+            cpp << QString("    %1(m_d%2, &s, set_qbytearray);")
                 .arg(base, argList) << endl;
             cpp << "    return s;" << endl;
         } else {

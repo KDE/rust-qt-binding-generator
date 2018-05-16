@@ -157,6 +157,8 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
         r << ", ";
         if (a->type.name == "QString") {
             r << QString("%1_str: *const c_ushort, %1_len: c_int").arg(a->name);
+        } else if (a->type.name == "QByteArray") {
+            r << QString("%1_str: *const c_char, %1_len: c_int").arg(a->name);
         } else {
             r << a->name << ": " << a->type.rustType;
         }
@@ -174,6 +176,7 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
             r << "    let mut " << a->name << " = String::new();\n";
             r << QString("    set_string_from_utf16(&mut %1, %1_str, %1_len);\n").arg(a->name);
         } else if (a->type.name == "QByteArray") {
+            r << QString("    let %1 = unsafe { slice::from_raw_parts(%1_str as *const u8, %1_len as usize) };\n").arg(a->name);
         }
     }
     if (f.mut) {
@@ -192,7 +195,7 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
     if (f.type.isComplex()) {
         r << "    let s: *const c_char = r.as_ptr() as (*const c_char);\n";
         r << "    set(d, s, r.len() as i32);\n";
-    } else if (f.type.rustType != "()") {
+    } else {
         r << "    r\n";
     }
     r << "}\n";
@@ -346,12 +349,9 @@ pub trait %1Trait {
         const QString lc(snakeCase(f.name));
         QString argList;
         if (f.args.size() > 0) {
-            argList.append(", ");
             for (auto a = f.args.begin(); a < f.args.end(); a++) {
-                argList.append(
-                    QString("%1: %2%3")
-                    .arg(a->name, a->type.rustType, a + 1 < f.args.end() ? ", " : "")
-                );
+                auto t = a->type.name == "QByteArray" ?"&[u8]" :a->type.rustType;
+                argList.append(QString(", %1: %2").arg(a->name, t));
             }
         }
         r << QString("    fn %1(&%2self%4) -> %3;\n")

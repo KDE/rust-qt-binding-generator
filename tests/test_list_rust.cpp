@@ -55,12 +55,12 @@ int Persons::rowCount(const QModelIndex &parent) const
     return (parent.isValid()) ? 0 : persons_row_count(m_d);
 }
 
-bool Persons::insertRows(int row, int count, const QModelIndex &parent)
+bool Persons::insertRows(int row, int count, const QModelIndex &)
 {
     return persons_insert_rows(m_d, row, count);
 }
 
-bool Persons::removeRows(int row, int count, const QModelIndex &parent)
+bool Persons::removeRows(int row, int count, const QModelIndex &)
 {
     return persons_remove_rows(m_d, row, count);
 }

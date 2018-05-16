@@ -40,5 +40,14 @@ impl PersonTrait for Person {
             _ => count
         })
     }
+
+    fn quote(&self, prefix: String, suffix: String) -> String {
+        format!("{}{}{}", prefix, self.user_name, suffix)
+    }
+    fn quote_bytes(&self, prefix: &[u8], suffix: &[u8]) -> String {
+        let prefix = String::from_utf8_lossy(prefix);
+        let suffix = String::from_utf8_lossy(suffix);
+        format!("{}{}{}", prefix, self.user_name, suffix)
+    }
 }
 

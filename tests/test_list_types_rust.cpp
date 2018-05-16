@@ -111,12 +111,12 @@ int List::rowCount(const QModelIndex &parent) const
     return (parent.isValid()) ? 0 : list_row_count(m_d);
 }
 
-bool List::insertRows(int row, int count, const QModelIndex &parent)
+bool List::insertRows(int row, int count, const QModelIndex &)
 {
     return list_insert_rows(m_d, row, count);
 }
 
-bool List::removeRows(int row, int count, const QModelIndex &parent)
+bool List::removeRows(int row, int count, const QModelIndex &)
 {
     return list_remove_rows(m_d, row, count);
 }

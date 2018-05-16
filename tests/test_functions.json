@@ -20,7 +20,7 @@
                     "mut": false,
                     "arguments": [
                         {
-                            "name": "Name",
+                            "name": "name",
                             "type": "QString"
                         }
                     ]
@@ -33,6 +33,30 @@
                 "vowelsInName": {
                     "return": "quint8",
                     "arguments": []
+                },
+                "quote": {
+                    "return": "QString",
+                    "arguments": [
+                        {
+                            "name": "prefix",
+                            "type": "QString"
+                        }, {
+                            "name": "suffix",
+                            "type": "QString"
+                        }
+                    ]
+                },
+                "quoteBytes": {
+                    "return": "QString",
+                    "arguments": [
+                        {
+                            "name": "prefix",
+                            "type": "QByteArray"
+                        }, {
+                            "name": "suffix",
+                            "type": "QByteArray"
+                        }
+                    ]
                 }
             }
         }

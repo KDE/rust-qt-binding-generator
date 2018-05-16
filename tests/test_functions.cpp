@@ -30,6 +30,8 @@ private slots:
     void testStringFunction();
     void testSimpleFunction();
     void testVoidFunction();
+    void testQuoteFunction();
+    void testQuoteBytesFunction();
 };
 
 void TestRustObject::testConstructor()
@@ -57,6 +59,28 @@ void TestRustObject::testVoidFunction()
     // THEN
     person.doubleName();
     QCOMPARE(person.userName(), QString("KonqiKonqi"));
+}
+
+void TestRustObject::testQuoteFunction()
+{
+    // GIVEN
+    Person person;
+    person.setUserName("Konqi");
+
+    // THEN
+    auto r = person.quote("<<", ">>");
+    QCOMPARE(r, QString("<<Konqi>>"));
+}
+
+void TestRustObject::testQuoteBytesFunction()
+{
+    // GIVEN
+    Person person;
+    person.setUserName("Konqi");
+
+    // THEN
+    auto r = person.quoteBytes("<<", ">>");
+    QCOMPARE(r, QString("<<Konqi>>"));
 }
 
 void TestRustObject::testStringFunction()

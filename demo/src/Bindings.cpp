@@ -144,12 +144,12 @@ int FibonacciList::rowCount(const QModelIndex &parent) const
     return (parent.isValid()) ? 0 : fibonacci_list_row_count(m_d);
 }
 
-bool FibonacciList::insertRows(int row, int count, const QModelIndex &parent)
+bool FibonacciList::insertRows(int row, int count, const QModelIndex &)
 {
     return fibonacci_list_insert_rows(m_d, row, count);
 }
 
-bool FibonacciList::removeRows(int row, int count, const QModelIndex &parent)
+bool FibonacciList::removeRows(int row, int count, const QModelIndex &)
 {
     return fibonacci_list_remove_rows(m_d, row, count);
 }
@@ -721,12 +721,12 @@ int TimeSeries::rowCount(const QModelIndex &parent) const
     return (parent.isValid()) ? 0 : time_series_row_count(m_d);
 }
 
-bool TimeSeries::insertRows(int row, int count, const QModelIndex &parent)
+bool TimeSeries::insertRows(int row, int count, const QModelIndex &)
 {
     return time_series_insert_rows(m_d, row, count);
 }
 
-bool TimeSeries::removeRows(int row, int count, const QModelIndex &parent)
+bool TimeSeries::removeRows(int row, int count, const QModelIndex &)
 {
     return time_series_remove_rows(m_d, row, count);
 }

@@ -51,7 +51,9 @@ pub trait PersonTrait {
     fn user_name(&self) -> &str;
     fn set_user_name(&mut self, value: String);
     fn double_name(&mut self) -> ();
-    fn greet(&self, Name: String) -> String;
+    fn greet(&self, name: String) -> String;
+    fn quote(&self, prefix: String, suffix: String) -> String;
+    fn quote_bytes(&self, prefix: &[u8], suffix: &[u8]) -> String;
     fn vowels_in_name(&self) -> u8;
 }
 
@@ -97,14 +99,37 @@ pub extern "C" fn person_user_name_set(ptr: *mut Person, v: *const c_ushort, len
 pub extern "C" fn person_double_name(ptr: *mut Person) -> () {
     let o = unsafe { &mut *ptr };
     let r = o.double_name();
+    r
 }
 
 #[no_mangle]
-pub extern "C" fn person_greet(ptr: *const Person, Name_str: *const c_ushort, Name_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
-    let mut Name = String::new();
-    set_string_from_utf16(&mut Name, Name_str, Name_len);
+pub extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ushort, name_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+    let mut name = String::new();
+    set_string_from_utf16(&mut name, name_str, name_len);
     let o = unsafe { &*ptr };
-    let r = o.greet(Name);
+    let r = o.greet(name);
+    let s: *const c_char = r.as_ptr() as (*const c_char);
+    set(d, s, r.len() as i32);
+}
+
+#[no_mangle]
+pub extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, prefix_len: c_int, suffix_str: *const c_ushort, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+    let mut prefix = String::new();
+    set_string_from_utf16(&mut prefix, prefix_str, prefix_len);
+    let mut suffix = String::new();
+    set_string_from_utf16(&mut suffix, suffix_str, suffix_len);
+    let o = unsafe { &*ptr };
+    let r = o.quote(prefix, suffix);
+    let s: *const c_char = r.as_ptr() as (*const c_char);
+    set(d, s, r.len() as i32);
+}
+
+#[no_mangle]
+pub extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+    let prefix = unsafe { slice::from_raw_parts(prefix_str as *const u8, prefix_len as usize) };
+    let suffix = unsafe { slice::from_raw_parts(suffix_str as *const u8, suffix_len as usize) };
+    let o = unsafe { &*ptr };
+    let r = o.quote_bytes(prefix, suffix);
     let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);
 }

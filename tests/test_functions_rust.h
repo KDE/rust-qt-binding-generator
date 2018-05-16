@@ -23,7 +23,9 @@ public:
     QString userName() const;
     void setUserName(const QString& v);
     Q_INVOKABLE void doubleName();
-    Q_INVOKABLE QString greet(const QString& Name) const;
+    Q_INVOKABLE QString greet(const QString& name) const;
+    Q_INVOKABLE QString quote(const QString& prefix, const QString& suffix) const;
+    Q_INVOKABLE QString quoteBytes(const QByteArray& prefix, const QByteArray& suffix) const;
     Q_INVOKABLE quint8 vowelsInName() const;
 signals:
     void userNameChanged();

@@ -19,6 +19,8 @@ extern "C" {
     void person_user_name_set(Person::Private*, const ushort *str, int len);
     void person_double_name(Person::Private*);
     void person_greet(const Person::Private*, const ushort*, int, QString*, qstring_set);
+    void person_quote(const Person::Private*, const ushort*, int, const ushort*, int, QString*, qstring_set);
+    void person_quote_bytes(const Person::Private*, const char*, int, const char*, int, QString*, qstring_set);
     quint8 person_vowels_in_name(const Person::Private*);
 };
 
@@ -55,10 +57,22 @@ void Person::doubleName()
 {
     return person_double_name(m_d);
 }
-QString Person::greet(const QString& Name) const
+QString Person::greet(const QString& name) const
 {
     QString s;
-    person_greet(m_d, Name.utf16(), Name.size(), &s, set_qstring);
+    person_greet(m_d, name.utf16(), name.size(), &s, set_qstring);
+    return s;
+}
+QString Person::quote(const QString& prefix, const QString& suffix) const
+{
+    QString s;
+    person_quote(m_d, prefix.utf16(), prefix.size(), suffix.utf16(), suffix.size(), &s, set_qstring);
+    return s;
+}
+QString Person::quoteBytes(const QByteArray& prefix, const QByteArray& suffix) const
+{
+    QString s;
+    person_quote_bytes(m_d, prefix.data(), prefix.size(), suffix.data(), suffix.size(), &s, set_qstring);
     return s;
 }
 quint8 Person::vowelsInName() const
