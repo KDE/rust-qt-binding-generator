@@ -80,10 +80,10 @@ extern "C" {
     bool list_set_data_optional_string_none(List::Private*, int);
     void list_data_string(const List::Private*, int, QString*, qstring_set);
     bool list_set_data_string(List::Private*, int, const ushort* s, int len);
-    uint list_data_u16(const List::Private*, int);
-    bool list_set_data_u16(List::Private*, int, uint);
-    uint list_data_u32(const List::Private*, int);
-    bool list_set_data_u32(List::Private*, int, uint);
+    quint16 list_data_u16(const List::Private*, int);
+    bool list_set_data_u16(List::Private*, int, quint16);
+    quint32 list_data_u32(const List::Private*, int);
+    bool list_set_data_u32(List::Private*, int, quint32);
     quint64 list_data_u64(const List::Private*, int);
     bool list_set_data_u64(List::Private*, int, quint64);
     quint8 list_data_u8(const List::Private*, int);

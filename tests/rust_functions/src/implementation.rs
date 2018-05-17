@@ -30,6 +30,12 @@ impl PersonTrait for Person {
         self.user_name = format!("{}{}", self.user_name, self.user_name);
     }
 
+    fn append(&mut self, suffix: String, amount: u32) {
+        for _ in 0..amount {
+            self.user_name += &suffix;
+        }
+    }
+
     fn greet(&self, name: String) -> String {
         format!("Hello {}, my name is {}, how is it going?", name, self.user_name)
     }

@@ -579,10 +579,12 @@ public:
     for (auto f: o.functions) {
         h << "    Q_INVOKABLE " << f.type.name << " " << f.name << "(";
         for (auto a = f.args.begin(); a < f.args.end(); a++) {
-            h << QString("%1 %2%3").arg(a->type.cppSetType, a->name, a + 1 < f.args.end() ? ", " : "");
+            if (a != f.args.begin()) {
+                h << ", ";
+            }
+            h << QString("%1 %2").arg(a->type.cppSetType, a->name);
         }
-        h << QString(")%1;")
-            .arg(f.mut ? "" : " const");
+        h << QString(")%1;").arg(f.mut ? "" : " const");
         h << endl;
     }
     if (baseType(o) == "QAbstractItemModel") {
@@ -739,7 +741,7 @@ void writeFunctionCDecl(QTextStream& cpp, const Function& f, const QString& lcna
         } else if (a->type.name == "QByteArray") {
             cpp << ", const char*, int";
         } else {
-            cpp << ", " << a->type.rustType;
+            cpp << ", " << a->type.name;
         }
     }
     // If the return type is QString or QByteArray, append a pointer to the

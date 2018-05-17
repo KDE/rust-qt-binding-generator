@@ -146,9 +146,9 @@ extern "C" {
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, const ushort *str, int len);
     quint16 object_u16_get(const Object::Private*);
-    void object_u16_set(Object::Private*, uint);
+    void object_u16_set(Object::Private*, quint16);
     quint32 object_u32_get(const Object::Private*);
-    void object_u32_set(Object::Private*, uint);
+    void object_u32_set(Object::Private*, quint32);
     quint64 object_u64_get(const Object::Private*);
     void object_u64_set(Object::Private*, quint64);
     quint8 object_u8_get(const Object::Private*);
@@ -320,14 +320,14 @@ quint16 Object::u16() const
 {
     return object_u16_get(m_d);
 }
-void Object::setU16(uint v) {
+void Object::setU16(quint16 v) {
     object_u16_set(m_d, v);
 }
 quint32 Object::u32() const
 {
     return object_u32_get(m_d);
 }
-void Object::setU32(uint v) {
+void Object::setU32(quint32 v) {
     object_u32_set(m_d, v);
 }
 quint64 Object::u64() const

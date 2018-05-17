@@ -30,6 +30,20 @@
                     "mut": true,
                     "arguments": []
                 },
+                "append": {
+                    "return": "void",
+                    "mut": true,
+                    "arguments": [
+                        {
+                            "name": "suffix",
+                            "type": "QString"
+                        },
+                        {
+                            "name": "amount",
+                            "type": "quint32"
+                        }
+                    ]
+                },
                 "vowelsInName": {
                     "return": "quint8",
                     "arguments": []

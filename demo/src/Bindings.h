@@ -68,7 +68,7 @@ public:
     explicit Fibonacci(QObject *parent = nullptr);
     ~Fibonacci();
     quint32 input() const;
-    void setInput(uint v);
+    void setInput(quint32 v);
     quint64 result() const;
 signals:
     void inputChanged();

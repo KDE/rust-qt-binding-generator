@@ -63,9 +63,9 @@ public:
     QString string() const;
     void setString(const QString& v);
     quint16 u16() const;
-    void setU16(uint v);
+    void setU16(quint16 v);
     quint32 u32() const;
-    void setU32(uint v);
+    void setU32(quint32 v);
     quint64 u64() const;
     void setU64(quint64 v);
     quint8 u8() const;

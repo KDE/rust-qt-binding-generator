@@ -17,6 +17,7 @@ extern "C" {
     void person_free(Person::Private*);
     void person_user_name_get(const Person::Private*, QString*, qstring_set);
     void person_user_name_set(Person::Private*, const ushort *str, int len);
+    void person_append(Person::Private*, const ushort*, int, quint32);
     void person_double_name(Person::Private*);
     void person_greet(const Person::Private*, const ushort*, int, QString*, qstring_set);
     void person_quote(const Person::Private*, const ushort*, int, const ushort*, int, QString*, qstring_set);
@@ -52,6 +53,10 @@ QString Person::userName() const
 }
 void Person::setUserName(const QString& v) {
     person_user_name_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
+}
+void Person::append(const QString& suffix, quint32 amount)
+{
+    return person_append(m_d, suffix.utf16(), suffix.size(), amount);
 }
 void Person::doubleName()
 {

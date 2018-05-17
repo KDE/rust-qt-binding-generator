@@ -114,7 +114,7 @@ extern "C" {
     Fibonacci::Private* fibonacci_new(Fibonacci*, void (*)(Fibonacci*), void (*)(Fibonacci*));
     void fibonacci_free(Fibonacci::Private*);
     quint32 fibonacci_input_get(const Fibonacci::Private*);
-    void fibonacci_input_set(Fibonacci::Private*, uint);
+    void fibonacci_input_set(Fibonacci::Private*, quint32);
     quint64 fibonacci_result_get(const Fibonacci::Private*);
 };
 
@@ -484,8 +484,8 @@ extern "C" {
     float processes_data_cpu_usage(const Processes::Private*, quintptr);
     quint64 processes_data_memory(const Processes::Private*, quintptr);
     void processes_data_name(const Processes::Private*, quintptr, QString*, qstring_set);
-    uint processes_data_pid(const Processes::Private*, quintptr);
-    uint processes_data_uid(const Processes::Private*, quintptr);
+    quint32 processes_data_pid(const Processes::Private*, quintptr);
+    quint32 processes_data_uid(const Processes::Private*, quintptr);
     void processes_sort(Processes::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
     int processes_row_count(const Processes::Private*, quintptr, bool);
@@ -1182,7 +1182,7 @@ quint32 Fibonacci::input() const
 {
     return fibonacci_input_get(m_d);
 }
-void Fibonacci::setInput(uint v) {
+void Fibonacci::setInput(quint32 v) {
     fibonacci_input_set(m_d, v);
 }
 quint64 Fibonacci::result() const

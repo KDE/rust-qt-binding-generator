@@ -68,8 +68,8 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
         f.append({
             .type = BindingType::UInt16,
             .name = "quint16",
-            .cppSetType = "uint",
-            .cSetType = "uint",
+            .cppSetType = "quint16",
+            .cSetType = "quint16",
             .rustType = "u16",
             .rustTypeInit = "0"
         });
@@ -84,8 +84,8 @@ QList<BindingTypeProperties>& bindingTypeProperties() {
         f.append({
             .type = BindingType::UInt32,
             .name = "quint32",
-            .cppSetType = "uint",
-            .cSetType = "uint",
+            .cppSetType = "quint32",
+            .cSetType = "quint32",
             .rustType = "u32",
             .rustTypeInit = "0"
         });

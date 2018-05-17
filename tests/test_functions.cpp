@@ -30,6 +30,7 @@ private slots:
     void testStringFunction();
     void testSimpleFunction();
     void testVoidFunction();
+    void testAppendFunction();
     void testQuoteFunction();
     void testQuoteBytesFunction();
 };
@@ -59,6 +60,17 @@ void TestRustObject::testVoidFunction()
     // THEN
     person.doubleName();
     QCOMPARE(person.userName(), QString("KonqiKonqi"));
+}
+
+void TestRustObject::testAppendFunction()
+{
+    // GIVEN
+    Person person;
+    person.setUserName("Konqi");
+
+    // THEN
+    person.append("!", 3);
+    QCOMPARE(person.userName(), QString("Konqi!!!"));
 }
 
 void TestRustObject::testQuoteFunction()

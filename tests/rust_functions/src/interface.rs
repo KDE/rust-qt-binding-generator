@@ -50,6 +50,7 @@ pub trait PersonTrait {
     fn emit(&self) -> &PersonEmitter;
     fn user_name(&self) -> &str;
     fn set_user_name(&mut self, value: String);
+    fn append(&mut self, suffix: String, amount: u32) -> ();
     fn double_name(&mut self) -> ();
     fn greet(&self, name: String) -> String;
     fn quote(&self, prefix: String, suffix: String) -> String;
@@ -93,6 +94,15 @@ pub extern "C" fn person_user_name_set(ptr: *mut Person, v: *const c_ushort, len
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_user_name(s);
+}
+
+#[no_mangle]
+pub extern "C" fn person_append(ptr: *mut Person, suffix_str: *const c_ushort, suffix_len: c_int, amount: u32) -> () {
+    let mut suffix = String::new();
+    set_string_from_utf16(&mut suffix, suffix_str, suffix_len);
+    let o = unsafe { &mut *ptr };
+    let r = o.append(suffix, amount);
+    r
 }
 
 #[no_mangle]
