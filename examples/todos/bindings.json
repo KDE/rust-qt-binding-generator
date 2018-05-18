@@ -1,0 +1,64 @@
+{
+    "cppFile": "src/Bindings.cpp",
+    "rust": {
+        "dir": "rust",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation"
+    },
+    "objects": {
+        "Todos": {
+            "type": "List",
+            "properties": {
+                "count": {
+                    "type": "quint64"
+                },
+                "activeCount": {
+                    "type": "quint64"
+                }
+            },
+            "itemProperties": {
+                "completed": {
+                    "type": "bool",
+                    "write": true,
+                    "roles": [ [ "display" ] ]
+                },
+                "description": {
+                    "type": "QString",
+                    "write": true,
+                    "roles": [ [], [ "display" ] ]
+                }
+            },
+            "functions": {
+                "add": {
+                    "return": "void",
+                    "mut": true,
+                    "arguments": [{
+		        "name": "description",
+		        "type": "QString"
+                    }]
+                },
+                "remove": {
+                    "return": "bool",
+                    "mut": true,
+                    "arguments": [{
+		        "name": "index",
+		        "type": "quint64"
+                    }]
+                },
+                "setAll": {
+                    "return": "void",
+                    "mut": true,
+                    "arguments": [{
+		        "name": "completed",
+		        "type": "bool"
+                    }]
+                },
+                "clearCompleted": {
+                    "return": "void",
+                    "mut": true,
+                    "arguments": []
+                }
+            }
+        }
+    }
+}

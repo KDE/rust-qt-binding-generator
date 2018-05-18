@@ -1,0 +1,11 @@
+
+[package]
+name = "rust"
+version = "1.0.0"
+
+[dependencies]
+libc = "*"
+
+[lib]
+name = "rust"
+crate-type = ["staticlib"]
