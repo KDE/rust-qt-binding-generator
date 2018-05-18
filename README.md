@@ -78,7 +78,7 @@ use interface::*;
 
 /// A Greeting
 pub struct Greeting {
-    /// Emit signals  the the Qt code.
+    /// Emit signals to the Qt code.
     emit: GreetingEmitter,
     /// The message of the person.
     message: String,
