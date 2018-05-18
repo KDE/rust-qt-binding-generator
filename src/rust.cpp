@@ -176,7 +176,7 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
             r << "    let mut " << a->name << " = String::new();\n";
             r << QString("    set_string_from_utf16(&mut %1, %1_str, %1_len);\n").arg(a->name);
         } else if (a->type.name == "QByteArray") {
-            r << QString("    let %1 = unsafe { slice::from_raw_parts(%1_str as *const u8, %1_len as usize) };\n").arg(a->name);
+            r << QString("    let %1 = unsafe { slice::from_raw_parts(%1_str as *const u8, to_usize(%1_len)) };\n").arg(a->name);
         }
     }
     if (f.mut) {
@@ -438,7 +438,7 @@ pub extern "C" fn %2_get(
     let o = unsafe { &*ptr };
     let v = o.%3();
     let s: *const c_char = v.as_ptr() as (*const c_char);
-    set(p, s, v.len() as c_int);
+    set(p, s, to_c_int(v.len()));
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name);
             if (p.write && p.type.name == "QString") {
@@ -456,7 +456,7 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
 #[no_mangle]
 pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
     let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
+    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
     o.set_%3(v);
 }
 )").arg(o.name, base, snakeCase(p.name));
@@ -473,7 +473,7 @@ pub extern "C" fn %2_get(
     let v = o.%3();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
-        set(p, s, v.len() as c_int);
+        set(p, s, to_c_int(v.len()));
     }
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name);
@@ -492,7 +492,7 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
 #[no_mangle]
 pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
     let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
+    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
     o.set_%3(Some(v.into()));
 }
 )").arg(o.name, base, snakeCase(p.name));
@@ -548,15 +548,15 @@ pub extern "C" fn %2_set_none(ptr: *mut %1) {
         r << QString(R"(
 #[no_mangle]
 pub unsafe extern "C" fn %2_row_count(ptr: *const %1) -> c_int {
-    (&*ptr).row_count() as c_int
+    to_c_int((&*ptr).row_count())
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_insert_rows(ptr: *mut %1, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).insert_rows(row as usize, count as usize)
+    (&mut *ptr).insert_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_remove_rows(ptr: *mut %1, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).remove_rows(row as usize, count as usize)
+    (&mut *ptr).remove_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_can_fetch_more(ptr: *const %1) -> bool {
@@ -583,11 +583,11 @@ pub unsafe extern "C" fn %2_row_count(
     item: usize,
     valid: bool,
 ) -> c_int {
-    if valid {
-        (&*ptr).row_count(Some(item)) as c_int
+    to_c_int(if valid {
+        (&*ptr).row_count(Some(item))
     } else {
-        (&*ptr).row_count(None) as c_int
-    }
+        (&*ptr).row_count(None)
+    })
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_can_fetch_more(
@@ -625,16 +625,16 @@ pub unsafe extern "C" fn %2_index(
     row: c_int,
 ) -> usize {
     if !valid {
-        (&*ptr).index(None, row as usize)
+        (&*ptr).index(None, to_usize(row))
     } else {
-        (&*ptr).index(Some(item), row as usize)
+        (&*ptr).index(Some(item), to_usize(row))
     }
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_parent(ptr: *const %1, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
         QModelIndex {
-            row: (&*ptr).row(parent) as c_int,
+            row: to_c_int((&*ptr).row(parent)),
             internal_id: parent,
         }
     } else {
@@ -646,13 +646,13 @@ pub unsafe extern "C" fn %2_parent(ptr: *const %1, index: usize) -> QModelIndex 
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_row(ptr: *const %1, item: usize) -> c_int {
-    (&*ptr).row(item) as c_int
+    to_c_int((&*ptr).row(item))
 }
 )").arg(o.name, lcname);
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl = ", row: c_int";
-        QString index = "row as usize";
+        QString index = "to_usize(row)";
         if (o.type == ObjectType::Tree) {
             indexDecl = ", item: usize";
             index = "item";
@@ -669,7 +669,7 @@ pub extern "C" fn %2_data_%3(
     let o = unsafe { &*ptr };
     let data = o.%3(%5);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.type.name);
             } else if (ip.type.isComplex()) {
@@ -684,7 +684,7 @@ pub extern "C" fn %2_data_%3(
     let data = o.%3(%5);
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
-        set(d, s, data.len() as c_int);
+        set(d, s, to_c_int(data.len()));
     }
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.type.name);
@@ -723,7 +723,7 @@ pub extern "C" fn %2_set_data_%3(
     s: *const c_char, len: c_int,
 ) -> bool {
     let o = unsafe { &mut *ptr };
-    let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, len as usize) };
+    let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, to_usize(len)) };
     o.set_%3(%5, %6)
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.optional ?"Some(slice)" :"slice");
@@ -819,7 +819,7 @@ where
 pub enum QString {}
 
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
-    let utf16 = unsafe { slice::from_raw_parts(str, len as usize) };
+    let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
         .into_iter()
         .map(|r| r.unwrap());
@@ -849,6 +849,31 @@ pub struct QModelIndex {
     row: c_int,
     internal_id: usize,
 }
+)";
+    }
+
+    if (hasString || hasByteArray || hasListOrTree) {
+        r << R"(
+
+fn to_usize(n: c_int) -> usize {
+    if n < 0 {
+        panic!("Cannot cast {} to usize", n);
+    }
+    n as usize
+}
+
+)";
+    }
+
+    if (hasString || hasByteArray || hasListOrTree) {
+        r << R"(
+fn to_c_int(n: usize) -> c_int {
+    if n > c_int::max_value() as usize {
+        panic!("Cannot cast {} to c_int", n);
+    }
+    n as c_int
+}
+
 )";
     }
 }

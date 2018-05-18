@@ -40,7 +40,7 @@ where
 pub enum QString {}
 
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
-    let utf16 = unsafe { slice::from_raw_parts(str, len as usize) };
+    let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
         .into_iter()
         .map(|r| r.unwrap());
@@ -64,6 +64,23 @@ pub struct QModelIndex {
     row: c_int,
     internal_id: usize,
 }
+
+
+fn to_usize(n: c_int) -> usize {
+    if n < 0 {
+        panic!("Cannot cast {} to usize", n);
+    }
+    n as usize
+}
+
+
+fn to_c_int(n: usize) -> c_int {
+    if n > c_int::max_value() as usize {
+        panic!("Cannot cast {} to c_int", n);
+    }
+    n as c_int
+}
+
 
 pub struct DemoQObject {}
 
@@ -436,15 +453,15 @@ pub unsafe extern "C" fn fibonacci_list_free(ptr: *mut FibonacciList) {
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_row_count(ptr: *const FibonacciList) -> c_int {
-    (&*ptr).row_count() as c_int
+    to_c_int((&*ptr).row_count())
 }
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_insert_rows(ptr: *mut FibonacciList, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).insert_rows(row as usize, count as usize)
+    (&mut *ptr).insert_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_remove_rows(ptr: *mut FibonacciList, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).remove_rows(row as usize, count as usize)
+    (&mut *ptr).remove_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_can_fetch_more(ptr: *const FibonacciList) -> bool {
@@ -466,13 +483,13 @@ pub unsafe extern "C" fn fibonacci_list_sort(
 #[no_mangle]
 pub extern "C" fn fibonacci_list_data_fibonacci_number(ptr: *const FibonacciList, row: c_int) -> u64 {
     let o = unsafe { &*ptr };
-    o.fibonacci_number(row as usize).into()
+    o.fibonacci_number(to_usize(row)).into()
 }
 
 #[no_mangle]
 pub extern "C" fn fibonacci_list_data_row(ptr: *const FibonacciList, row: c_int) -> u64 {
     let o = unsafe { &*ptr };
-    o.row(row as usize).into()
+    o.row(to_usize(row)).into()
 }
 
 pub struct FileSystemTreeQObject {}
@@ -608,7 +625,7 @@ pub extern "C" fn file_system_tree_path_get(
     let v = o.path();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
-        set(p, s, v.len() as c_int);
+        set(p, s, to_c_int(v.len()));
     }
 }
 
@@ -632,11 +649,11 @@ pub unsafe extern "C" fn file_system_tree_row_count(
     item: usize,
     valid: bool,
 ) -> c_int {
-    if valid {
-        (&*ptr).row_count(Some(item)) as c_int
+    to_c_int(if valid {
+        (&*ptr).row_count(Some(item))
     } else {
-        (&*ptr).row_count(None) as c_int
-    }
+        (&*ptr).row_count(None)
+    })
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_can_fetch_more(
@@ -674,16 +691,16 @@ pub unsafe extern "C" fn file_system_tree_index(
     row: c_int,
 ) -> usize {
     if !valid {
-        (&*ptr).index(None, row as usize)
+        (&*ptr).index(None, to_usize(row))
     } else {
-        (&*ptr).index(Some(item), row as usize)
+        (&*ptr).index(Some(item), to_usize(row))
     }
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_parent(ptr: *const FileSystemTree, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
         QModelIndex {
-            row: (&*ptr).row(parent) as c_int,
+            row: to_c_int((&*ptr).row(parent)),
             internal_id: parent,
         }
     } else {
@@ -695,7 +712,7 @@ pub unsafe extern "C" fn file_system_tree_parent(ptr: *const FileSystemTree, ind
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_row(ptr: *const FileSystemTree, item: usize) -> c_int {
-    (&*ptr).row(item) as c_int
+    to_c_int((&*ptr).row(item))
 }
 
 #[no_mangle]
@@ -707,7 +724,7 @@ pub extern "C" fn file_system_tree_data_file_icon(
     let o = unsafe { &*ptr };
     let data = o.file_icon(item);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
@@ -719,7 +736,7 @@ pub extern "C" fn file_system_tree_data_file_name(
     let o = unsafe { &*ptr };
     let data = o.file_name(item);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
@@ -732,7 +749,7 @@ pub extern "C" fn file_system_tree_data_file_path(
     let data = o.file_path(item);
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
-        set(d, s, data.len() as c_int);
+        set(d, s, to_c_int(data.len()));
     }
 }
 
@@ -894,11 +911,11 @@ pub unsafe extern "C" fn processes_row_count(
     item: usize,
     valid: bool,
 ) -> c_int {
-    if valid {
-        (&*ptr).row_count(Some(item)) as c_int
+    to_c_int(if valid {
+        (&*ptr).row_count(Some(item))
     } else {
-        (&*ptr).row_count(None) as c_int
-    }
+        (&*ptr).row_count(None)
+    })
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_can_fetch_more(
@@ -936,16 +953,16 @@ pub unsafe extern "C" fn processes_index(
     row: c_int,
 ) -> usize {
     if !valid {
-        (&*ptr).index(None, row as usize)
+        (&*ptr).index(None, to_usize(row))
     } else {
-        (&*ptr).index(Some(item), row as usize)
+        (&*ptr).index(Some(item), to_usize(row))
     }
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_parent(ptr: *const Processes, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
         QModelIndex {
-            row: (&*ptr).row(parent) as c_int,
+            row: to_c_int((&*ptr).row(parent)),
             internal_id: parent,
         }
     } else {
@@ -957,7 +974,7 @@ pub unsafe extern "C" fn processes_parent(ptr: *const Processes, index: usize) -
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_row(ptr: *const Processes, item: usize) -> c_int {
-    (&*ptr).row(item) as c_int
+    to_c_int((&*ptr).row(item))
 }
 
 #[no_mangle]
@@ -969,7 +986,7 @@ pub extern "C" fn processes_data_cmd(
     let o = unsafe { &*ptr };
     let data = o.cmd(item);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
@@ -999,7 +1016,7 @@ pub extern "C" fn processes_data_name(
     let o = unsafe { &*ptr };
     let data = o.name(item);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
@@ -1127,15 +1144,15 @@ pub unsafe extern "C" fn time_series_free(ptr: *mut TimeSeries) {
 
 #[no_mangle]
 pub unsafe extern "C" fn time_series_row_count(ptr: *const TimeSeries) -> c_int {
-    (&*ptr).row_count() as c_int
+    to_c_int((&*ptr).row_count())
 }
 #[no_mangle]
 pub unsafe extern "C" fn time_series_insert_rows(ptr: *mut TimeSeries, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).insert_rows(row as usize, count as usize)
+    (&mut *ptr).insert_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn time_series_remove_rows(ptr: *mut TimeSeries, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).remove_rows(row as usize, count as usize)
+    (&mut *ptr).remove_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn time_series_can_fetch_more(ptr: *const TimeSeries) -> bool {
@@ -1157,7 +1174,7 @@ pub unsafe extern "C" fn time_series_sort(
 #[no_mangle]
 pub extern "C" fn time_series_data_cos(ptr: *const TimeSeries, row: c_int) -> f32 {
     let o = unsafe { &*ptr };
-    o.cos(row as usize).into()
+    o.cos(to_usize(row)).into()
 }
 
 #[no_mangle]
@@ -1165,13 +1182,13 @@ pub unsafe extern "C" fn time_series_set_data_cos(
     ptr: *mut TimeSeries, row: c_int,
     v: f32,
 ) -> bool {
-    (&mut *ptr).set_cos(row as usize, v)
+    (&mut *ptr).set_cos(to_usize(row), v)
 }
 
 #[no_mangle]
 pub extern "C" fn time_series_data_sin(ptr: *const TimeSeries, row: c_int) -> f32 {
     let o = unsafe { &*ptr };
-    o.sin(row as usize).into()
+    o.sin(to_usize(row)).into()
 }
 
 #[no_mangle]
@@ -1179,13 +1196,13 @@ pub unsafe extern "C" fn time_series_set_data_sin(
     ptr: *mut TimeSeries, row: c_int,
     v: f32,
 ) -> bool {
-    (&mut *ptr).set_sin(row as usize, v)
+    (&mut *ptr).set_sin(to_usize(row), v)
 }
 
 #[no_mangle]
 pub extern "C" fn time_series_data_time(ptr: *const TimeSeries, row: c_int) -> f32 {
     let o = unsafe { &*ptr };
-    o.time(row as usize).into()
+    o.time(to_usize(row)).into()
 }
 
 #[no_mangle]
@@ -1193,5 +1210,5 @@ pub unsafe extern "C" fn time_series_set_data_time(
     ptr: *mut TimeSeries, row: c_int,
     v: f32,
 ) -> bool {
-    (&mut *ptr).set_time(row as usize, v)
+    (&mut *ptr).set_time(to_usize(row), v)
 }

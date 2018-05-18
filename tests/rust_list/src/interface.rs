@@ -40,7 +40,7 @@ where
 pub enum QString {}
 
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
-    let utf16 = unsafe { slice::from_raw_parts(str, len as usize) };
+    let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
         .into_iter()
         .map(|r| r.unwrap());
@@ -61,6 +61,23 @@ pub struct QModelIndex {
     row: c_int,
     internal_id: usize,
 }
+
+
+fn to_usize(n: c_int) -> usize {
+    if n < 0 {
+        panic!("Cannot cast {} to usize", n);
+    }
+    n as usize
+}
+
+
+fn to_c_int(n: usize) -> c_int {
+    if n > c_int::max_value() as usize {
+        panic!("Cannot cast {} to c_int", n);
+    }
+    n as c_int
+}
+
 
 pub struct PersonsQObject {}
 
@@ -171,15 +188,15 @@ pub unsafe extern "C" fn persons_free(ptr: *mut Persons) {
 
 #[no_mangle]
 pub unsafe extern "C" fn persons_row_count(ptr: *const Persons) -> c_int {
-    (&*ptr).row_count() as c_int
+    to_c_int((&*ptr).row_count())
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_insert_rows(ptr: *mut Persons, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).insert_rows(row as usize, count as usize)
+    (&mut *ptr).insert_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_remove_rows(ptr: *mut Persons, row: c_int, count: c_int) -> bool {
-    (&mut *ptr).remove_rows(row as usize, count as usize)
+    (&mut *ptr).remove_rows(to_usize(row), to_usize(count))
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_can_fetch_more(ptr: *const Persons) -> bool {
@@ -205,9 +222,9 @@ pub extern "C" fn persons_data_user_name(
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = unsafe { &*ptr };
-    let data = o.user_name(row as usize);
+    let data = o.user_name(to_usize(row));
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
@@ -218,5 +235,5 @@ pub extern "C" fn persons_set_data_user_name(
     let o = unsafe { &mut *ptr };
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
-    o.set_user_name(row as usize, v)
+    o.set_user_name(to_usize(row), v)
 }

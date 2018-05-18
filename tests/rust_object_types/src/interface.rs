@@ -40,7 +40,7 @@ where
 pub enum QString {}
 
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
-    let utf16 = unsafe { slice::from_raw_parts(str, len as usize) };
+    let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
         .into_iter()
         .map(|r| r.unwrap());
@@ -51,6 +51,23 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
 
 
 pub enum QByteArray {}
+
+
+fn to_usize(n: c_int) -> usize {
+    if n < 0 {
+        panic!("Cannot cast {} to usize", n);
+    }
+    n as usize
+}
+
+
+fn to_c_int(n: usize) -> c_int {
+    if n > c_int::max_value() as usize {
+        panic!("Cannot cast {} to c_int", n);
+    }
+    n as c_int
+}
+
 
 pub struct ObjectQObject {}
 
@@ -294,13 +311,13 @@ pub extern "C" fn object_bytearray_get(
     let o = unsafe { &*ptr };
     let v = o.bytearray();
     let s: *const c_char = v.as_ptr() as (*const c_char);
-    set(p, s, v.len() as c_int);
+    set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]
 pub extern "C" fn object_bytearray_set(ptr: *mut Object, v: *const c_char, len: c_int) {
     let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
+    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
     o.set_bytearray(v);
 }
 
@@ -393,14 +410,14 @@ pub extern "C" fn object_optional_bytearray_get(
     let v = o.optional_bytearray();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
-        set(p, s, v.len() as c_int);
+        set(p, s, to_c_int(v.len()));
     }
 }
 
 #[no_mangle]
 pub extern "C" fn object_optional_bytearray_set(ptr: *mut Object, v: *const c_char, len: c_int) {
     let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, len as usize) };
+    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
     o.set_optional_bytearray(Some(v.into()));
 }
 
@@ -420,7 +437,7 @@ pub extern "C" fn object_optional_string_get(
     let v = o.optional_string();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
-        set(p, s, v.len() as c_int);
+        set(p, s, to_c_int(v.len()));
     }
 }
 
@@ -466,7 +483,7 @@ pub extern "C" fn object_string_get(
     let o = unsafe { &*ptr };
     let v = o.string();
     let s: *const c_char = v.as_ptr() as (*const c_char);
-    set(p, s, v.len() as c_int);
+    set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]

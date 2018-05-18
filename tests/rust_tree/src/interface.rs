@@ -40,7 +40,7 @@ where
 pub enum QString {}
 
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
-    let utf16 = unsafe { slice::from_raw_parts(str, len as usize) };
+    let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
         .into_iter()
         .map(|r| r.unwrap());
@@ -61,6 +61,23 @@ pub struct QModelIndex {
     row: c_int,
     internal_id: usize,
 }
+
+
+fn to_usize(n: c_int) -> usize {
+    if n < 0 {
+        panic!("Cannot cast {} to usize", n);
+    }
+    n as usize
+}
+
+
+fn to_c_int(n: usize) -> c_int {
+    if n > c_int::max_value() as usize {
+        panic!("Cannot cast {} to c_int", n);
+    }
+    n as c_int
+}
+
 
 pub struct PersonsQObject {}
 
@@ -176,11 +193,11 @@ pub unsafe extern "C" fn persons_row_count(
     item: usize,
     valid: bool,
 ) -> c_int {
-    if valid {
-        (&*ptr).row_count(Some(item)) as c_int
+    to_c_int(if valid {
+        (&*ptr).row_count(Some(item))
     } else {
-        (&*ptr).row_count(None) as c_int
-    }
+        (&*ptr).row_count(None)
+    })
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_can_fetch_more(
@@ -218,16 +235,16 @@ pub unsafe extern "C" fn persons_index(
     row: c_int,
 ) -> usize {
     if !valid {
-        (&*ptr).index(None, row as usize)
+        (&*ptr).index(None, to_usize(row))
     } else {
-        (&*ptr).index(Some(item), row as usize)
+        (&*ptr).index(Some(item), to_usize(row))
     }
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_parent(ptr: *const Persons, index: usize) -> QModelIndex {
     if let Some(parent) = (&*ptr).parent(index) {
         QModelIndex {
-            row: (&*ptr).row(parent) as c_int,
+            row: to_c_int((&*ptr).row(parent)),
             internal_id: parent,
         }
     } else {
@@ -239,7 +256,7 @@ pub unsafe extern "C" fn persons_parent(ptr: *const Persons, index: usize) -> QM
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_row(ptr: *const Persons, item: usize) -> c_int {
-    (&*ptr).row(item) as c_int
+    to_c_int((&*ptr).row(item))
 }
 
 #[no_mangle]
@@ -251,7 +268,7 @@ pub extern "C" fn persons_data_user_name(
     let o = unsafe { &*ptr };
     let data = o.user_name(item);
     let s: *const c_char = data.as_ptr() as (*const c_char);
-    set(d, s, data.len() as c_int);
+    set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]

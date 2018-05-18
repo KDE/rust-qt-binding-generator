@@ -14,12 +14,29 @@ use implementation::*;
 pub enum QString {}
 
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
-    let utf16 = unsafe { slice::from_raw_parts(str, len as usize) };
+    let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
         .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
+}
+
+
+
+fn to_usize(n: c_int) -> usize {
+    if n < 0 {
+        panic!("Cannot cast {} to usize", n);
+    }
+    n as usize
+}
+
+
+fn to_c_int(n: usize) -> c_int {
+    if n > c_int::max_value() as usize {
+        panic!("Cannot cast {} to c_int", n);
+    }
+    n as c_int
 }
 
 
@@ -85,7 +102,7 @@ pub extern "C" fn person_user_name_get(
     let o = unsafe { &*ptr };
     let v = o.user_name();
     let s: *const c_char = v.as_ptr() as (*const c_char);
-    set(p, s, v.len() as c_int);
+    set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]
@@ -136,8 +153,8 @@ pub extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, 
 
 #[no_mangle]
 pub extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
-    let prefix = unsafe { slice::from_raw_parts(prefix_str as *const u8, prefix_len as usize) };
-    let suffix = unsafe { slice::from_raw_parts(suffix_str as *const u8, suffix_len as usize) };
+    let prefix = unsafe { slice::from_raw_parts(prefix_str as *const u8, to_usize(prefix_len)) };
+    let suffix = unsafe { slice::from_raw_parts(suffix_str as *const u8, to_usize(suffix_len)) };
     let o = unsafe { &*ptr };
     let r = o.quote_bytes(prefix, suffix);
     let s: *const c_char = r.as_ptr() as (*const c_char);
