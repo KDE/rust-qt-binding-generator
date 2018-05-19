@@ -15,6 +15,19 @@
                     "roles": [ [ "display", "edit" ] ]
                 }
             }
+        },
+        "NoRole": {
+            "type": "List",
+            "itemProperties": {
+                "userName": {
+                    "type": "QString",
+                    "write": true
+                },
+                "userAge": {
+                    "type": "quint8",
+                    "write": true
+                }
+            }
         }
     }
 }

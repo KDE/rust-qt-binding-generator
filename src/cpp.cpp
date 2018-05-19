@@ -121,7 +121,7 @@ private:
 
 bool isColumnWrite(const Object& o, int col) {
     for (auto ip: o.itemProperties) {
-        if (ip.write && ip.roles.size() > col && ip.roles[col].size() > 0) {
+        if (ip.write && (col == 0 || (ip.roles.size() > col && ip.roles[col].size() > 0))) {
             return true;
         }
     }

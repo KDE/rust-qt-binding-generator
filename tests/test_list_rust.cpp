@@ -30,6 +30,184 @@ namespace {
     }
 }
 extern "C" {
+    quint8 no_role_data_user_age(const NoRole::Private*, int);
+    bool no_role_set_data_user_age(NoRole::Private*, int, quint8);
+    void no_role_data_user_name(const NoRole::Private*, int, QString*, qstring_set);
+    bool no_role_set_data_user_name(NoRole::Private*, int, const ushort* s, int len);
+    void no_role_sort(NoRole::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
+
+    int no_role_row_count(const NoRole::Private*);
+    bool no_role_insert_rows(NoRole::Private*, int, int);
+    bool no_role_remove_rows(NoRole::Private*, int, int);
+    bool no_role_can_fetch_more(const NoRole::Private*);
+    void no_role_fetch_more(NoRole::Private*);
+}
+int NoRole::columnCount(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : 1;
+}
+
+bool NoRole::hasChildren(const QModelIndex &parent) const
+{
+    return rowCount(parent) > 0;
+}
+
+int NoRole::rowCount(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : no_role_row_count(m_d);
+}
+
+bool NoRole::insertRows(int row, int count, const QModelIndex &)
+{
+    return no_role_insert_rows(m_d, row, count);
+}
+
+bool NoRole::removeRows(int row, int count, const QModelIndex &)
+{
+    return no_role_remove_rows(m_d, row, count);
+}
+
+QModelIndex NoRole::index(int row, int column, const QModelIndex &parent) const
+{
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
+        return createIndex(row, column, (quintptr)row);
+    }
+    return QModelIndex();
+}
+
+QModelIndex NoRole::parent(const QModelIndex &) const
+{
+    return QModelIndex();
+}
+
+bool NoRole::canFetchMore(const QModelIndex &parent) const
+{
+    return (parent.isValid()) ? 0 : no_role_can_fetch_more(m_d);
+}
+
+void NoRole::fetchMore(const QModelIndex &parent)
+{
+    if (!parent.isValid()) {
+        no_role_fetch_more(m_d);
+    }
+}
+
+void NoRole::sort(int column, Qt::SortOrder order)
+{
+    no_role_sort(m_d, column, order);
+}
+Qt::ItemFlags NoRole::flags(const QModelIndex &i) const
+{
+    auto flags = QAbstractItemModel::flags(i);
+    if (i.column() == 0) {
+        flags |= Qt::ItemIsEditable;
+    }
+    return flags;
+}
+
+quint8 NoRole::userAge(int row) const
+{
+    return no_role_data_user_age(m_d, row);
+}
+
+bool NoRole::setUserAge(int row, quint8 value)
+{
+    bool set = false;
+    set = no_role_set_data_user_age(m_d, row, value);
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
+}
+
+QString NoRole::userName(int row) const
+{
+    QString s;
+    no_role_data_user_name(m_d, row, &s, set_qstring);
+    return s;
+}
+
+bool NoRole::setUserName(int row, const QString& value)
+{
+    bool set = false;
+    set = no_role_set_data_user_name(m_d, row, value.utf16(), value.length());
+    if (set) {
+        QModelIndex index = createIndex(row, 0, row);
+        emit dataChanged(index, index);
+    }
+    return set;
+}
+
+QVariant NoRole::data(const QModelIndex &index, int role) const
+{
+    Q_ASSERT(rowCount(index.parent()) > index.row());
+    switch (index.column()) {
+    case 0:
+        switch (role) {
+        case Qt::UserRole + 0:
+            return QVariant::fromValue(userAge(index.row()));
+        case Qt::UserRole + 1:
+            return QVariant::fromValue(userName(index.row()));
+        }
+    }
+    return QVariant();
+}
+
+QHash<int, QByteArray> NoRole::roleNames() const {
+    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
+    names.insert(Qt::UserRole + 0, "userAge");
+    names.insert(Qt::UserRole + 1, "userName");
+    return names;
+}
+QVariant NoRole::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (orientation != Qt::Horizontal) {
+        return QVariant();
+    }
+    return m_headerData.value(qMakePair(section, (Qt::ItemDataRole)role), role == Qt::DisplayRole ?QString::number(section + 1) :QVariant());
+}
+
+bool NoRole::setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
+{
+    if (orientation != Qt::Horizontal) {
+        return false;
+    }
+    m_headerData.insert(qMakePair(section, (Qt::ItemDataRole)role), value);
+    return true;
+}
+
+bool NoRole::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (index.column() == 0) {
+        if (role == Qt::UserRole + 0) {
+            if (value.canConvert(qMetaTypeId<quint8>())) {
+                return setUserAge(index.row(), value.value<quint8>());
+            }
+        }
+        if (role == Qt::UserRole + 1) {
+            if (value.canConvert(qMetaTypeId<QString>())) {
+                return setUserName(index.row(), value.value<QString>());
+            }
+        }
+    }
+    return false;
+}
+
+extern "C" {
+    NoRole::Private* no_role_new(NoRole*,
+        void (*)(const NoRole*),
+        void (*)(NoRole*, quintptr, quintptr),
+        void (*)(NoRole*),
+        void (*)(NoRole*),
+        void (*)(NoRole*, int, int),
+        void (*)(NoRole*),
+        void (*)(NoRole*, int, int),
+        void (*)(NoRole*));
+    void no_role_free(NoRole::Private*);
+};
+
+extern "C" {
     void persons_data_user_name(const Persons::Private*, int, QString*, qstring_set);
     bool persons_set_data_user_name(Persons::Private*, int, const ushort* s, int len);
     void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
@@ -183,6 +361,58 @@ extern "C" {
     void persons_free(Persons::Private*);
 };
 
+NoRole::NoRole(bool /*owned*/, QObject *parent):
+    QAbstractItemModel(parent),
+    m_d(0),
+    m_ownsPrivate(false)
+{
+    initHeaderData();
+}
+
+NoRole::NoRole(QObject *parent):
+    QAbstractItemModel(parent),
+    m_d(no_role_new(this,
+        [](const NoRole* o) {
+            emit o->newDataReady(QModelIndex());
+        },
+        [](NoRole* o, quintptr first, quintptr last) {
+            o->dataChanged(o->createIndex(first, 0, first),
+                       o->createIndex(last, 0, last));
+        },
+        [](NoRole* o) {
+            o->beginResetModel();
+        },
+        [](NoRole* o) {
+            o->endResetModel();
+        },
+        [](NoRole* o, int first, int last) {
+            o->beginInsertRows(QModelIndex(), first, last);
+        },
+        [](NoRole* o) {
+            o->endInsertRows();
+        },
+        [](NoRole* o, int first, int last) {
+            o->beginRemoveRows(QModelIndex(), first, last);
+        },
+        [](NoRole* o) {
+            o->endRemoveRows();
+        }
+)),
+    m_ownsPrivate(true)
+{
+    connect(this, &NoRole::newDataReady, this, [this](const QModelIndex& i) {
+        this->fetchMore(i);
+    }, Qt::QueuedConnection);
+    initHeaderData();
+}
+
+NoRole::~NoRole() {
+    if (m_ownsPrivate) {
+        no_role_free(m_d);
+    }
+}
+void NoRole::initHeaderData() {
+}
 Persons::Persons(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),

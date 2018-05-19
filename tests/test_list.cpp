@@ -29,6 +29,7 @@ private slots:
     void testConstructor();
     void testStringGetter();
     void testStringSetter();
+    void testAccessByDefaultRole();
 };
 
 void TestRustList::testConstructor()
@@ -58,11 +59,37 @@ void TestRustList::testStringSetter()
     const bool set = persons.setData(index, "Konqi");
 
     // THEN
+    QCOMPARE(persons.columnCount(), 1);
     QVERIFY(set);
     QVERIFY(spy.isValid());
     QCOMPARE(spy.count(), 1);
     QVariant value = persons.data(persons.index(0,0));
     QCOMPARE(value.toString(), QString("Konqi"));
+}
+
+void TestRustList::testAccessByDefaultRole()
+{
+    // GIVEN
+    NoRole norole;
+    QSignalSpy spy(&norole, &NoRole::dataChanged);
+    auto ageRole = Qt::UserRole + 0;
+    auto nameRole = Qt::UserRole + 1;
+
+    // WHEN
+    const QModelIndex index(norole.index(0,0));
+    const bool setName = norole.setData(index, "Konqi", nameRole);
+    const bool setAge = norole.setData(index, 21, ageRole);
+
+    // THEN
+    QCOMPARE(norole.columnCount(), 1);
+    QVERIFY(setName);
+    QVERIFY(setAge);
+    QVERIFY(spy.isValid());
+    QCOMPARE(spy.count(), 2);
+    QVariant name = norole.data(norole.index(0,0), nameRole);
+    QCOMPARE(name.toString(), QString("Konqi"));
+    QVariant age = norole.data(norole.index(0,0), ageRole);
+    QCOMPARE(age.value<quint8>(), (quint8)21);
 }
 
 QTEST_MAIN(TestRustList)

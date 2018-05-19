@@ -296,6 +296,7 @@ parseObject(const QString& name, const QJsonObject& json) {
         o.columnCount = qMax(o.columnCount, p.roles.size());
         o.itemProperties.append(p);
     }
+    o.columnCount = qMax(1, o.columnCount);
     return o;
 }
 

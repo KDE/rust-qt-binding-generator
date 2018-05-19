@@ -79,6 +79,181 @@ fn to_c_int(n: usize) -> c_int {
 }
 
 
+pub struct NoRoleQObject {}
+
+#[derive(Clone)]
+pub struct NoRoleEmitter {
+    qobject: Arc<Mutex<*const NoRoleQObject>>,
+    new_data_ready: fn(*const NoRoleQObject),
+}
+
+unsafe impl Send for NoRoleEmitter {}
+
+impl NoRoleEmitter {
+    fn clear(&self) {
+        *self.qobject.lock().unwrap() = null();
+    }
+    pub fn new_data_ready(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.new_data_ready)(ptr);
+        }
+    }
+}
+
+pub struct NoRoleList {
+    qobject: *const NoRoleQObject,
+    data_changed: fn(*const NoRoleQObject, usize, usize),
+    begin_reset_model: fn(*const NoRoleQObject),
+    end_reset_model: fn(*const NoRoleQObject),
+    begin_insert_rows: fn(*const NoRoleQObject, usize, usize),
+    end_insert_rows: fn(*const NoRoleQObject),
+    begin_remove_rows: fn(*const NoRoleQObject, usize, usize),
+    end_remove_rows: fn(*const NoRoleQObject),
+}
+
+impl NoRoleList {
+    pub fn data_changed(&self, first: usize, last: usize) {
+        (self.data_changed)(self.qobject, first, last);
+    }
+    pub fn begin_reset_model(&self) {
+        (self.begin_reset_model)(self.qobject);
+    }
+    pub fn end_reset_model(&self) {
+        (self.end_reset_model)(self.qobject);
+    }
+    pub fn begin_insert_rows(&self, first: usize, last: usize) {
+        (self.begin_insert_rows)(self.qobject, first, last);
+    }
+    pub fn end_insert_rows(&self) {
+        (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_remove_rows(&self, first: usize, last: usize) {
+        (self.begin_remove_rows)(self.qobject, first, last);
+    }
+    pub fn end_remove_rows(&self) {
+        (self.end_remove_rows)(self.qobject);
+    }
+}
+
+pub trait NoRoleTrait {
+    fn new(emit: NoRoleEmitter, model: NoRoleList) -> Self;
+    fn emit(&self) -> &NoRoleEmitter;
+    fn row_count(&self) -> usize;
+    fn insert_rows(&mut self, _row: usize, _count: usize) -> bool { false }
+    fn remove_rows(&mut self, _row: usize, _count: usize) -> bool { false }
+    fn can_fetch_more(&self) -> bool {
+        false
+    }
+    fn fetch_more(&mut self) {}
+    fn sort(&mut self, u8, SortOrder) {}
+    fn user_age(&self, item: usize) -> u8;
+    fn set_user_age(&mut self, item: usize, u8) -> bool;
+    fn user_name(&self, item: usize) -> &str;
+    fn set_user_name(&mut self, item: usize, String) -> bool;
+}
+
+#[no_mangle]
+pub extern "C" fn no_role_new(
+    no_role: *mut NoRoleQObject,
+    no_role_new_data_ready: fn(*const NoRoleQObject),
+    no_role_data_changed: fn(*const NoRoleQObject, usize, usize),
+    no_role_begin_reset_model: fn(*const NoRoleQObject),
+    no_role_end_reset_model: fn(*const NoRoleQObject),
+    no_role_begin_insert_rows: fn(*const NoRoleQObject, usize, usize),
+    no_role_end_insert_rows: fn(*const NoRoleQObject),
+    no_role_begin_remove_rows: fn(*const NoRoleQObject, usize, usize),
+    no_role_end_remove_rows: fn(*const NoRoleQObject),
+) -> *mut NoRole {
+    let no_role_emit = NoRoleEmitter {
+        qobject: Arc::new(Mutex::new(no_role)),
+        new_data_ready: no_role_new_data_ready,
+    };
+    let model = NoRoleList {
+        qobject: no_role,
+        data_changed: no_role_data_changed,
+        begin_reset_model: no_role_begin_reset_model,
+        end_reset_model: no_role_end_reset_model,
+        begin_insert_rows: no_role_begin_insert_rows,
+        end_insert_rows: no_role_end_insert_rows,
+        begin_remove_rows: no_role_begin_remove_rows,
+        end_remove_rows: no_role_end_remove_rows,
+    };
+    let d_no_role = NoRole::new(no_role_emit, model);
+    Box::into_raw(Box::new(d_no_role))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn no_role_free(ptr: *mut NoRole) {
+    Box::from_raw(ptr).emit().clear();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn no_role_row_count(ptr: *const NoRole) -> c_int {
+    to_c_int((&*ptr).row_count())
+}
+#[no_mangle]
+pub unsafe extern "C" fn no_role_insert_rows(ptr: *mut NoRole, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).insert_rows(to_usize(row), to_usize(count))
+}
+#[no_mangle]
+pub unsafe extern "C" fn no_role_remove_rows(ptr: *mut NoRole, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).remove_rows(to_usize(row), to_usize(count))
+}
+#[no_mangle]
+pub unsafe extern "C" fn no_role_can_fetch_more(ptr: *const NoRole) -> bool {
+    (&*ptr).can_fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn no_role_fetch_more(ptr: *mut NoRole) {
+    (&mut *ptr).fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn no_role_sort(
+    ptr: *mut NoRole,
+    column: u8,
+    order: SortOrder,
+) {
+    (&mut *ptr).sort(column, order)
+}
+
+#[no_mangle]
+pub extern "C" fn no_role_data_user_age(ptr: *const NoRole, row: c_int) -> u8 {
+    let o = unsafe { &*ptr };
+    o.user_age(to_usize(row)).into()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn no_role_set_data_user_age(
+    ptr: *mut NoRole, row: c_int,
+    v: u8,
+) -> bool {
+    (&mut *ptr).set_user_age(to_usize(row), v)
+}
+
+#[no_mangle]
+pub extern "C" fn no_role_data_user_name(
+    ptr: *const NoRole, row: c_int,
+    d: *mut QString,
+    set: fn(*mut QString, *const c_char, len: c_int),
+) {
+    let o = unsafe { &*ptr };
+    let data = o.user_name(to_usize(row));
+    let s: *const c_char = data.as_ptr() as (*const c_char);
+    set(d, s, to_c_int(data.len()));
+}
+
+#[no_mangle]
+pub extern "C" fn no_role_set_data_user_name(
+    ptr: *mut NoRole, row: c_int,
+    s: *const c_ushort, len: c_int,
+) -> bool {
+    let o = unsafe { &mut *ptr };
+    let mut v = String::new();
+    set_string_from_utf16(&mut v, s, len);
+    o.set_user_name(to_usize(row), v)
+}
+
 pub struct PersonsQObject {}
 
 #[derive(Clone)]
