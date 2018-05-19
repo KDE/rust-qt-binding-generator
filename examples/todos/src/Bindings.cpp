@@ -52,7 +52,7 @@ extern "C" {
 }
 int Todos::columnCount(const QModelIndex &parent) const
 {
-    return (parent.isValid()) ? 0 : 2;
+    return (parent.isValid()) ? 0 : 1;
 }
 
 bool Todos::hasChildren(const QModelIndex &parent) const
@@ -77,7 +77,7 @@ bool Todos::removeRows(int row, int count, const QModelIndex &)
 
 QModelIndex Todos::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 2) {
+    if (!parent.isValid() && row >= 0 && row < rowCount(parent) && column >= 0 && column < 1) {
         return createIndex(row, column, (quintptr)row);
     }
     return QModelIndex();
@@ -108,9 +108,6 @@ Qt::ItemFlags Todos::flags(const QModelIndex &i) const
 {
     auto flags = QAbstractItemModel::flags(i);
     if (i.column() == 0) {
-        flags |= Qt::ItemIsEditable;
-    }
-    if (i.column() == 1) {
         flags |= Qt::ItemIsEditable;
     }
     return flags;
@@ -156,15 +153,8 @@ QVariant Todos::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case 0:
         switch (role) {
-        case Qt::DisplayRole:
         case Qt::UserRole + 0:
             return QVariant::fromValue(completed(index.row()));
-        case Qt::UserRole + 1:
-            return QVariant::fromValue(description(index.row()));
-        }
-    case 1:
-        switch (role) {
-        case Qt::DisplayRole:
         case Qt::UserRole + 1:
             return QVariant::fromValue(description(index.row()));
         }
@@ -198,19 +188,12 @@ bool Todos::setHeaderData(int section, Qt::Orientation orientation, const QVaria
 bool Todos::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.column() == 0) {
-        if (role == Qt::DisplayRole || role == Qt::UserRole + 0) {
+        if (role == Qt::UserRole + 0) {
             if (value.canConvert(qMetaTypeId<bool>())) {
                 return setCompleted(index.row(), value.value<bool>());
             }
         }
         if (role == Qt::UserRole + 1) {
-            if (value.canConvert(qMetaTypeId<QString>())) {
-                return setDescription(index.row(), value.value<QString>());
-            }
-        }
-    }
-    if (index.column() == 1) {
-        if (role == Qt::DisplayRole || role == Qt::UserRole + 1) {
             if (value.canConvert(qMetaTypeId<QString>())) {
                 return setDescription(index.row(), value.value<QString>());
             }
@@ -256,7 +239,7 @@ Todos::Todos(QObject *parent):
         },
         [](Todos* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
-                       o->createIndex(last, 1, last));
+                       o->createIndex(last, 0, last));
         },
         [](Todos* o) {
             o->beginResetModel();
@@ -291,8 +274,6 @@ Todos::~Todos() {
     }
 }
 void Todos::initHeaderData() {
-    m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("completed"));
-    m_headerData.insert(qMakePair(1, Qt::DisplayRole), QVariant("description"));
 }
 quint64 Todos::activeCount() const
 {

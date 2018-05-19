@@ -19,13 +19,11 @@
             "itemProperties": {
                 "completed": {
                     "type": "bool",
-                    "write": true,
-                    "roles": [ [ "display" ] ]
+                    "write": true
                 },
                 "description": {
                     "type": "QString",
-                    "write": true,
-                    "roles": [ [], [ "display" ] ]
+                    "write": true
                 }
             },
             "functions": {
