@@ -82,6 +82,7 @@ void writeHeaderItemModel(QTextStream& h, const Object& o) {
     void fetchMore(const QModelIndex &parent) override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
+    int role(const char* name) const;
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
@@ -451,6 +452,17 @@ Qt::ItemFlags %1::flags(const QModelIndex &i) const
         cpp << "        }\n";
     }
     cpp << "    }\n    return QVariant();\n}\n\n";
+    cpp << "int " << o.name << "::role(const char* name) const {\n";
+    cpp << "    auto names = roleNames();\n";
+    cpp << "    auto i = names.constBegin();\n";
+    cpp << "    while (i != names.constEnd()) {\n";
+    cpp << "        if (i.value() == name) {\n";
+    cpp << "            return i.key();\n";
+    cpp << "        }\n";
+    cpp << "        ++i;\n";
+    cpp << "    }\n";
+    cpp << "    return -1;\n";
+    cpp << "}\n";
     cpp << "QHash<int, QByteArray> " << o.name << "::roleNames() const {\n";
     cpp << "    QHash<int, QByteArray> names = QAbstractItemModel::roleNames();\n";
     for (int i = 0; i < o.itemProperties.size(); ++i) {

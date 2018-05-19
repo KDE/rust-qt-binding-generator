@@ -72,8 +72,8 @@ void TestRustList::testAccessByDefaultRole()
     // GIVEN
     NoRole norole;
     QSignalSpy spy(&norole, &NoRole::dataChanged);
-    auto ageRole = Qt::UserRole + 0;
-    auto nameRole = Qt::UserRole + 1;
+    auto ageRole = norole.role("userAge");
+    auto nameRole = norole.role("userName");
 
     // WHEN
     const QModelIndex index(norole.index(0,0));

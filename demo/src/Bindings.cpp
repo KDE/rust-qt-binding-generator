@@ -221,6 +221,17 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+int FibonacciList::role(const char* name) const {
+    auto names = roleNames();
+    auto i = names.constBegin();
+    while (i != names.constEnd()) {
+        if (i.value() == name) {
+            return i.key();
+        }
+        ++i;
+    }
+    return -1;
+}
 QHash<int, QByteArray> FibonacciList::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "fibonacciNumber");
@@ -435,6 +446,17 @@ QVariant FileSystemTree::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+int FileSystemTree::role(const char* name) const {
+    auto names = roleNames();
+    auto i = names.constBegin();
+    while (i != names.constEnd()) {
+        if (i.value() == name) {
+            return i.key();
+        }
+        ++i;
+    }
+    return -1;
+}
 QHash<int, QByteArray> FileSystemTree::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "fileIcon");
@@ -648,6 +670,17 @@ QVariant Processes::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+int Processes::role(const char* name) const {
+    auto names = roleNames();
+    auto i = names.constBegin();
+    while (i != names.constEnd()) {
+        if (i.value() == name) {
+            return i.key();
+        }
+        ++i;
+    }
+    return -1;
+}
 QHash<int, QByteArray> Processes::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "cmd");
@@ -856,6 +889,17 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+int TimeSeries::role(const char* name) const {
+    auto names = roleNames();
+    auto i = names.constBegin();
+    while (i != names.constEnd()) {
+        if (i.value() == name) {
+            return i.key();
+        }
+        ++i;
+    }
+    return -1;
+}
 QHash<int, QByteArray> TimeSeries::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "cos");

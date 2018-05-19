@@ -151,6 +151,17 @@ QVariant Persons::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+int Persons::role(const char* name) const {
+    auto names = roleNames();
+    auto i = names.constBegin();
+    while (i != names.constEnd()) {
+        if (i.value() == name) {
+            return i.key();
+        }
+        ++i;
+    }
+    return -1;
+}
 QHash<int, QByteArray> Persons::roleNames() const {
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();
     names.insert(Qt::UserRole + 0, "userName");
