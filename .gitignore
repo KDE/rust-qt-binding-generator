@@ -1,8 +1,6 @@
-/demo/rust/Cargo.lock
-/demo/rust/target/
+**/Cargo.lock
+**/target/
 /docker_home/
-/tests/rust_*/Cargo.lock
-/tests/rust_*/target/
 
 # tutorial build
 /build/tutorial/
