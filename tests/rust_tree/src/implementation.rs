@@ -25,23 +25,23 @@ impl PersonsTrait for Persons {
     fn emit(&self) -> &PersonsEmitter {
         &self.emit
     }
-    fn row_count(&self, item: Option<usize>) -> usize {
+    fn row_count(&self, index: Option<usize>) -> usize {
         self.list.len()
     }
-    fn index(&self, item: Option<usize>, row: usize) -> usize {
+    fn index(&self, index: Option<usize>, row: usize) -> usize {
         0
     }
-    fn parent(&self, item: usize) -> Option<usize> {
+    fn parent(&self, index: usize) -> Option<usize> {
         None
     }
-    fn row(&self, item: usize) -> usize {
-        item
+    fn row(&self, index: usize) -> usize {
+        index
     }
-    fn user_name(&self, item: usize) -> &str {
-        &self.list[item].user_name
+    fn user_name(&self, index: usize) -> &str {
+        &self.list[index].user_name
     }
-    fn set_user_name(&mut self, item: usize, v: String) -> bool {
-        self.list[item].user_name = v;
+    fn set_user_name(&mut self, index: usize, v: String) -> bool {
+        self.list[index].user_name = v;
         true
     }
 }

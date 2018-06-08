@@ -153,12 +153,12 @@ fn update_thread(
 }
 
 impl Processes {
-    fn get(&self, item: usize) -> &ProcessItem {
-        let pid = item as pid_t;
+    fn get(&self, index: usize) -> &ProcessItem {
+        let pid = index as pid_t;
         &self.p.processes[&pid]
     }
-    fn process(&self, item: usize) -> &Process {
-        let pid = item as pid_t;
+    fn process(&self, index: usize) -> &Process {
+        let pid = index as pid_t;
         &self.p.processes[&pid].process
     }
 }
@@ -337,25 +337,25 @@ impl ProcessesTrait for Processes {
     fn emit(&self) -> &ProcessesEmitter {
         &self.emit
     }
-    fn row_count(&self, item: Option<usize>) -> usize {
-        if let Some(item) = item {
-            self.get(item).tasks.len()
+    fn row_count(&self, index: Option<usize>) -> usize {
+        if let Some(index) = index {
+            self.get(index).tasks.len()
         } else {
             self.p.top.len()
         }
     }
-    fn index(&self, item: Option<usize>, row: usize) -> usize {
-        if let Some(item) = item {
-            self.get(item).tasks[row] as usize
+    fn index(&self, index: Option<usize>, row: usize) -> usize {
+        if let Some(index) = index {
+            self.get(index).tasks[row] as usize
         } else {
             self.p.top[row] as usize
         }
     }
-    fn parent(&self, item: usize) -> Option<usize> {
-        self.get(item).process.parent.map(|pid| pid as usize)
+    fn parent(&self, index: usize) -> Option<usize> {
+        self.get(index).process.parent.map(|pid| pid as usize)
     }
-    fn can_fetch_more(&self, item: Option<usize>) -> bool {
-        if item.is_some() || !self.active {
+    fn can_fetch_more(&self, index: Option<usize>) -> bool {
+        if index.is_some() || !self.active {
             return false;
         }
         if let Ok(ref incoming) = self.incoming.try_lock() {
@@ -364,8 +364,8 @@ impl ProcessesTrait for Processes {
             false
         }
     }
-    fn fetch_more(&mut self, item: Option<usize>) {
-        if item.is_some() || !self.active {
+    fn fetch_more(&mut self, index: Option<usize>) {
+        if index.is_some() || !self.active {
             return;
         }
         let new = if let Ok(ref mut incoming) = self.incoming.try_lock() {
@@ -387,30 +387,30 @@ impl ProcessesTrait for Processes {
             }
         }
     }
-    fn row(&self, item: usize) -> usize {
-        self.get(item).row
+    fn row(&self, index: usize) -> usize {
+        self.get(index).row
     }
-    fn pid(&self, item: usize) -> u32 {
-        self.process(item).pid as u32
+    fn pid(&self, index: usize) -> u32 {
+        self.process(index).pid as u32
     }
-    fn uid(&self, item: usize) -> u32 {
-        self.process(item).uid as u32
+    fn uid(&self, index: usize) -> u32 {
+        self.process(index).uid as u32
     }
-    fn cpu_usage(&self, item: usize) -> f32 {
-        self.process(item).cpu_usage
+    fn cpu_usage(&self, index: usize) -> f32 {
+        self.process(index).cpu_usage
     }
-    fn cpu_percentage(&self, item: usize) -> u8 {
-        let cpu = self.process(item).cpu_usage / self.p.cpusum;
+    fn cpu_percentage(&self, index: usize) -> u8 {
+        let cpu = self.process(index).cpu_usage / self.p.cpusum;
         (cpu * 100.0) as u8
     }
-    fn memory(&self, item: usize) -> u64 {
-        self.process(item).memory
+    fn memory(&self, index: usize) -> u64 {
+        self.process(index).memory
     }
-    fn name(&self, item: usize) -> &str {
-        &self.process(item).name
+    fn name(&self, index: usize) -> &str {
+        &self.process(index).name
     }
-    fn cmd(&self, item: usize) -> String {
-        self.process(item).cmd.join(" ")
+    fn cmd(&self, index: usize) -> String {
+        self.process(index).cmd.join(" ")
     }
     fn active(&self) -> bool {
         self.active

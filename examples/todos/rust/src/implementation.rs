@@ -44,32 +44,32 @@ impl TodosTrait for Todos {
     fn row_count(&self) -> usize {
         self.list.len()
     }
-    fn completed(&self, item: usize) -> bool {
-        if item >= self.list.len() {
+    fn completed(&self, index: usize) -> bool {
+        if index >= self.list.len() {
             return false;
         }
-        self.list[item].completed
+        self.list[index].completed
     }
-    fn set_completed(&mut self, item: usize, v: bool) -> bool {
-        if item >= self.list.len() {
+    fn set_completed(&mut self, index: usize, v: bool) -> bool {
+        if index >= self.list.len() {
             return false;
         }
-        self.list[item].completed = v;
+        self.list[index].completed = v;
         self.update_active_count();
         true
     }
-    fn description(&self, item: usize) -> &str {
-        if item < self.list.len() {
-            &self.list[item].description
+    fn description(&self, index: usize) -> &str {
+        if index < self.list.len() {
+            &self.list[index].description
         } else {
 	    ""
         }
     }
-    fn set_description(&mut self, item: usize, v: String) -> bool {
-        if item >= self.list.len() {
+    fn set_description(&mut self, index: usize, v: String) -> bool {
+        if index >= self.list.len() {
             return false;
         }
-        self.list[item].description = v;
+        self.list[index].description = v;
         true
     }
     fn insert_rows(&mut self, row: usize, count: usize) -> bool {

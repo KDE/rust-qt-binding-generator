@@ -29,11 +29,11 @@ impl PersonsTrait for Persons {
     fn row_count(&self) -> usize {
         self.list.len()
     }
-    fn user_name(&self, item: usize) -> &str {
-        &self.list[item].user_name
+    fn user_name(&self, index: usize) -> &str {
+        &self.list[index].user_name
     }
-    fn set_user_name(&mut self, item: usize, v: String) -> bool {
-        self.list[item].user_name = v;
+    fn set_user_name(&mut self, index: usize, v: String) -> bool {
+        self.list[index].user_name = v;
         true
     }
 }
@@ -58,18 +58,18 @@ impl NoRoleTrait for NoRole {
     fn row_count(&self) -> usize {
         self.list.len()
     }
-    fn user_name(&self, item: usize) -> &str {
-        &self.list[item].user_name
+    fn user_name(&self, index: usize) -> &str {
+        &self.list[index].user_name
     }
-    fn set_user_name(&mut self, item: usize, v: String) -> bool {
-        self.list[item].user_name = v;
+    fn set_user_name(&mut self, index: usize, v: String) -> bool {
+        self.list[index].user_name = v;
         true
     }
-    fn user_age(&self, item: usize) -> u8 {
-        self.list[item].age
+    fn user_age(&self, index: usize) -> u8 {
+        self.list[index].age
     }
-    fn set_user_age(&mut self, item: usize, v: u8) -> bool {
-        self.list[item].age = v;
+    fn set_user_age(&mut self, index: usize, v: u8) -> bool {
+        self.list[index].age = v;
         true
     }
 }

@@ -149,13 +149,13 @@ where
         }
         self.model.end_reset_model();
     }
-    fn get(&self, item: usize) -> &Entry<T> {
-        &self.entries[item]
+    fn get(&self, index: usize) -> &Entry<T> {
+        &self.entries[index]
     }
-    fn retrieve(&mut self, item: usize) {
-        let parents = self.get_parents(item);
+    fn retrieve(&mut self, index: usize) {
+        let parents = self.get_parents(index);
         let incoming = self.incoming.clone();
-        T::retrieve(item, parents, incoming, self.emit.clone());
+        T::retrieve(index, parents, incoming, self.emit.clone());
     }
     fn process_incoming(&mut self) {
         if let Ok(ref mut incoming) = self.incoming.try_lock() {
@@ -231,35 +231,35 @@ where
             self.reset();
         }
     }
-    fn can_fetch_more(&self, item: Option<usize>) -> bool {
-        if let Some(item) = item {
-            let entry = self.get(item);
+    fn can_fetch_more(&self, index: Option<usize>) -> bool {
+        if let Some(index) = index {
+            let entry = self.get(index);
             entry.children.is_none() && entry.data.can_fetch_more()
         } else {
             false
         }
     }
-    fn fetch_more(&mut self, item: Option<usize>) {
+    fn fetch_more(&mut self, index: Option<usize>) {
         self.process_incoming();
-        if !self.can_fetch_more(item) {
+        if !self.can_fetch_more(index) {
             return;
         }
-        if let Some(item) = item {
-            self.retrieve(item);
+        if let Some(index) = index {
+            self.retrieve(index);
         }
     }
-    fn row_count(&self, item: Option<usize>) -> usize {
+    fn row_count(&self, index: Option<usize>) -> usize {
         if self.entries.is_empty() {
             return 0;
         }
-        if let Some(i) = item {
+        if let Some(i) = index {
             let entry = self.get(i);
             if let Some(ref children) = entry.children {
                 children.len()
             } else {
                 // model does lazy loading, signal that data may be available
-                if self.can_fetch_more(item) {
-                    self.emit.new_data_ready(item);
+                if self.can_fetch_more(index) {
+                    self.emit.new_data_ready(index);
                 }
                 0
             }
@@ -267,36 +267,36 @@ where
             1
         }
     }
-    fn index(&self, item: Option<usize>, row: usize) -> usize {
-        if let Some(item) = item {
-            self.get(item).children.as_ref().unwrap()[row]
+    fn index(&self, index: Option<usize>, row: usize) -> usize {
+        if let Some(index) = index {
+            self.get(index).children.as_ref().unwrap()[row]
         } else {
             0
         }
     }
-    fn parent(&self, item: usize) -> Option<usize> {
-        self.entries[item].parent
+    fn parent(&self, index: usize) -> Option<usize> {
+        self.entries[index].parent
     }
-    fn row(&self, item: usize) -> usize {
-        self.entries[item].row
+    fn row(&self, index: usize) -> usize {
+        self.entries[index].row
     }
-    fn file_name(&self, item: usize) -> String {
-        self.get(item).data.file_name()
+    fn file_name(&self, index: usize) -> String {
+        self.get(index).data.file_name()
     }
-    fn file_permissions(&self, item: usize) -> i32 {
-        self.get(item).data.file_permissions()
+    fn file_permissions(&self, index: usize) -> i32 {
+        self.get(index).data.file_permissions()
     }
     #[allow(unused_variables)]
-    fn file_icon(&self, item: usize) -> &[u8] {
-        self.get(item).data.icon()
+    fn file_icon(&self, index: usize) -> &[u8] {
+        self.get(index).data.icon()
     }
-    fn file_path(&self, item: usize) -> Option<String> {
-        self.get(item).data.file_path()
+    fn file_path(&self, index: usize) -> Option<String> {
+        self.get(index).data.file_path()
     }
-    fn file_type(&self, item: usize) -> i32 {
-        self.get(item).data.file_type()
+    fn file_type(&self, index: usize) -> i32 {
+        self.get(index).data.file_type()
     }
-    fn file_size(&self, item: usize) -> Option<u64> {
-        self.get(item).data.file_size()
+    fn file_size(&self, index: usize) -> Option<u64> {
+        self.get(index).data.file_size()
     }
 }

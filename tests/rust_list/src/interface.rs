@@ -147,10 +147,10 @@ pub trait NoRoleTrait {
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-    fn user_age(&self, item: usize) -> u8;
-    fn set_user_age(&mut self, item: usize, u8) -> bool;
-    fn user_name(&self, item: usize) -> &str;
-    fn set_user_name(&mut self, item: usize, String) -> bool;
+    fn user_age(&self, index: usize) -> u8;
+    fn set_user_age(&mut self, index: usize, u8) -> bool;
+    fn user_name(&self, index: usize) -> &str;
+    fn set_user_name(&mut self, index: usize, String) -> bool;
 }
 
 #[no_mangle]
@@ -322,8 +322,8 @@ pub trait PersonsTrait {
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-    fn user_name(&self, item: usize) -> &str;
-    fn set_user_name(&mut self, item: usize, String) -> bool;
+    fn user_name(&self, index: usize) -> &str;
+    fn set_user_name(&mut self, index: usize, String) -> bool;
 }
 
 #[no_mangle]

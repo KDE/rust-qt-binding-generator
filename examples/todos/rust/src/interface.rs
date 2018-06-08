@@ -167,10 +167,10 @@ pub trait TodosTrait {
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
-    fn completed(&self, item: usize) -> bool;
-    fn set_completed(&mut self, item: usize, bool) -> bool;
-    fn description(&self, item: usize) -> &str;
-    fn set_description(&mut self, item: usize, String) -> bool;
+    fn completed(&self, index: usize) -> bool;
+    fn set_completed(&mut self, index: usize, bool) -> bool;
+    fn description(&self, index: usize) -> &str;
+    fn set_description(&mut self, index: usize, String) -> bool;
 }
 
 #[no_mangle]
