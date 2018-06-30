@@ -74,16 +74,16 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
             r << QString(",\n");
             rConstructorArgsDecl(r, p.name, conf.findObject(p.type.name), conf);
         } else {
-            r << QString(",\n    %2_changed: fn(*const %1QObject)")
-                .arg(o.name, snakeCase(p.name));
+            r << QString(",\n    %3_%2_changed: fn(*const %1QObject)")
+                .arg(o.name, snakeCase(p.name), snakeCase(name));
         }
     }
     if (o.type == ObjectType::List) {
         r << QString(",\n    %2_new_data_ready: fn(*const %1QObject)")
-            .arg(o.name, snakeCase(o.name));
+            .arg(o.name, snakeCase(name));
     } else if (o.type == ObjectType::Tree) {
         r << QString(",\n    %2_new_data_ready: fn(*const %1QObject, index: usize, valid: bool)")
-            .arg(o.name, snakeCase(o.name));
+            .arg(o.name, snakeCase(name));
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl;
@@ -98,7 +98,7 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
     %3_end_insert_rows: fn(*const %1QObject),
     %3_begin_remove_rows: fn(*const %1QObject,%2 usize, usize),
     %3_end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl,
-        snakeCase(o.name));
+          snakeCase(name));
     }
 }
 
@@ -114,11 +114,11 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
 )").arg(o.name, snakeCase(name));
     for (const Property& p: o.properties) {
         if (p.type.type == BindingType::Object) continue;
-        r << QString("        %1_changed: %1_changed,\n").arg(snakeCase(p.name));
+        r << QString("        %1_changed: %2_%1_changed,\n").arg(snakeCase(p.name), snakeCase(name));
     }
     if (o.type != ObjectType::Object) {
         r << QString("        new_data_ready: %1_new_data_ready,\n")
-            .arg(snakeCase(o.name));
+            .arg(snakeCase(name));
     }
     QString model = "";
     if (o.type != ObjectType::Object) {
@@ -134,7 +134,7 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
         end_insert_rows: %4_end_insert_rows,
         begin_remove_rows: %4_begin_remove_rows,
         end_remove_rows: %4_end_remove_rows,
-)").arg(o.name, type, snakeCase(name), snakeCase(o.name));
+)").arg(o.name, type, snakeCase(name), snakeCase(name));
     }
     r << QString("    };\n    let d_%3 = %1::new(%3_emit%2")
          .arg(o.name, model, snakeCase(name));
@@ -839,6 +839,7 @@ pub enum QByteArray {}
         r << R"(
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum SortOrder {
     Ascending = 0,
     Descending = 1,
