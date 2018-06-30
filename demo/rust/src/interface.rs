@@ -54,6 +54,7 @@ pub enum QByteArray {}
 
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum SortOrder {
     Ascending = 0,
     Descending = 1,
@@ -121,8 +122,8 @@ pub trait DemoTrait {
 pub extern "C" fn demo_new(
     demo: *mut DemoQObject,
     fibonacci: *mut FibonacciQObject,
-    input_changed: fn(*const FibonacciQObject),
-    result_changed: fn(*const FibonacciQObject),
+    fibonacci_input_changed: fn(*const FibonacciQObject),
+    fibonacci_result_changed: fn(*const FibonacciQObject),
     fibonacci_list: *mut FibonacciListQObject,
     fibonacci_list_new_data_ready: fn(*const FibonacciListQObject),
     fibonacci_list_data_changed: fn(*const FibonacciListQObject, usize, usize),
@@ -133,7 +134,7 @@ pub extern "C" fn demo_new(
     fibonacci_list_begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_end_remove_rows: fn(*const FibonacciListQObject),
     file_system_tree: *mut FileSystemTreeQObject,
-    path_changed: fn(*const FileSystemTreeQObject),
+    file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
     file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: usize, valid: bool),
     file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
@@ -143,7 +144,7 @@ pub extern "C" fn demo_new(
     file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
     file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
     processes: *mut ProcessesQObject,
-    active_changed: fn(*const ProcessesQObject),
+    processes_active_changed: fn(*const ProcessesQObject),
     processes_new_data_ready: fn(*const ProcessesQObject, index: usize, valid: bool),
     processes_data_changed: fn(*const ProcessesQObject, usize, usize),
     processes_begin_reset_model: fn(*const ProcessesQObject),
@@ -164,8 +165,8 @@ pub extern "C" fn demo_new(
 ) -> *mut Demo {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(Mutex::new(fibonacci)),
-        input_changed: input_changed,
-        result_changed: result_changed,
+        input_changed: fibonacci_input_changed,
+        result_changed: fibonacci_result_changed,
     };
     let d_fibonacci = Fibonacci::new(fibonacci_emit);
     let fibonacci_list_emit = FibonacciListEmitter {
@@ -185,7 +186,7 @@ pub extern "C" fn demo_new(
     let d_fibonacci_list = FibonacciList::new(fibonacci_list_emit, model);
     let file_system_tree_emit = FileSystemTreeEmitter {
         qobject: Arc::new(Mutex::new(file_system_tree)),
-        path_changed: path_changed,
+        path_changed: file_system_tree_path_changed,
         new_data_ready: file_system_tree_new_data_ready,
     };
     let model = FileSystemTreeTree {
@@ -201,7 +202,7 @@ pub extern "C" fn demo_new(
     let d_file_system_tree = FileSystemTree::new(file_system_tree_emit, model);
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(Mutex::new(processes)),
-        active_changed: active_changed,
+        active_changed: processes_active_changed,
         new_data_ready: processes_new_data_ready,
     };
     let model = ProcessesTree {
@@ -312,13 +313,13 @@ pub trait FibonacciTrait {
 #[no_mangle]
 pub extern "C" fn fibonacci_new(
     fibonacci: *mut FibonacciQObject,
-    input_changed: fn(*const FibonacciQObject),
-    result_changed: fn(*const FibonacciQObject),
+    fibonacci_input_changed: fn(*const FibonacciQObject),
+    fibonacci_result_changed: fn(*const FibonacciQObject),
 ) -> *mut Fibonacci {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(Mutex::new(fibonacci)),
-        input_changed: input_changed,
-        result_changed: result_changed,
+        input_changed: fibonacci_input_changed,
+        result_changed: fibonacci_result_changed,
     };
     let d_fibonacci = Fibonacci::new(fibonacci_emit);
     Box::into_raw(Box::new(d_fibonacci))
@@ -581,7 +582,7 @@ pub trait FileSystemTreeTrait {
 #[no_mangle]
 pub extern "C" fn file_system_tree_new(
     file_system_tree: *mut FileSystemTreeQObject,
-    path_changed: fn(*const FileSystemTreeQObject),
+    file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
     file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: usize, valid: bool),
     file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
@@ -593,7 +594,7 @@ pub extern "C" fn file_system_tree_new(
 ) -> *mut FileSystemTree {
     let file_system_tree_emit = FileSystemTreeEmitter {
         qobject: Arc::new(Mutex::new(file_system_tree)),
-        path_changed: path_changed,
+        path_changed: file_system_tree_path_changed,
         new_data_ready: file_system_tree_new_data_ready,
     };
     let model = FileSystemTreeTree {
@@ -861,7 +862,7 @@ pub trait ProcessesTrait {
 #[no_mangle]
 pub extern "C" fn processes_new(
     processes: *mut ProcessesQObject,
-    active_changed: fn(*const ProcessesQObject),
+    processes_active_changed: fn(*const ProcessesQObject),
     processes_new_data_ready: fn(*const ProcessesQObject, index: usize, valid: bool),
     processes_data_changed: fn(*const ProcessesQObject, usize, usize),
     processes_begin_reset_model: fn(*const ProcessesQObject),
@@ -873,7 +874,7 @@ pub extern "C" fn processes_new(
 ) -> *mut Processes {
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(Mutex::new(processes)),
-        active_changed: active_changed,
+        active_changed: processes_active_changed,
         new_data_ready: processes_new_data_ready,
     };
     let model = ProcessesTree {

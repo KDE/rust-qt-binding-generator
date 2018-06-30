@@ -51,6 +51,7 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
 
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum SortOrder {
     Ascending = 0,
     Descending = 1,

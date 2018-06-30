@@ -72,11 +72,11 @@ pub trait PersonTrait {
 #[no_mangle]
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
-    user_name_changed: fn(*const PersonQObject),
+    person_user_name_changed: fn(*const PersonQObject),
 ) -> *mut Person {
     let person_emit = PersonEmitter {
         qobject: Arc::new(Mutex::new(person)),
-        user_name_changed: user_name_changed,
+        user_name_changed: person_user_name_changed,
     };
     let d_person = Person::new(person_emit);
     Box::into_raw(Box::new(d_person))

@@ -68,11 +68,11 @@ pub extern "C" fn group_new(
     group: *mut GroupQObject,
     person: *mut PersonQObject,
     object: *mut InnerObjectQObject,
-    description_changed: fn(*const InnerObjectQObject),
+    object_description_changed: fn(*const InnerObjectQObject),
 ) -> *mut Group {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(Mutex::new(object)),
-        description_changed: description_changed,
+        description_changed: object_description_changed,
     };
     let d_object = InnerObject::new(object_emit);
     let person_emit = PersonEmitter {
@@ -130,11 +130,11 @@ pub trait InnerObjectTrait {
 #[no_mangle]
 pub extern "C" fn inner_object_new(
     inner_object: *mut InnerObjectQObject,
-    description_changed: fn(*const InnerObjectQObject),
+    inner_object_description_changed: fn(*const InnerObjectQObject),
 ) -> *mut InnerObject {
     let inner_object_emit = InnerObjectEmitter {
         qobject: Arc::new(Mutex::new(inner_object)),
-        description_changed: description_changed,
+        description_changed: inner_object_description_changed,
     };
     let d_inner_object = InnerObject::new(inner_object_emit);
     Box::into_raw(Box::new(d_inner_object))
@@ -192,11 +192,11 @@ pub trait PersonTrait {
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
     object: *mut InnerObjectQObject,
-    description_changed: fn(*const InnerObjectQObject),
+    object_description_changed: fn(*const InnerObjectQObject),
 ) -> *mut Person {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(Mutex::new(object)),
-        description_changed: description_changed,
+        description_changed: object_description_changed,
     };
     let d_object = InnerObject::new(object_emit);
     let person_emit = PersonEmitter {

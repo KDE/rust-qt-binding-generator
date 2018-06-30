@@ -54,6 +54,7 @@ pub enum QByteArray {}
 
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum SortOrder {
     Ascending = 0,
     Descending = 1,
