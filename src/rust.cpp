@@ -764,7 +764,6 @@ QString rustFile(const QDir rustdir, const QString& module) {
 void writeRustTypes(const Configuration& conf, QTextStream& r) {
     bool hasOption = false;
     bool hasString = false;
-    bool hasStringWrite = false;
     bool hasByteArray = false;
     bool hasListOrTree = false;
 
@@ -773,8 +772,6 @@ void writeRustTypes(const Configuration& conf, QTextStream& r) {
         for (auto p: o.properties) {
             hasOption |= p.optional;
             hasString |= p.type.type == BindingType::QString;
-            hasStringWrite |= p.type.type == BindingType::QString
-                    && p.write;
             hasByteArray |= p.type.type == BindingType::QByteArray;
         }
         for (auto p: o.itemProperties) {
