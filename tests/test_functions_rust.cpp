@@ -7,6 +7,16 @@ namespace {
     void set_qstring(QString* val, const char* utf8, int nbytes) {
         *val = QString::fromUtf8(utf8, nbytes);
     }
+
+    typedef void (*qbytearray_set)(QByteArray* val, const char* bytes, int nbytes);
+    void set_qbytearray(QByteArray* v, const char* bytes, int nbytes) {
+        if (v->isNull() && nbytes == 0) {
+            *v = QByteArray(bytes, nbytes);
+        } else {
+            v->truncate(0);
+            v->append(bytes, nbytes);
+        }
+    }
     inline void personUserNameChanged(Person* o)
     {
         emit o->userNameChanged();
@@ -21,7 +31,7 @@ extern "C" {
     void person_double_name(Person::Private*);
     void person_greet(const Person::Private*, const ushort*, int, QString*, qstring_set);
     void person_quote(const Person::Private*, const ushort*, int, const ushort*, int, QString*, qstring_set);
-    void person_quote_bytes(const Person::Private*, const char*, int, const char*, int, QString*, qstring_set);
+    void person_quote_bytes(const Person::Private*, const char*, int, const char*, int, QByteArray*, qbytearray_set);
     quint8 person_vowels_in_name(const Person::Private*);
 };
 
@@ -74,10 +84,10 @@ QString Person::quote(const QString& prefix, const QString& suffix) const
     person_quote(m_d, prefix.utf16(), prefix.size(), suffix.utf16(), suffix.size(), &s, set_qstring);
     return s;
 }
-QString Person::quoteBytes(const QByteArray& prefix, const QByteArray& suffix) const
+QByteArray Person::quoteBytes(const QByteArray& prefix, const QByteArray& suffix) const
 {
-    QString s;
-    person_quote_bytes(m_d, prefix.data(), prefix.size(), suffix.data(), suffix.size(), &s, set_qstring);
+    QByteArray s;
+    person_quote_bytes(m_d, prefix.data(), prefix.size(), suffix.data(), suffix.size(), &s, set_qbytearray);
     return s;
 }
 quint8 Person::vowelsInName() const

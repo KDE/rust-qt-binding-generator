@@ -61,7 +61,7 @@
                     ]
                 },
                 "quoteBytes": {
-                    "return": "QString",
+                    "return": "QByteArray",
                     "arguments": [
                         {
                             "name": "prefix",

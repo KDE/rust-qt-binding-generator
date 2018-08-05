@@ -24,6 +24,9 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
 
 
 
+pub enum QByteArray {}
+
+
 fn to_usize(n: c_int) -> usize {
     if n < 0 {
         panic!("Cannot cast {} to usize", n);
@@ -71,7 +74,7 @@ pub trait PersonTrait {
     fn double_name(&mut self) -> ();
     fn greet(&self, name: String) -> String;
     fn quote(&self, prefix: String, suffix: String) -> String;
-    fn quote_bytes(&self, prefix: &[u8], suffix: &[u8]) -> String;
+    fn quote_bytes(&self, prefix: &[u8], suffix: &[u8]) -> Vec<u8>;
     fn vowels_in_name(&self) -> u8;
 }
 
@@ -152,7 +155,7 @@ pub extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, 
 }
 
 #[no_mangle]
-pub extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+pub extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QByteArray, set: fn(*mut QByteArray, str: *const c_char, len: c_int)) {
     let prefix = unsafe { slice::from_raw_parts(prefix_str as *const u8, to_usize(prefix_len)) };
     let suffix = unsafe { slice::from_raw_parts(suffix_str as *const u8, to_usize(suffix_len)) };
     let o = unsafe { &*ptr };
