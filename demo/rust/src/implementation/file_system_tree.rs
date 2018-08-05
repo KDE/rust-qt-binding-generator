@@ -180,7 +180,7 @@ where
                         self.model.begin_insert_rows(
                             Some(id),
                             0,
-                            (new_entries.len() - 1),
+                            new_entries.len() - 1,
                         );
                     }
                 }
