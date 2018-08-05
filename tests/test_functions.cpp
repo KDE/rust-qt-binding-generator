@@ -92,7 +92,7 @@ void TestRustObject::testQuoteBytesFunction()
 
     // THEN
     auto r = person.quoteBytes("<<", ">>");
-    QCOMPARE(r, QString("<<Konqi>>"));
+    QCOMPARE(r, QByteArray("<<Konqi>>"));
 }
 
 void TestRustObject::testStringFunction()
