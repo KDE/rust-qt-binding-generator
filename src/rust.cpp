@@ -1021,15 +1021,15 @@ void writeRustImplementationObject(QTextStream& r, const Object& o) {
             r << QString("    fn %1(&self, index: usize) -> %2 {\n")
                     .arg(lc, rustReturnType(ip));
             if (ip.type.isComplex()) {
-                r << "        &self.list[item]." << lc << "\n";
+                r << "        &self.list[index]." << lc << "\n";
             } else {
-                r << "        self.list[item]." << lc << "\n";
+                r << "        self.list[index]." << lc << "\n";
             }
             r << "    }\n";
             if (ip.write) {
                 r << QString("    fn set_%1(&mut self, index: usize, v: %2) -> bool {\n")
                         .arg(snakeCase(ip.name), rustType(ip));
-                r << "        self.list[item]." << lc << " = v;\n";
+                r << "        self.list[index]." << lc << " = v;\n";
                 r << "        true\n";
                 r << "    }\n";
             }
