@@ -72,11 +72,11 @@ pub trait SimpleTrait {
 #[no_mangle]
 pub extern "C" fn simple_new(
     simple: *mut SimpleQObject,
-    message_changed: fn(*const SimpleQObject),
+    simple_message_changed: fn(*const SimpleQObject),
 ) -> *mut Simple {
     let simple_emit = SimpleEmitter {
         qobject: Arc::new(Mutex::new(simple)),
-        message_changed: message_changed,
+        message_changed: simple_message_changed,
     };
     let d_simple = Simple::new(simple_emit);
     Box::into_raw(Box::new(d_simple))

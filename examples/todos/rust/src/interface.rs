@@ -51,6 +51,7 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
 
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum SortOrder {
     Ascending = 0,
     Descending = 1,
@@ -176,8 +177,8 @@ pub trait TodosTrait {
 #[no_mangle]
 pub extern "C" fn todos_new(
     todos: *mut TodosQObject,
-    active_count_changed: fn(*const TodosQObject),
-    count_changed: fn(*const TodosQObject),
+    todos_active_count_changed: fn(*const TodosQObject),
+    todos_count_changed: fn(*const TodosQObject),
     todos_new_data_ready: fn(*const TodosQObject),
     todos_data_changed: fn(*const TodosQObject, usize, usize),
     todos_begin_reset_model: fn(*const TodosQObject),
@@ -189,8 +190,8 @@ pub extern "C" fn todos_new(
 ) -> *mut Todos {
     let todos_emit = TodosEmitter {
         qobject: Arc::new(Mutex::new(todos)),
-        active_count_changed: active_count_changed,
-        count_changed: count_changed,
+        active_count_changed: todos_active_count_changed,
+        count_changed: todos_count_changed,
         new_data_ready: todos_new_data_ready,
     };
     let model = TodosList {

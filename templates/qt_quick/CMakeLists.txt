@@ -1,8 +1,9 @@
 project (my_rust_qt_quick_project)
 
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 cmake_policy(SET CMP0046 NEW)
 cmake_policy(SET CMP0063 NEW)
+cmake_policy(SET CMP0071 NEW)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
@@ -43,8 +44,7 @@ SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/librust.a")
 add_custom_command(
   OUTPUT "${RUST_DIR}/src/interface.rs"
          "${CMAKE_CURRENT_SOURCE_DIR}/src/Bindings.h"
-  # if the cpp file is marked GENERATED, CMake will not check it for moc
-  #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Bindings.cpp"
+         "${CMAKE_CURRENT_SOURCE_DIR}/src/Bindings.cpp"
   COMMAND "${RustQtBindingGenerator_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/bindings.json"
   DEPENDS bindings.json
