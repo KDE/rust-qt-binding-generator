@@ -149,6 +149,16 @@ struct Configuration {
                     ops.append(ip.type.name);
                 }
             }
+            for (auto f: o.functions) {
+                if (!ops.contains(f.type.name)) {
+                    ops.append(f.type.name);
+                }
+                for (auto a: f.args) {
+                    if (!ops.contains(a.type.name)) {
+                        ops.append(a.type.name);
+                    }
+                }
+            }
         }
         return ops;
     }

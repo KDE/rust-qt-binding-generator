@@ -779,6 +779,14 @@ void writeRustTypes(const Configuration& conf, QTextStream& r) {
             hasString |= p.type.type == BindingType::QString;
             hasByteArray |= p.type.type == BindingType::QByteArray;
         }
+        for (auto f: o.functions) {
+            hasString |= f.type.type == BindingType::QString;
+            hasByteArray |= f.type.type == BindingType::QByteArray;
+            for (auto a: f.args) {
+                hasString |= a.type.type == BindingType::QString;
+                hasByteArray |= a.type.type == BindingType::QByteArray;
+            }
+        }
     }
 
     if (hasOption || hasListOrTree) {
