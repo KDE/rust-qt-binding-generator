@@ -8,16 +8,15 @@ function(rust_test NAME DIRECTORY)
     set(SRC "${CMAKE_CURRENT_SOURCE_DIR}")
     set(DIR "${SRC}/${DIRECTORY}")
 
+    set_property(SOURCE "${SRC}/${NAME}_rust.h" PROPERTY SKIP_AUTOGEN OFF)
     add_custom_command(
         OUTPUT "${DIR}/src/interface.rs"
                "${SRC}/${NAME}_rust.h"
-        # if the cpp file is marked GENERATED, CMake will not check it for moc
-        #      "${SRC}/${NAME}_rust.cpp"
+               "${SRC}/${NAME}_rust.cpp"
         COMMAND "${GENERATOR}" "${SRC}/${NAME}.json"
         MAIN_DEPENDENCY "${NAME}.json"
         DEPENDS rust_qt_binding_generator
     )
-
     add_custom_command(
         OUTPUT "${DIR}/${RUST_TARGET_DIR}/librust.a"
         COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
@@ -41,9 +40,6 @@ function(rust_test NAME DIRECTORY)
         "${DIR}/${RUST_TARGET_DIR}/librust.a"
         Threads::Threads ${DL_LIBRARY}
     )
-    set_property(TARGET ${NAME}
-        APPEND PROPERTY AUTOGEN_TARGET_DEPENDS "${SRC}/${NAME}_rust.h"
-        APPEND PROPERTY AUTOGEN_TARGET_DEPENDS "${SRC}/${NAME}_rust.cpp")
 
     add_test("build_${NAME}"
             "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target "${NAME}")

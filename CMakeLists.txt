@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 project (rust_qt_binding_generator)
 
@@ -14,9 +14,8 @@ if (ECM_FOUND)
     include(KDECompilerSettings NO_POLICY_SCOPE)
     include(ECMPoQmTools)
 else()
-    if (POLICY CMP0063)
-        cmake_policy(SET CMP0063 NEW)
-    endif()
+    cmake_policy(SET CMP0063 NEW)
+    cmake_policy(SET CMP0071 NEW)
     enable_testing()
     set(CMAKE_AUTOMOC ON)
 endif()
