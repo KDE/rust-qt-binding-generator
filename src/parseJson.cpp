@@ -178,6 +178,7 @@ parseProperty(const QString& name, const QJsonObject& json) {
     p.write = json.value("write").toBool();
     p.optional = json.value("optional").toBool();
     p.rustByValue = json.value("rustByValue").toBool();
+    p.rustByFunction = json.value("rustByFunction").toBool();
     return p;
 }
 

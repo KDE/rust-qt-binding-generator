@@ -95,6 +95,10 @@ namespace {
     {
         emit o->stringChanged();
     }
+    inline void objectStringByFunctionChanged(Object* o)
+    {
+        emit o->stringByFunctionChanged();
+    }
     inline void objectU16Changed(Object* o)
     {
         emit o->u16Changed();
@@ -113,7 +117,7 @@ namespace {
     }
 }
 extern "C" {
-    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
+    Object::Private* object_new(Object*, void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*), void (*)(Object*));
     void object_free(Object::Private*);
     bool object_boolean_get(const Object::Private*);
     void object_boolean_set(Object::Private*, bool);
@@ -145,6 +149,8 @@ extern "C" {
     void object_optional_u64_set_none(Object::Private*);
     void object_string_get(const Object::Private*, QString*, qstring_set);
     void object_string_set(Object::Private*, const ushort *str, int len);
+    void object_string_by_function_get(const Object::Private*, QString*, qstring_set);
+    void object_string_by_function_set(Object::Private*, const ushort *str, int len);
     quint16 object_u16_get(const Object::Private*);
     void object_u16_set(Object::Private*, quint16);
     quint32 object_u32_get(const Object::Private*);
@@ -178,6 +184,7 @@ Object::Object(QObject *parent):
         objectOptionalStringChanged,
         objectOptionalU64Changed,
         objectStringChanged,
+        objectStringByFunctionChanged,
         objectU16Changed,
         objectU32Changed,
         objectU64Changed,
@@ -315,6 +322,15 @@ QString Object::string() const
 }
 void Object::setString(const QString& v) {
     object_string_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
+}
+QString Object::stringByFunction() const
+{
+    QString v;
+    object_string_by_function_get(m_d, &v, set_qstring);
+    return v;
+}
+void Object::setStringByFunction(const QString& v) {
+    object_string_by_function_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());
 }
 quint16 Object::u16() const
 {

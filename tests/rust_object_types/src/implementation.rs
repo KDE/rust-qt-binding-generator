@@ -22,6 +22,7 @@ pub struct Object {
     optional_bytearray: Option<Vec<u8>>,
     string: String,
     optional_string: Option<String>,
+    string_by_function: String,
 }
 
 impl ObjectTrait for Object {
@@ -44,7 +45,8 @@ impl ObjectTrait for Object {
             bytearray: Vec::new(),
             optional_bytearray: None,
             string: String::new(),
-            optional_string: None
+            optional_string: None,
+            string_by_function: String::new()
         }
     }
     fn emit(&self) -> &ObjectEmitter {
@@ -178,6 +180,13 @@ impl ObjectTrait for Object {
     fn set_string(&mut self, value: String) {
         self.string = value;
         self.emit.string_changed();
+    }
+    fn string_by_function<F>(&self, getter: F) where F: FnOnce(&str) {
+        getter(&self.string_by_function)
+    }
+    fn set_string_by_function(&mut self, value: String) {
+        self.string_by_function = value;
+        self.emit.string_by_function_changed();
     }
 }
 

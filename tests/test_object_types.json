@@ -80,6 +80,11 @@
                     "type": "QByteArray",
                     "write": true,
                     "optional": true
+                },
+                "stringByFunction": {
+                    "type": "QString",
+                    "write": true,
+                    "rustByFunction": true
                 }
             }
         }

@@ -24,6 +24,7 @@ private slots:
     void testOptionalString();
     void testByteArray();
     void testOptionalByteArray();
+    void testStringByFunction();
 };
 
 template <typename V, typename Set, typename Get, typename Changed>
@@ -206,6 +207,18 @@ void TestRustObjectTypes::testString()
         &Object::string, &Object::stringChanged);
     testSetter(QString("$𐐷𤭢"), &Object::setString,
         &Object::string, &Object::stringChanged);
+}
+
+void TestRustObjectTypes::testStringByFunction()
+{
+    testSetter(QString(), &Object::setStringByFunction,
+        &Object::stringByFunction, &Object::stringByFunctionChanged);
+    testSetter(QString(""), &Object::setStringByFunction,
+        &Object::stringByFunction, &Object::stringByFunctionChanged);
+    testSetter(QString("Konqi"), &Object::setStringByFunction,
+        &Object::stringByFunction, &Object::stringByFunctionChanged);
+    testSetter(QString("$𐐷𤭢"), &Object::setStringByFunction,
+        &Object::stringByFunction, &Object::stringByFunctionChanged);
 }
 
 void TestRustObjectTypes::testOptionalString()

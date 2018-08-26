@@ -28,6 +28,7 @@ private:
     Q_PROPERTY(QString optionalString READ optionalString WRITE setOptionalString NOTIFY optionalStringChanged FINAL)
     Q_PROPERTY(QVariant optionalU64 READ optionalU64 WRITE setOptionalU64 NOTIFY optionalU64Changed FINAL)
     Q_PROPERTY(QString string READ string WRITE setString NOTIFY stringChanged FINAL)
+    Q_PROPERTY(QString stringByFunction READ stringByFunction WRITE setStringByFunction NOTIFY stringByFunctionChanged FINAL)
     Q_PROPERTY(quint16 u16 READ u16 WRITE setU16 NOTIFY u16Changed FINAL)
     Q_PROPERTY(quint32 u32 READ u32 WRITE setU32 NOTIFY u32Changed FINAL)
     Q_PROPERTY(quint64 u64 READ u64 WRITE setU64 NOTIFY u64Changed FINAL)
@@ -62,6 +63,8 @@ public:
     void setOptionalU64(const QVariant& v);
     QString string() const;
     void setString(const QString& v);
+    QString stringByFunction() const;
+    void setStringByFunction(const QString& v);
     quint16 u16() const;
     void setU16(quint16 v);
     quint32 u32() const;
@@ -84,6 +87,7 @@ signals:
     void optionalStringChanged();
     void optionalU64Changed();
     void stringChanged();
+    void stringByFunctionChanged();
     void u16Changed();
     void u32Changed();
     void u64Changed();

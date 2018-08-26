@@ -87,6 +87,7 @@ pub struct ObjectEmitter {
     optional_string_changed: fn(*const ObjectQObject),
     optional_u64_changed: fn(*const ObjectQObject),
     string_changed: fn(*const ObjectQObject),
+    string_by_function_changed: fn(*const ObjectQObject),
     u16_changed: fn(*const ObjectQObject),
     u32_changed: fn(*const ObjectQObject),
     u64_changed: fn(*const ObjectQObject),
@@ -177,6 +178,12 @@ impl ObjectEmitter {
             (self.string_changed)(ptr);
         }
     }
+    pub fn string_by_function_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.string_by_function_changed)(ptr);
+        }
+    }
     pub fn u16_changed(&self) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
@@ -232,6 +239,7 @@ pub trait ObjectTrait {
     fn set_optional_u64(&mut self, value: Option<u64>);
     fn string(&self) -> &str;
     fn set_string(&mut self, value: String);
+    fn string_by_function<F>(&self, getter: F) where F: FnOnce(&str);    fn set_string_by_function(&mut self, value: String);
     fn u16(&self) -> u16;
     fn set_u16(&mut self, value: u16);
     fn u32(&self) -> u32;
@@ -258,6 +266,7 @@ pub extern "C" fn object_new(
     object_optional_string_changed: fn(*const ObjectQObject),
     object_optional_u64_changed: fn(*const ObjectQObject),
     object_string_changed: fn(*const ObjectQObject),
+    object_string_by_function_changed: fn(*const ObjectQObject),
     object_u16_changed: fn(*const ObjectQObject),
     object_u32_changed: fn(*const ObjectQObject),
     object_u64_changed: fn(*const ObjectQObject),
@@ -278,6 +287,7 @@ pub extern "C" fn object_new(
         optional_string_changed: object_optional_string_changed,
         optional_u64_changed: object_optional_u64_changed,
         string_changed: object_string_changed,
+        string_by_function_changed: object_string_by_function_changed,
         u16_changed: object_u16_changed,
         u32_changed: object_u32_changed,
         u64_changed: object_u64_changed,
@@ -492,6 +502,27 @@ pub extern "C" fn object_string_set(ptr: *mut Object, v: *const c_ushort, len: c
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_string(s);
+}
+
+#[no_mangle]
+pub extern "C" fn object_string_by_function_get(
+    ptr: *const Object,
+    p: *mut QString,
+    set: fn(*mut QString, *const c_char, c_int),
+) {
+    let o = unsafe { &*ptr };
+    o.string_by_function(|v| {
+        let s: *const c_char = v.as_ptr() as (*const c_char);
+        set(p, s, to_c_int(v.len()));
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn object_string_by_function_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
+    let o = unsafe { &mut *ptr };
+    let mut s = String::new();
+    set_string_from_utf16(&mut s, v, len);
+    o.set_string_by_function(s);
 }
 
 #[no_mangle]

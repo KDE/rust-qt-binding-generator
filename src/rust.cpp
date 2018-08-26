@@ -331,7 +331,11 @@ pub trait %1Trait {
             r << QString("    fn %1(&self) -> &%2;\n").arg(lc, rustType(p));
             r << QString("    fn %1_mut(&mut self) -> &mut %2;\n").arg(lc, rustType(p));
         } else {
-            r << QString("    fn %1(&self) -> %2;\n").arg(lc, rustReturnType(p));
+            if (p.rustByFunction) {
+                r << QString("    fn %1<F>(&self, getter: F) where F: FnOnce(%2);").arg(lc, rustReturnType(p));
+            } else {
+                r << QString("    fn %1(&self) -> %2;\n").arg(lc, rustReturnType(p));
+            }
             if (p.write) {
                 if (p.type.name == "QByteArray") {
                     if (p.optional) {
@@ -428,7 +432,23 @@ pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
 )").arg(o.name, base, snakeCase(p.name), rustType(p));
 
         } else if (p.type.isComplex() && !p.optional) {
-            r << QString(R"(
+            if (p.rustByFunction) {
+                r << QString(R"(
+#[no_mangle]
+pub extern "C" fn %2_get(
+    ptr: *const %1,
+    p: *mut %4,
+    set: fn(*mut %4, *const c_char, c_int),
+) {
+    let o = unsafe { &*ptr };
+    o.%3(|v| {
+        let s: *const c_char = v.as_ptr() as (*const c_char);
+        set(p, s, to_c_int(v.len()));
+    });
+}
+)").arg(o.name, base, snakeCase(p.name), p.type.name);
+            } else {
+                r << QString(R"(
 #[no_mangle]
 pub extern "C" fn %2_get(
     ptr: *const %1,
@@ -441,6 +461,7 @@ pub extern "C" fn %2_get(
     set(p, s, to_c_int(v.len()));
 }
 )").arg(o.name, base, snakeCase(p.name), p.type.name);
+            }
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]

@@ -76,6 +76,7 @@ struct Property {
     bool write;
     bool optional;
     bool rustByValue;
+    bool rustByFunction;
 };
 
 struct Argument {
