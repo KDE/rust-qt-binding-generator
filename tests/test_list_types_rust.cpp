@@ -626,6 +626,8 @@ extern "C" {
         void (*)(List*),
         void (*)(List*, int, int),
         void (*)(List*),
+        void (*)(List*, int, int, int),
+        void (*)(List*),
         void (*)(List*, int, int),
         void (*)(List*));
     void list_free(List::Private*);
@@ -660,6 +662,12 @@ List::List(QObject *parent):
         },
         [](List* o) {
             o->endInsertRows();
+        },
+        [](List* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](List* o) {
+            o->endMoveRows();
         },
         [](List* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);

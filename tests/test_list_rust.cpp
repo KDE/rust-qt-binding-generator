@@ -213,6 +213,8 @@ extern "C" {
         void (*)(NoRole*),
         void (*)(NoRole*, int, int),
         void (*)(NoRole*),
+        void (*)(NoRole*, int, int, int),
+        void (*)(NoRole*),
         void (*)(NoRole*, int, int),
         void (*)(NoRole*));
     void no_role_free(NoRole::Private*);
@@ -378,6 +380,8 @@ extern "C" {
         void (*)(Persons*),
         void (*)(Persons*, int, int),
         void (*)(Persons*),
+        void (*)(Persons*, int, int, int),
+        void (*)(Persons*),
         void (*)(Persons*, int, int),
         void (*)(Persons*));
     void persons_free(Persons::Private*);
@@ -412,6 +416,12 @@ NoRole::NoRole(QObject *parent):
         },
         [](NoRole* o) {
             o->endInsertRows();
+        },
+        [](NoRole* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](NoRole* o) {
+            o->endMoveRows();
         },
         [](NoRole* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);
@@ -464,6 +474,12 @@ Persons::Persons(QObject *parent):
         },
         [](Persons* o) {
             o->endInsertRows();
+        },
+        [](Persons* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](Persons* o) {
+            o->endMoveRows();
         },
         [](Persons* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);

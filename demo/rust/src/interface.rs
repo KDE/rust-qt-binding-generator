@@ -142,6 +142,8 @@ pub extern "C" fn demo_new(
     fibonacci_list_end_reset_model: fn(*const FibonacciListQObject),
     fibonacci_list_begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_end_insert_rows: fn(*const FibonacciListQObject),
+    fibonacci_list_begin_move_rows: fn(*const FibonacciListQObject, usize, usize, usize),
+    fibonacci_list_end_move_rows: fn(*const FibonacciListQObject),
     fibonacci_list_begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_end_remove_rows: fn(*const FibonacciListQObject),
     file_system_tree: *mut FileSystemTreeQObject,
@@ -152,6 +154,8 @@ pub extern "C" fn demo_new(
     file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
     file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_insert_rows: fn(*const FileSystemTreeQObject),
+    file_system_tree_begin_move_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    file_system_tree_end_move_rows: fn(*const FileSystemTreeQObject),
     file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
     processes: *mut ProcessesQObject,
@@ -162,6 +166,8 @@ pub extern "C" fn demo_new(
     processes_end_reset_model: fn(*const ProcessesQObject),
     processes_begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_insert_rows: fn(*const ProcessesQObject),
+    processes_begin_move_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    processes_end_move_rows: fn(*const ProcessesQObject),
     processes_begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_remove_rows: fn(*const ProcessesQObject),
     time_series: *mut TimeSeriesQObject,
@@ -171,6 +177,8 @@ pub extern "C" fn demo_new(
     time_series_end_reset_model: fn(*const TimeSeriesQObject),
     time_series_begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
     time_series_end_insert_rows: fn(*const TimeSeriesQObject),
+    time_series_begin_move_rows: fn(*const TimeSeriesQObject, usize, usize, usize),
+    time_series_end_move_rows: fn(*const TimeSeriesQObject),
     time_series_begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
     time_series_end_remove_rows: fn(*const TimeSeriesQObject),
 ) -> *mut Demo {
@@ -191,6 +199,8 @@ pub extern "C" fn demo_new(
         end_reset_model: fibonacci_list_end_reset_model,
         begin_insert_rows: fibonacci_list_begin_insert_rows,
         end_insert_rows: fibonacci_list_end_insert_rows,
+        begin_move_rows: fibonacci_list_begin_move_rows,
+        end_move_rows: fibonacci_list_end_move_rows,
         begin_remove_rows: fibonacci_list_begin_remove_rows,
         end_remove_rows: fibonacci_list_end_remove_rows,
     };
@@ -207,6 +217,8 @@ pub extern "C" fn demo_new(
         end_reset_model: file_system_tree_end_reset_model,
         begin_insert_rows: file_system_tree_begin_insert_rows,
         end_insert_rows: file_system_tree_end_insert_rows,
+        begin_move_rows: file_system_tree_begin_move_rows,
+        end_move_rows: file_system_tree_end_move_rows,
         begin_remove_rows: file_system_tree_begin_remove_rows,
         end_remove_rows: file_system_tree_end_remove_rows,
     };
@@ -223,6 +235,8 @@ pub extern "C" fn demo_new(
         end_reset_model: processes_end_reset_model,
         begin_insert_rows: processes_begin_insert_rows,
         end_insert_rows: processes_end_insert_rows,
+        begin_move_rows: processes_begin_move_rows,
+        end_move_rows: processes_end_move_rows,
         begin_remove_rows: processes_begin_remove_rows,
         end_remove_rows: processes_end_remove_rows,
     };
@@ -238,6 +252,8 @@ pub extern "C" fn demo_new(
         end_reset_model: time_series_end_reset_model,
         begin_insert_rows: time_series_begin_insert_rows,
         end_insert_rows: time_series_end_insert_rows,
+        begin_move_rows: time_series_begin_move_rows,
+        end_move_rows: time_series_end_move_rows,
         begin_remove_rows: time_series_begin_remove_rows,
         end_remove_rows: time_series_end_remove_rows,
     };
@@ -385,6 +401,8 @@ pub struct FibonacciListList {
     end_reset_model: fn(*const FibonacciListQObject),
     begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
     end_insert_rows: fn(*const FibonacciListQObject),
+    begin_move_rows: fn(*const FibonacciListQObject, usize, usize, usize),
+    end_move_rows: fn(*const FibonacciListQObject),
     begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
     end_remove_rows: fn(*const FibonacciListQObject),
 }
@@ -404,6 +422,12 @@ impl FibonacciListList {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+        (self.begin_move_rows)(self.qobject, first, last, destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
@@ -437,6 +461,8 @@ pub extern "C" fn fibonacci_list_new(
     fibonacci_list_end_reset_model: fn(*const FibonacciListQObject),
     fibonacci_list_begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_end_insert_rows: fn(*const FibonacciListQObject),
+    fibonacci_list_begin_move_rows: fn(*const FibonacciListQObject, usize, usize, usize),
+    fibonacci_list_end_move_rows: fn(*const FibonacciListQObject),
     fibonacci_list_begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_end_remove_rows: fn(*const FibonacciListQObject),
 ) -> *mut FibonacciList {
@@ -451,6 +477,8 @@ pub extern "C" fn fibonacci_list_new(
         end_reset_model: fibonacci_list_end_reset_model,
         begin_insert_rows: fibonacci_list_begin_insert_rows,
         end_insert_rows: fibonacci_list_end_insert_rows,
+        begin_move_rows: fibonacci_list_begin_move_rows,
+        end_move_rows: fibonacci_list_end_move_rows,
         begin_remove_rows: fibonacci_list_begin_remove_rows,
         end_remove_rows: fibonacci_list_end_remove_rows,
     };
@@ -540,6 +568,8 @@ pub struct FileSystemTreeTree {
     end_reset_model: fn(*const FileSystemTreeQObject),
     begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     end_insert_rows: fn(*const FileSystemTreeQObject),
+    begin_move_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: fn(*const FileSystemTreeQObject),
     begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     end_remove_rows: fn(*const FileSystemTreeQObject),
 }
@@ -559,6 +589,12 @@ impl FileSystemTreeTree {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
+        (self.begin_move_rows)(self.qobject, index.into(), first, last, dest.into(), destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, index.into(), first, last);
@@ -600,6 +636,8 @@ pub extern "C" fn file_system_tree_new(
     file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
     file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_insert_rows: fn(*const FileSystemTreeQObject),
+    file_system_tree_begin_move_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    file_system_tree_end_move_rows: fn(*const FileSystemTreeQObject),
     file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
 ) -> *mut FileSystemTree {
@@ -615,6 +653,8 @@ pub extern "C" fn file_system_tree_new(
         end_reset_model: file_system_tree_end_reset_model,
         begin_insert_rows: file_system_tree_begin_insert_rows,
         end_insert_rows: file_system_tree_end_insert_rows,
+        begin_move_rows: file_system_tree_begin_move_rows,
+        end_move_rows: file_system_tree_end_move_rows,
         begin_remove_rows: file_system_tree_begin_remove_rows,
         end_remove_rows: file_system_tree_end_remove_rows,
     };
@@ -800,6 +840,8 @@ pub struct ProcessesTree {
     end_reset_model: fn(*const ProcessesQObject),
     begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     end_insert_rows: fn(*const ProcessesQObject),
+    begin_move_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: fn(*const ProcessesQObject),
     begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     end_remove_rows: fn(*const ProcessesQObject),
 }
@@ -819,6 +861,12 @@ impl ProcessesTree {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
+        (self.begin_move_rows)(self.qobject, index.into(), first, last, dest.into(), destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, index.into(), first, last);
@@ -861,6 +909,8 @@ pub extern "C" fn processes_new(
     processes_end_reset_model: fn(*const ProcessesQObject),
     processes_begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_insert_rows: fn(*const ProcessesQObject),
+    processes_begin_move_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    processes_end_move_rows: fn(*const ProcessesQObject),
     processes_begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_remove_rows: fn(*const ProcessesQObject),
 ) -> *mut Processes {
@@ -876,6 +926,8 @@ pub extern "C" fn processes_new(
         end_reset_model: processes_end_reset_model,
         begin_insert_rows: processes_begin_insert_rows,
         end_insert_rows: processes_end_insert_rows,
+        begin_move_rows: processes_begin_move_rows,
+        end_move_rows: processes_end_move_rows,
         begin_remove_rows: processes_begin_remove_rows,
         end_remove_rows: processes_end_remove_rows,
     };
@@ -1034,6 +1086,8 @@ pub struct TimeSeriesList {
     end_reset_model: fn(*const TimeSeriesQObject),
     begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
     end_insert_rows: fn(*const TimeSeriesQObject),
+    begin_move_rows: fn(*const TimeSeriesQObject, usize, usize, usize),
+    end_move_rows: fn(*const TimeSeriesQObject),
     begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
     end_remove_rows: fn(*const TimeSeriesQObject),
 }
@@ -1053,6 +1107,12 @@ impl TimeSeriesList {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+        (self.begin_move_rows)(self.qobject, first, last, destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
@@ -1090,6 +1150,8 @@ pub extern "C" fn time_series_new(
     time_series_end_reset_model: fn(*const TimeSeriesQObject),
     time_series_begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
     time_series_end_insert_rows: fn(*const TimeSeriesQObject),
+    time_series_begin_move_rows: fn(*const TimeSeriesQObject, usize, usize, usize),
+    time_series_end_move_rows: fn(*const TimeSeriesQObject),
     time_series_begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
     time_series_end_remove_rows: fn(*const TimeSeriesQObject),
 ) -> *mut TimeSeries {
@@ -1104,6 +1166,8 @@ pub extern "C" fn time_series_new(
         end_reset_model: time_series_end_reset_model,
         begin_insert_rows: time_series_begin_insert_rows,
         end_insert_rows: time_series_end_insert_rows,
+        begin_move_rows: time_series_begin_move_rows,
+        end_move_rows: time_series_end_move_rows,
         begin_remove_rows: time_series_begin_remove_rows,
         end_remove_rows: time_series_end_remove_rows,
     };

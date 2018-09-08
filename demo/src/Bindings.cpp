@@ -76,6 +76,8 @@ extern "C" {
         void (*)(FibonacciList*),
         void (*)(FibonacciList*, int, int),
         void (*)(FibonacciList*),
+        void (*)(FibonacciList*, int, int, int),
+        void (*)(FibonacciList*),
         void (*)(FibonacciList*, int, int),
         void (*)(FibonacciList*), FileSystemTree*, void (*)(FileSystemTree*),
         void (*)(const FileSystemTree*, option_quintptr),
@@ -83,6 +85,8 @@ extern "C" {
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, option_quintptr, int, int),
+        void (*)(FileSystemTree*),
+        void (*)(FileSystemTree*, option_quintptr, int, int, option_quintptr, int),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*), Processes*, void (*)(Processes*),
@@ -92,6 +96,8 @@ extern "C" {
         void (*)(Processes*),
         void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*),
+        void (*)(Processes*, option_quintptr, int, int, option_quintptr, int),
+        void (*)(Processes*),
         void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*), TimeSeries*,
         void (*)(const TimeSeries*),
@@ -99,6 +105,8 @@ extern "C" {
         void (*)(TimeSeries*),
         void (*)(TimeSeries*),
         void (*)(TimeSeries*, int, int),
+        void (*)(TimeSeries*),
+        void (*)(TimeSeries*, int, int, int),
         void (*)(TimeSeries*),
         void (*)(TimeSeries*, int, int),
         void (*)(TimeSeries*));
@@ -262,6 +270,8 @@ extern "C" {
         void (*)(FibonacciList*),
         void (*)(FibonacciList*),
         void (*)(FibonacciList*, int, int),
+        void (*)(FibonacciList*),
+        void (*)(FibonacciList*, int, int, int),
         void (*)(FibonacciList*),
         void (*)(FibonacciList*, int, int),
         void (*)(FibonacciList*));
@@ -508,6 +518,8 @@ extern "C" {
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*),
+        void (*)(FileSystemTree*, option_quintptr, int, int, option_quintptr, int),
+        void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*));
     void file_system_tree_free(FileSystemTree::Private*);
@@ -748,6 +760,8 @@ extern "C" {
         void (*)(Processes*),
         void (*)(Processes*),
         void (*)(Processes*, option_quintptr, int, int),
+        void (*)(Processes*),
+        void (*)(Processes*, option_quintptr, int, int, option_quintptr, int),
         void (*)(Processes*),
         void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*));
@@ -1000,6 +1014,8 @@ extern "C" {
         void (*)(TimeSeries*),
         void (*)(TimeSeries*, int, int),
         void (*)(TimeSeries*),
+        void (*)(TimeSeries*, int, int, int),
+        void (*)(TimeSeries*),
         void (*)(TimeSeries*, int, int),
         void (*)(TimeSeries*));
     void time_series_free(TimeSeries::Private*);
@@ -1046,6 +1062,12 @@ Demo::Demo(QObject *parent):
         [](FibonacciList* o) {
             o->endInsertRows();
         },
+        [](FibonacciList* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](FibonacciList* o) {
+            o->endMoveRows();
+        },
         [](FibonacciList* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);
         },
@@ -1084,6 +1106,22 @@ Demo::Demo(QObject *parent):
         },
         [](FileSystemTree* o) {
             o->endInsertRows();
+        },
+        [](FileSystemTree* o, option_quintptr sourceParent, int first, int last, option_quintptr destinationParent, int destination) {
+            QModelIndex s;
+            if (sourceParent.some) {
+                int row = file_system_tree_row(o->m_d, sourceParent.value);
+                s = o->createIndex(row, 0, sourceParent.value);
+            }
+            QModelIndex d;
+            if (destinationParent.some) {
+                int row = file_system_tree_row(o->m_d, destinationParent.value);
+                d = o->createIndex(row, 0, destinationParent.value);
+            }
+            o->beginMoveRows(s, first, last, d, destination);
+        },
+        [](FileSystemTree* o) {
+            o->endMoveRows();
         },
         [](FileSystemTree* o, option_quintptr id, int first, int last) {
             if (id.some) {
@@ -1129,6 +1167,22 @@ Demo::Demo(QObject *parent):
         [](Processes* o) {
             o->endInsertRows();
         },
+        [](Processes* o, option_quintptr sourceParent, int first, int last, option_quintptr destinationParent, int destination) {
+            QModelIndex s;
+            if (sourceParent.some) {
+                int row = processes_row(o->m_d, sourceParent.value);
+                s = o->createIndex(row, 0, sourceParent.value);
+            }
+            QModelIndex d;
+            if (destinationParent.some) {
+                int row = processes_row(o->m_d, destinationParent.value);
+                d = o->createIndex(row, 0, destinationParent.value);
+            }
+            o->beginMoveRows(s, first, last, d, destination);
+        },
+        [](Processes* o) {
+            o->endMoveRows();
+        },
         [](Processes* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
@@ -1159,6 +1213,12 @@ Demo::Demo(QObject *parent):
         },
         [](TimeSeries* o) {
             o->endInsertRows();
+        },
+        [](TimeSeries* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](TimeSeries* o) {
+            o->endMoveRows();
         },
         [](TimeSeries* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);
@@ -1295,6 +1355,12 @@ FibonacciList::FibonacciList(QObject *parent):
         [](FibonacciList* o) {
             o->endInsertRows();
         },
+        [](FibonacciList* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](FibonacciList* o) {
+            o->endMoveRows();
+        },
         [](FibonacciList* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);
         },
@@ -1361,6 +1427,22 @@ FileSystemTree::FileSystemTree(QObject *parent):
         },
         [](FileSystemTree* o) {
             o->endInsertRows();
+        },
+        [](FileSystemTree* o, option_quintptr sourceParent, int first, int last, option_quintptr destinationParent, int destination) {
+            QModelIndex s;
+            if (sourceParent.some) {
+                int row = file_system_tree_row(o->m_d, sourceParent.value);
+                s = o->createIndex(row, 0, sourceParent.value);
+            }
+            QModelIndex d;
+            if (destinationParent.some) {
+                int row = file_system_tree_row(o->m_d, destinationParent.value);
+                d = o->createIndex(row, 0, destinationParent.value);
+            }
+            o->beginMoveRows(s, first, last, d, destination);
+        },
+        [](FileSystemTree* o) {
+            o->endMoveRows();
         },
         [](FileSystemTree* o, option_quintptr id, int first, int last) {
             if (id.some) {
@@ -1450,6 +1532,22 @@ Processes::Processes(QObject *parent):
         [](Processes* o) {
             o->endInsertRows();
         },
+        [](Processes* o, option_quintptr sourceParent, int first, int last, option_quintptr destinationParent, int destination) {
+            QModelIndex s;
+            if (sourceParent.some) {
+                int row = processes_row(o->m_d, sourceParent.value);
+                s = o->createIndex(row, 0, sourceParent.value);
+            }
+            QModelIndex d;
+            if (destinationParent.some) {
+                int row = processes_row(o->m_d, destinationParent.value);
+                d = o->createIndex(row, 0, destinationParent.value);
+            }
+            o->beginMoveRows(s, first, last, d, destination);
+        },
+        [](Processes* o) {
+            o->endMoveRows();
+        },
         [](Processes* o, option_quintptr id, int first, int last) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
@@ -1516,6 +1614,12 @@ TimeSeries::TimeSeries(QObject *parent):
         },
         [](TimeSeries* o) {
             o->endInsertRows();
+        },
+        [](TimeSeries* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](TimeSeries* o) {
+            o->endMoveRows();
         },
         [](TimeSeries* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);

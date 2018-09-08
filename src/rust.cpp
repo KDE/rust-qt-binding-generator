@@ -90,15 +90,21 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
         if (o.type == ObjectType::Tree) {
             indexDecl = " index: COption<usize>,";
         }
+        QString destDecl;
+        if (o.type == ObjectType::Tree) {
+            destDecl = " index: COption<usize>,";
+        }
         r << QString(R"(,
     %3_data_changed: fn(*const %1QObject, usize, usize),
     %3_begin_reset_model: fn(*const %1QObject),
     %3_end_reset_model: fn(*const %1QObject),
     %3_begin_insert_rows: fn(*const %1QObject,%2 usize, usize),
     %3_end_insert_rows: fn(*const %1QObject),
+    %3_begin_move_rows: fn(*const %1QObject,%2 usize, usize,%4 usize),
+    %3_end_move_rows: fn(*const %1QObject),
     %3_begin_remove_rows: fn(*const %1QObject,%2 usize, usize),
     %3_end_remove_rows: fn(*const %1QObject))").arg(o.name, indexDecl,
-          snakeCase(name));
+          snakeCase(name), destDecl);
     }
 }
 
@@ -132,6 +138,8 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
         end_reset_model: %4_end_reset_model,
         begin_insert_rows: %4_begin_insert_rows,
         end_insert_rows: %4_end_insert_rows,
+        begin_move_rows: %4_begin_move_rows,
+        end_move_rows: %4_end_move_rows,
         begin_remove_rows: %4_begin_remove_rows,
         end_remove_rows: %4_end_remove_rows,
 )").arg(o.name, type, snakeCase(name), snakeCase(name));
@@ -270,10 +278,16 @@ impl %1Emitter {
         QString index;
         QString indexDecl;
         QString indexCDecl;
+        QString dest;
+        QString destDecl;
+        QString destCDecl;
         if (o.type == ObjectType::Tree) {
             indexDecl = " index: Option<usize>,";
             indexCDecl = " index: COption<usize>,";
             index = " index.into(),";
+            destDecl = " dest: Option<usize>,";
+            destCDecl = " dest: COption<usize>,";
+            dest = " dest.into(),";
         }
         r << QString(R"(}
 
@@ -284,6 +298,8 @@ pub struct %1%2 {
     end_reset_model: fn(*const %1QObject),
     begin_insert_rows: fn(*const %1QObject,%5 usize, usize),
     end_insert_rows: fn(*const %1QObject),
+    begin_move_rows: fn(*const %1QObject,%5 usize, usize,%8 usize),
+    end_move_rows: fn(*const %1QObject),
     begin_remove_rows: fn(*const %1QObject,%5 usize, usize),
     end_remove_rows: fn(*const %1QObject),
 }
@@ -304,13 +320,19 @@ impl %1%2 {
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
     }
+    pub fn begin_move_rows(&self,%3 first: usize, last: usize,%6 destination: usize) {
+        (self.begin_move_rows)(self.qobject,%4 first, last,%7 destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
+    }
     pub fn begin_remove_rows(&self,%3 first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject,%4 first, last);
     }
     pub fn end_remove_rows(&self) {
         (self.end_remove_rows)(self.qobject);
     }
-)").arg(o.name, type, indexDecl, index, indexCDecl);
+)").arg(o.name, type, indexDecl, index, indexCDecl, destDecl, dest, destCDecl);
     }
 
     r << QString(R"(}

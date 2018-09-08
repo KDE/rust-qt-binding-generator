@@ -123,6 +123,8 @@ pub struct ListList {
     end_reset_model: fn(*const ListQObject),
     begin_insert_rows: fn(*const ListQObject, usize, usize),
     end_insert_rows: fn(*const ListQObject),
+    begin_move_rows: fn(*const ListQObject, usize, usize, usize),
+    end_move_rows: fn(*const ListQObject),
     begin_remove_rows: fn(*const ListQObject, usize, usize),
     end_remove_rows: fn(*const ListQObject),
 }
@@ -142,6 +144,12 @@ impl ListList {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+        (self.begin_move_rows)(self.qobject, first, last, destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
@@ -205,6 +213,8 @@ pub extern "C" fn list_new(
     list_end_reset_model: fn(*const ListQObject),
     list_begin_insert_rows: fn(*const ListQObject, usize, usize),
     list_end_insert_rows: fn(*const ListQObject),
+    list_begin_move_rows: fn(*const ListQObject, usize, usize, usize),
+    list_end_move_rows: fn(*const ListQObject),
     list_begin_remove_rows: fn(*const ListQObject, usize, usize),
     list_end_remove_rows: fn(*const ListQObject),
 ) -> *mut List {
@@ -219,6 +229,8 @@ pub extern "C" fn list_new(
         end_reset_model: list_end_reset_model,
         begin_insert_rows: list_begin_insert_rows,
         end_insert_rows: list_end_insert_rows,
+        begin_move_rows: list_begin_move_rows,
+        end_move_rows: list_end_move_rows,
         begin_remove_rows: list_begin_remove_rows,
         end_remove_rows: list_end_remove_rows,
     };

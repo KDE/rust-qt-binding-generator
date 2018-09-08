@@ -120,6 +120,8 @@ pub struct PersonsTree {
     end_reset_model: fn(*const PersonsQObject),
     begin_insert_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
     end_insert_rows: fn(*const PersonsQObject),
+    begin_move_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: fn(*const PersonsQObject),
     begin_remove_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
     end_remove_rows: fn(*const PersonsQObject),
 }
@@ -139,6 +141,12 @@ impl PersonsTree {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
+        (self.begin_move_rows)(self.qobject, index.into(), first, last, dest.into(), destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, index.into(), first, last);
@@ -173,6 +181,8 @@ pub extern "C" fn persons_new(
     persons_end_reset_model: fn(*const PersonsQObject),
     persons_begin_insert_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
     persons_end_insert_rows: fn(*const PersonsQObject),
+    persons_begin_move_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    persons_end_move_rows: fn(*const PersonsQObject),
     persons_begin_remove_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
     persons_end_remove_rows: fn(*const PersonsQObject),
 ) -> *mut Persons {
@@ -187,6 +197,8 @@ pub extern "C" fn persons_new(
         end_reset_model: persons_end_reset_model,
         begin_insert_rows: persons_begin_insert_rows,
         end_insert_rows: persons_end_insert_rows,
+        begin_move_rows: persons_begin_move_rows,
+        end_move_rows: persons_end_move_rows,
         begin_remove_rows: persons_begin_remove_rows,
         end_remove_rows: persons_end_remove_rows,
     };

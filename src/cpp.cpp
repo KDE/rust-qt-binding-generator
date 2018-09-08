@@ -643,6 +643,8 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
         void (*)(%1*),
         void (*)(%1*, int, int),
         void (*)(%1*),
+        void (*)(%1*, int, int, int),
+        void (*)(%1*),
         void (*)(%1*, int, int),
         void (*)(%1*))").arg(o.name);
     }
@@ -653,6 +655,8 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
         void (*)(%1*),
         void (*)(%1*),
         void (*)(%1*, option_quintptr, int, int),
+        void (*)(%1*),
+        void (*)(%1*, option_quintptr, int, int, option_quintptr, int),
         void (*)(%1*),
         void (*)(%1*, option_quintptr, int, int),
         void (*)(%1*))").arg(o.name);
@@ -695,6 +699,12 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](%1* o) {
             o->endInsertRows();
         },
+        [](%1* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](%1* o) {
+            o->endMoveRows();
+        },
         [](%1* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);
         },
@@ -735,6 +745,22 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         },
         [](%1* o) {
             o->endInsertRows();
+        },
+        [](%1* o, option_quintptr sourceParent, int first, int last, option_quintptr destinationParent, int destination) {
+            QModelIndex s;
+            if (sourceParent.some) {
+                int row = %2_row(o->m_d, sourceParent.value);
+                s = o->createIndex(row, 0, sourceParent.value);
+            }
+            QModelIndex d;
+            if (destinationParent.some) {
+                int row = %2_row(o->m_d, destinationParent.value);
+                d = o->createIndex(row, 0, destinationParent.value);
+            }
+            o->beginMoveRows(s, first, last, d, destination);
+        },
+        [](%1* o) {
+            o->endMoveRows();
         },
         [](%1* o, option_quintptr id, int first, int last) {
             if (id.some) {

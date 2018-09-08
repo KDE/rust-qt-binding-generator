@@ -220,6 +220,8 @@ extern "C" {
         void (*)(Persons*),
         void (*)(Persons*, option_quintptr, int, int),
         void (*)(Persons*),
+        void (*)(Persons*, option_quintptr, int, int, option_quintptr, int),
+        void (*)(Persons*),
         void (*)(Persons*, option_quintptr, int, int),
         void (*)(Persons*));
     void persons_free(Persons::Private*);
@@ -266,6 +268,22 @@ Persons::Persons(QObject *parent):
         },
         [](Persons* o) {
             o->endInsertRows();
+        },
+        [](Persons* o, option_quintptr sourceParent, int first, int last, option_quintptr destinationParent, int destination) {
+            QModelIndex s;
+            if (sourceParent.some) {
+                int row = persons_row(o->m_d, sourceParent.value);
+                s = o->createIndex(row, 0, sourceParent.value);
+            }
+            QModelIndex d;
+            if (destinationParent.some) {
+                int row = persons_row(o->m_d, destinationParent.value);
+                d = o->createIndex(row, 0, destinationParent.value);
+            }
+            o->beginMoveRows(s, first, last, d, destination);
+        },
+        [](Persons* o) {
+            o->endMoveRows();
         },
         [](Persons* o, option_quintptr id, int first, int last) {
             if (id.some) {

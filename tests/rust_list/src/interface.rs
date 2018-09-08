@@ -120,6 +120,8 @@ pub struct NoRoleList {
     end_reset_model: fn(*const NoRoleQObject),
     begin_insert_rows: fn(*const NoRoleQObject, usize, usize),
     end_insert_rows: fn(*const NoRoleQObject),
+    begin_move_rows: fn(*const NoRoleQObject, usize, usize, usize),
+    end_move_rows: fn(*const NoRoleQObject),
     begin_remove_rows: fn(*const NoRoleQObject, usize, usize),
     end_remove_rows: fn(*const NoRoleQObject),
 }
@@ -139,6 +141,12 @@ impl NoRoleList {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+        (self.begin_move_rows)(self.qobject, first, last, destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
@@ -174,6 +182,8 @@ pub extern "C" fn no_role_new(
     no_role_end_reset_model: fn(*const NoRoleQObject),
     no_role_begin_insert_rows: fn(*const NoRoleQObject, usize, usize),
     no_role_end_insert_rows: fn(*const NoRoleQObject),
+    no_role_begin_move_rows: fn(*const NoRoleQObject, usize, usize, usize),
+    no_role_end_move_rows: fn(*const NoRoleQObject),
     no_role_begin_remove_rows: fn(*const NoRoleQObject, usize, usize),
     no_role_end_remove_rows: fn(*const NoRoleQObject),
 ) -> *mut NoRole {
@@ -188,6 +198,8 @@ pub extern "C" fn no_role_new(
         end_reset_model: no_role_end_reset_model,
         begin_insert_rows: no_role_begin_insert_rows,
         end_insert_rows: no_role_end_insert_rows,
+        begin_move_rows: no_role_begin_move_rows,
+        end_move_rows: no_role_end_move_rows,
         begin_remove_rows: no_role_begin_remove_rows,
         end_remove_rows: no_role_end_remove_rows,
     };
@@ -295,6 +307,8 @@ pub struct PersonsList {
     end_reset_model: fn(*const PersonsQObject),
     begin_insert_rows: fn(*const PersonsQObject, usize, usize),
     end_insert_rows: fn(*const PersonsQObject),
+    begin_move_rows: fn(*const PersonsQObject, usize, usize, usize),
+    end_move_rows: fn(*const PersonsQObject),
     begin_remove_rows: fn(*const PersonsQObject, usize, usize),
     end_remove_rows: fn(*const PersonsQObject),
 }
@@ -314,6 +328,12 @@ impl PersonsList {
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
+    }
+    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+        (self.begin_move_rows)(self.qobject, first, last, destination);
+    }
+    pub fn end_move_rows(&self) {
+        (self.end_move_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
@@ -347,6 +367,8 @@ pub extern "C" fn persons_new(
     persons_end_reset_model: fn(*const PersonsQObject),
     persons_begin_insert_rows: fn(*const PersonsQObject, usize, usize),
     persons_end_insert_rows: fn(*const PersonsQObject),
+    persons_begin_move_rows: fn(*const PersonsQObject, usize, usize, usize),
+    persons_end_move_rows: fn(*const PersonsQObject),
     persons_begin_remove_rows: fn(*const PersonsQObject, usize, usize),
     persons_end_remove_rows: fn(*const PersonsQObject),
 ) -> *mut Persons {
@@ -361,6 +383,8 @@ pub extern "C" fn persons_new(
         end_reset_model: persons_end_reset_model,
         begin_insert_rows: persons_begin_insert_rows,
         end_insert_rows: persons_end_insert_rows,
+        begin_move_rows: persons_begin_move_rows,
+        end_move_rows: persons_end_move_rows,
         begin_remove_rows: persons_begin_remove_rows,
         end_remove_rows: persons_end_remove_rows,
     };
