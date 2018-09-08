@@ -95,6 +95,8 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
             destDecl = " index: COption<usize>,";
         }
         r << QString(R"(,
+    %3_layout_about_to_be_changed: fn(*const %1QObject),
+    %3_layout_changed: fn(*const %1QObject),
     %3_data_changed: fn(*const %1QObject, usize, usize),
     %3_begin_reset_model: fn(*const %1QObject),
     %3_end_reset_model: fn(*const %1QObject),
@@ -133,6 +135,8 @@ void rConstructorArgs(QTextStream& r, const QString& name, const Object& o, cons
         r << QString(R"(    };
     let model = %1%2 {
         qobject: %3,
+        layout_about_to_be_changed: %4_layout_about_to_be_changed,
+        layout_changed: %4_layout_changed,
         data_changed: %4_data_changed,
         begin_reset_model: %4_begin_reset_model,
         end_reset_model: %4_end_reset_model,
@@ -293,6 +297,8 @@ impl %1Emitter {
 
 pub struct %1%2 {
     qobject: *const %1QObject,
+    layout_about_to_be_changed: fn(*const %1QObject),
+    layout_changed: fn(*const %1QObject),
     data_changed: fn(*const %1QObject, usize, usize),
     begin_reset_model: fn(*const %1QObject),
     end_reset_model: fn(*const %1QObject),
@@ -305,6 +311,12 @@ pub struct %1%2 {
 }
 
 impl %1%2 {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }

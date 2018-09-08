@@ -621,6 +621,8 @@ bool List::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     List::Private* list_new(List*,
         void (*)(const List*),
+        void (*)(List*),
+        void (*)(List*),
         void (*)(List*, quintptr, quintptr),
         void (*)(List*),
         void (*)(List*),
@@ -646,6 +648,12 @@ List::List(QObject *parent):
     m_d(list_new(this,
         [](const List* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](List* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](List* o) {
+            emit o->layoutChanged();
         },
         [](List* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),

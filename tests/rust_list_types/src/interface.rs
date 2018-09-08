@@ -118,6 +118,8 @@ impl ListEmitter {
 
 pub struct ListList {
     qobject: *const ListQObject,
+    layout_about_to_be_changed: fn(*const ListQObject),
+    layout_changed: fn(*const ListQObject),
     data_changed: fn(*const ListQObject, usize, usize),
     begin_reset_model: fn(*const ListQObject),
     end_reset_model: fn(*const ListQObject),
@@ -130,6 +132,12 @@ pub struct ListList {
 }
 
 impl ListList {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -208,6 +216,8 @@ pub trait ListTrait {
 pub extern "C" fn list_new(
     list: *mut ListQObject,
     list_new_data_ready: fn(*const ListQObject),
+    list_layout_about_to_be_changed: fn(*const ListQObject),
+    list_layout_changed: fn(*const ListQObject),
     list_data_changed: fn(*const ListQObject, usize, usize),
     list_begin_reset_model: fn(*const ListQObject),
     list_end_reset_model: fn(*const ListQObject),
@@ -224,6 +234,8 @@ pub extern "C" fn list_new(
     };
     let model = ListList {
         qobject: list,
+        layout_about_to_be_changed: list_layout_about_to_be_changed,
+        layout_changed: list_layout_changed,
         data_changed: list_data_changed,
         begin_reset_model: list_begin_reset_model,
         end_reset_model: list_end_reset_model,

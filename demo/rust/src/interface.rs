@@ -137,6 +137,8 @@ pub extern "C" fn demo_new(
     fibonacci_result_changed: fn(*const FibonacciQObject),
     fibonacci_list: *mut FibonacciListQObject,
     fibonacci_list_new_data_ready: fn(*const FibonacciListQObject),
+    fibonacci_list_layout_about_to_be_changed: fn(*const FibonacciListQObject),
+    fibonacci_list_layout_changed: fn(*const FibonacciListQObject),
     fibonacci_list_data_changed: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_begin_reset_model: fn(*const FibonacciListQObject),
     fibonacci_list_end_reset_model: fn(*const FibonacciListQObject),
@@ -149,6 +151,8 @@ pub extern "C" fn demo_new(
     file_system_tree: *mut FileSystemTreeQObject,
     file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
     file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
+    file_system_tree_layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
+    file_system_tree_layout_changed: fn(*const FileSystemTreeQObject),
     file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
     file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
@@ -161,6 +165,8 @@ pub extern "C" fn demo_new(
     processes: *mut ProcessesQObject,
     processes_active_changed: fn(*const ProcessesQObject),
     processes_new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
+    processes_layout_about_to_be_changed: fn(*const ProcessesQObject),
+    processes_layout_changed: fn(*const ProcessesQObject),
     processes_data_changed: fn(*const ProcessesQObject, usize, usize),
     processes_begin_reset_model: fn(*const ProcessesQObject),
     processes_end_reset_model: fn(*const ProcessesQObject),
@@ -172,6 +178,8 @@ pub extern "C" fn demo_new(
     processes_end_remove_rows: fn(*const ProcessesQObject),
     time_series: *mut TimeSeriesQObject,
     time_series_new_data_ready: fn(*const TimeSeriesQObject),
+    time_series_layout_about_to_be_changed: fn(*const TimeSeriesQObject),
+    time_series_layout_changed: fn(*const TimeSeriesQObject),
     time_series_data_changed: fn(*const TimeSeriesQObject, usize, usize),
     time_series_begin_reset_model: fn(*const TimeSeriesQObject),
     time_series_end_reset_model: fn(*const TimeSeriesQObject),
@@ -194,6 +202,8 @@ pub extern "C" fn demo_new(
     };
     let model = FibonacciListList {
         qobject: fibonacci_list,
+        layout_about_to_be_changed: fibonacci_list_layout_about_to_be_changed,
+        layout_changed: fibonacci_list_layout_changed,
         data_changed: fibonacci_list_data_changed,
         begin_reset_model: fibonacci_list_begin_reset_model,
         end_reset_model: fibonacci_list_end_reset_model,
@@ -212,6 +222,8 @@ pub extern "C" fn demo_new(
     };
     let model = FileSystemTreeTree {
         qobject: file_system_tree,
+        layout_about_to_be_changed: file_system_tree_layout_about_to_be_changed,
+        layout_changed: file_system_tree_layout_changed,
         data_changed: file_system_tree_data_changed,
         begin_reset_model: file_system_tree_begin_reset_model,
         end_reset_model: file_system_tree_end_reset_model,
@@ -230,6 +242,8 @@ pub extern "C" fn demo_new(
     };
     let model = ProcessesTree {
         qobject: processes,
+        layout_about_to_be_changed: processes_layout_about_to_be_changed,
+        layout_changed: processes_layout_changed,
         data_changed: processes_data_changed,
         begin_reset_model: processes_begin_reset_model,
         end_reset_model: processes_end_reset_model,
@@ -247,6 +261,8 @@ pub extern "C" fn demo_new(
     };
     let model = TimeSeriesList {
         qobject: time_series,
+        layout_about_to_be_changed: time_series_layout_about_to_be_changed,
+        layout_changed: time_series_layout_changed,
         data_changed: time_series_data_changed,
         begin_reset_model: time_series_begin_reset_model,
         end_reset_model: time_series_end_reset_model,
@@ -396,6 +412,8 @@ impl FibonacciListEmitter {
 
 pub struct FibonacciListList {
     qobject: *const FibonacciListQObject,
+    layout_about_to_be_changed: fn(*const FibonacciListQObject),
+    layout_changed: fn(*const FibonacciListQObject),
     data_changed: fn(*const FibonacciListQObject, usize, usize),
     begin_reset_model: fn(*const FibonacciListQObject),
     end_reset_model: fn(*const FibonacciListQObject),
@@ -408,6 +426,12 @@ pub struct FibonacciListList {
 }
 
 impl FibonacciListList {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -456,6 +480,8 @@ pub trait FibonacciListTrait {
 pub extern "C" fn fibonacci_list_new(
     fibonacci_list: *mut FibonacciListQObject,
     fibonacci_list_new_data_ready: fn(*const FibonacciListQObject),
+    fibonacci_list_layout_about_to_be_changed: fn(*const FibonacciListQObject),
+    fibonacci_list_layout_changed: fn(*const FibonacciListQObject),
     fibonacci_list_data_changed: fn(*const FibonacciListQObject, usize, usize),
     fibonacci_list_begin_reset_model: fn(*const FibonacciListQObject),
     fibonacci_list_end_reset_model: fn(*const FibonacciListQObject),
@@ -472,6 +498,8 @@ pub extern "C" fn fibonacci_list_new(
     };
     let model = FibonacciListList {
         qobject: fibonacci_list,
+        layout_about_to_be_changed: fibonacci_list_layout_about_to_be_changed,
+        layout_changed: fibonacci_list_layout_changed,
         data_changed: fibonacci_list_data_changed,
         begin_reset_model: fibonacci_list_begin_reset_model,
         end_reset_model: fibonacci_list_end_reset_model,
@@ -563,6 +591,8 @@ impl FileSystemTreeEmitter {
 
 pub struct FileSystemTreeTree {
     qobject: *const FileSystemTreeQObject,
+    layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
+    layout_changed: fn(*const FileSystemTreeQObject),
     data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     begin_reset_model: fn(*const FileSystemTreeQObject),
     end_reset_model: fn(*const FileSystemTreeQObject),
@@ -575,6 +605,12 @@ pub struct FileSystemTreeTree {
 }
 
 impl FileSystemTreeTree {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -631,6 +667,8 @@ pub extern "C" fn file_system_tree_new(
     file_system_tree: *mut FileSystemTreeQObject,
     file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
     file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
+    file_system_tree_layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
+    file_system_tree_layout_changed: fn(*const FileSystemTreeQObject),
     file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
     file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
@@ -648,6 +686,8 @@ pub extern "C" fn file_system_tree_new(
     };
     let model = FileSystemTreeTree {
         qobject: file_system_tree,
+        layout_about_to_be_changed: file_system_tree_layout_about_to_be_changed,
+        layout_changed: file_system_tree_layout_changed,
         data_changed: file_system_tree_data_changed,
         begin_reset_model: file_system_tree_begin_reset_model,
         end_reset_model: file_system_tree_end_reset_model,
@@ -835,6 +875,8 @@ impl ProcessesEmitter {
 
 pub struct ProcessesTree {
     qobject: *const ProcessesQObject,
+    layout_about_to_be_changed: fn(*const ProcessesQObject),
+    layout_changed: fn(*const ProcessesQObject),
     data_changed: fn(*const ProcessesQObject, usize, usize),
     begin_reset_model: fn(*const ProcessesQObject),
     end_reset_model: fn(*const ProcessesQObject),
@@ -847,6 +889,12 @@ pub struct ProcessesTree {
 }
 
 impl ProcessesTree {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -904,6 +952,8 @@ pub extern "C" fn processes_new(
     processes: *mut ProcessesQObject,
     processes_active_changed: fn(*const ProcessesQObject),
     processes_new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
+    processes_layout_about_to_be_changed: fn(*const ProcessesQObject),
+    processes_layout_changed: fn(*const ProcessesQObject),
     processes_data_changed: fn(*const ProcessesQObject, usize, usize),
     processes_begin_reset_model: fn(*const ProcessesQObject),
     processes_end_reset_model: fn(*const ProcessesQObject),
@@ -921,6 +971,8 @@ pub extern "C" fn processes_new(
     };
     let model = ProcessesTree {
         qobject: processes,
+        layout_about_to_be_changed: processes_layout_about_to_be_changed,
+        layout_changed: processes_layout_changed,
         data_changed: processes_data_changed,
         begin_reset_model: processes_begin_reset_model,
         end_reset_model: processes_end_reset_model,
@@ -1081,6 +1133,8 @@ impl TimeSeriesEmitter {
 
 pub struct TimeSeriesList {
     qobject: *const TimeSeriesQObject,
+    layout_about_to_be_changed: fn(*const TimeSeriesQObject),
+    layout_changed: fn(*const TimeSeriesQObject),
     data_changed: fn(*const TimeSeriesQObject, usize, usize),
     begin_reset_model: fn(*const TimeSeriesQObject),
     end_reset_model: fn(*const TimeSeriesQObject),
@@ -1093,6 +1147,12 @@ pub struct TimeSeriesList {
 }
 
 impl TimeSeriesList {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -1145,6 +1205,8 @@ pub trait TimeSeriesTrait {
 pub extern "C" fn time_series_new(
     time_series: *mut TimeSeriesQObject,
     time_series_new_data_ready: fn(*const TimeSeriesQObject),
+    time_series_layout_about_to_be_changed: fn(*const TimeSeriesQObject),
+    time_series_layout_changed: fn(*const TimeSeriesQObject),
     time_series_data_changed: fn(*const TimeSeriesQObject, usize, usize),
     time_series_begin_reset_model: fn(*const TimeSeriesQObject),
     time_series_end_reset_model: fn(*const TimeSeriesQObject),
@@ -1161,6 +1223,8 @@ pub extern "C" fn time_series_new(
     };
     let model = TimeSeriesList {
         qobject: time_series,
+        layout_about_to_be_changed: time_series_layout_about_to_be_changed,
+        layout_changed: time_series_layout_changed,
         data_changed: time_series_data_changed,
         begin_reset_model: time_series_begin_reset_model,
         end_reset_model: time_series_end_reset_model,

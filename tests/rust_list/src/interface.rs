@@ -115,6 +115,8 @@ impl NoRoleEmitter {
 
 pub struct NoRoleList {
     qobject: *const NoRoleQObject,
+    layout_about_to_be_changed: fn(*const NoRoleQObject),
+    layout_changed: fn(*const NoRoleQObject),
     data_changed: fn(*const NoRoleQObject, usize, usize),
     begin_reset_model: fn(*const NoRoleQObject),
     end_reset_model: fn(*const NoRoleQObject),
@@ -127,6 +129,12 @@ pub struct NoRoleList {
 }
 
 impl NoRoleList {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -177,6 +185,8 @@ pub trait NoRoleTrait {
 pub extern "C" fn no_role_new(
     no_role: *mut NoRoleQObject,
     no_role_new_data_ready: fn(*const NoRoleQObject),
+    no_role_layout_about_to_be_changed: fn(*const NoRoleQObject),
+    no_role_layout_changed: fn(*const NoRoleQObject),
     no_role_data_changed: fn(*const NoRoleQObject, usize, usize),
     no_role_begin_reset_model: fn(*const NoRoleQObject),
     no_role_end_reset_model: fn(*const NoRoleQObject),
@@ -193,6 +203,8 @@ pub extern "C" fn no_role_new(
     };
     let model = NoRoleList {
         qobject: no_role,
+        layout_about_to_be_changed: no_role_layout_about_to_be_changed,
+        layout_changed: no_role_layout_changed,
         data_changed: no_role_data_changed,
         begin_reset_model: no_role_begin_reset_model,
         end_reset_model: no_role_end_reset_model,
@@ -302,6 +314,8 @@ impl PersonsEmitter {
 
 pub struct PersonsList {
     qobject: *const PersonsQObject,
+    layout_about_to_be_changed: fn(*const PersonsQObject),
+    layout_changed: fn(*const PersonsQObject),
     data_changed: fn(*const PersonsQObject, usize, usize),
     begin_reset_model: fn(*const PersonsQObject),
     end_reset_model: fn(*const PersonsQObject),
@@ -314,6 +328,12 @@ pub struct PersonsList {
 }
 
 impl PersonsList {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -362,6 +382,8 @@ pub trait PersonsTrait {
 pub extern "C" fn persons_new(
     persons: *mut PersonsQObject,
     persons_new_data_ready: fn(*const PersonsQObject),
+    persons_layout_about_to_be_changed: fn(*const PersonsQObject),
+    persons_layout_changed: fn(*const PersonsQObject),
     persons_data_changed: fn(*const PersonsQObject, usize, usize),
     persons_begin_reset_model: fn(*const PersonsQObject),
     persons_end_reset_model: fn(*const PersonsQObject),
@@ -378,6 +400,8 @@ pub extern "C" fn persons_new(
     };
     let model = PersonsList {
         qobject: persons,
+        layout_about_to_be_changed: persons_layout_about_to_be_changed,
+        layout_changed: persons_layout_changed,
         data_changed: persons_data_changed,
         begin_reset_model: persons_begin_reset_model,
         end_reset_model: persons_end_reset_model,

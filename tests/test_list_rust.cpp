@@ -208,6 +208,8 @@ bool NoRole::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     NoRole::Private* no_role_new(NoRole*,
         void (*)(const NoRole*),
+        void (*)(NoRole*),
+        void (*)(NoRole*),
         void (*)(NoRole*, quintptr, quintptr),
         void (*)(NoRole*),
         void (*)(NoRole*),
@@ -375,6 +377,8 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     Persons::Private* persons_new(Persons*,
         void (*)(const Persons*),
+        void (*)(Persons*),
+        void (*)(Persons*),
         void (*)(Persons*, quintptr, quintptr),
         void (*)(Persons*),
         void (*)(Persons*),
@@ -400,6 +404,12 @@ NoRole::NoRole(QObject *parent):
     m_d(no_role_new(this,
         [](const NoRole* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](NoRole* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](NoRole* o) {
+            emit o->layoutChanged();
         },
         [](NoRole* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -458,6 +468,12 @@ Persons::Persons(QObject *parent):
     m_d(persons_new(this,
         [](const Persons* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](Persons* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](Persons* o) {
+            emit o->layoutChanged();
         },
         [](Persons* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),

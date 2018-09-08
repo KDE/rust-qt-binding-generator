@@ -115,6 +115,8 @@ impl PersonsEmitter {
 
 pub struct PersonsTree {
     qobject: *const PersonsQObject,
+    layout_about_to_be_changed: fn(*const PersonsQObject),
+    layout_changed: fn(*const PersonsQObject),
     data_changed: fn(*const PersonsQObject, usize, usize),
     begin_reset_model: fn(*const PersonsQObject),
     end_reset_model: fn(*const PersonsQObject),
@@ -127,6 +129,12 @@ pub struct PersonsTree {
 }
 
 impl PersonsTree {
+    pub fn layout_about_to_be_changed(&self) {
+        (self.layout_about_to_be_changed)(self.qobject);
+    }
+    pub fn layout_changed(&self) {
+        (self.layout_changed)(self.qobject);
+    }
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -176,6 +184,8 @@ pub trait PersonsTrait {
 pub extern "C" fn persons_new(
     persons: *mut PersonsQObject,
     persons_new_data_ready: fn(*const PersonsQObject, index: COption<usize>),
+    persons_layout_about_to_be_changed: fn(*const PersonsQObject),
+    persons_layout_changed: fn(*const PersonsQObject),
     persons_data_changed: fn(*const PersonsQObject, usize, usize),
     persons_begin_reset_model: fn(*const PersonsQObject),
     persons_end_reset_model: fn(*const PersonsQObject),
@@ -192,6 +202,8 @@ pub extern "C" fn persons_new(
     };
     let model = PersonsTree {
         qobject: persons,
+        layout_about_to_be_changed: persons_layout_about_to_be_changed,
+        layout_changed: persons_layout_changed,
         data_changed: persons_data_changed,
         begin_reset_model: persons_begin_reset_model,
         end_reset_model: persons_end_reset_model,

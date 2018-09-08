@@ -71,6 +71,8 @@ namespace {
 extern "C" {
     Demo::Private* demo_new(Demo*, Fibonacci*, void (*)(Fibonacci*), void (*)(Fibonacci*), FibonacciList*,
         void (*)(const FibonacciList*),
+        void (*)(FibonacciList*),
+        void (*)(FibonacciList*),
         void (*)(FibonacciList*, quintptr, quintptr),
         void (*)(FibonacciList*),
         void (*)(FibonacciList*),
@@ -81,6 +83,8 @@ extern "C" {
         void (*)(FibonacciList*, int, int),
         void (*)(FibonacciList*), FileSystemTree*, void (*)(FileSystemTree*),
         void (*)(const FileSystemTree*, option_quintptr),
+        void (*)(FileSystemTree*),
+        void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, quintptr, quintptr),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
@@ -91,6 +95,8 @@ extern "C" {
         void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*), Processes*, void (*)(Processes*),
         void (*)(const Processes*, option_quintptr),
+        void (*)(Processes*),
+        void (*)(Processes*),
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
@@ -101,6 +107,8 @@ extern "C" {
         void (*)(Processes*, option_quintptr, int, int),
         void (*)(Processes*), TimeSeries*,
         void (*)(const TimeSeries*),
+        void (*)(TimeSeries*),
+        void (*)(TimeSeries*),
         void (*)(TimeSeries*, quintptr, quintptr),
         void (*)(TimeSeries*),
         void (*)(TimeSeries*),
@@ -266,6 +274,8 @@ bool FibonacciList::setHeaderData(int section, Qt::Orientation orientation, cons
 extern "C" {
     FibonacciList::Private* fibonacci_list_new(FibonacciList*,
         void (*)(const FibonacciList*),
+        void (*)(FibonacciList*),
+        void (*)(FibonacciList*),
         void (*)(FibonacciList*, quintptr, quintptr),
         void (*)(FibonacciList*),
         void (*)(FibonacciList*),
@@ -513,6 +523,8 @@ bool FileSystemTree::setHeaderData(int section, Qt::Orientation orientation, con
 extern "C" {
     FileSystemTree::Private* file_system_tree_new(FileSystemTree*, void (*)(FileSystemTree*),
         void (*)(const FileSystemTree*, option_quintptr),
+        void (*)(FileSystemTree*),
+        void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, quintptr, quintptr),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
@@ -756,6 +768,8 @@ bool Processes::setHeaderData(int section, Qt::Orientation orientation, const QV
 extern "C" {
     Processes::Private* processes_new(Processes*, void (*)(Processes*),
         void (*)(const Processes*, option_quintptr),
+        void (*)(Processes*),
+        void (*)(Processes*),
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
@@ -1009,6 +1023,8 @@ bool TimeSeries::setData(const QModelIndex &index, const QVariant &value, int ro
 extern "C" {
     TimeSeries::Private* time_series_new(TimeSeries*,
         void (*)(const TimeSeries*),
+        void (*)(TimeSeries*),
+        void (*)(TimeSeries*),
         void (*)(TimeSeries*, quintptr, quintptr),
         void (*)(TimeSeries*),
         void (*)(TimeSeries*),
@@ -1045,6 +1061,12 @@ Demo::Demo(QObject *parent):
         fibonacciResultChanged, m_fibonacciList,
         [](const FibonacciList* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](FibonacciList* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](FibonacciList* o) {
+            emit o->layoutChanged();
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -1083,6 +1105,12 @@ Demo::Demo(QObject *parent):
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](FileSystemTree* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](FileSystemTree* o) {
+            emit o->layoutChanged();
         },
         [](FileSystemTree* o, quintptr first, quintptr last) {
             quintptr frow = file_system_tree_row(o->m_d, first);
@@ -1144,6 +1172,12 @@ Demo::Demo(QObject *parent):
                 emit o->newDataReady(QModelIndex());
             }
         },
+        [](Processes* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](Processes* o) {
+            emit o->layoutChanged();
+        },
         [](Processes* o, quintptr first, quintptr last) {
             quintptr frow = processes_row(o->m_d, first);
             quintptr lrow = processes_row(o->m_d, first);
@@ -1197,6 +1231,12 @@ Demo::Demo(QObject *parent):
 , m_timeSeries,
         [](const TimeSeries* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](TimeSeries* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](TimeSeries* o) {
+            emit o->layoutChanged();
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -1339,6 +1379,12 @@ FibonacciList::FibonacciList(QObject *parent):
         [](const FibonacciList* o) {
             emit o->newDataReady(QModelIndex());
         },
+        [](FibonacciList* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](FibonacciList* o) {
+            emit o->layoutChanged();
+        },
         [](FibonacciList* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
                        o->createIndex(last, 1, last));
@@ -1404,6 +1450,12 @@ FileSystemTree::FileSystemTree(QObject *parent):
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](FileSystemTree* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](FileSystemTree* o) {
+            emit o->layoutChanged();
         },
         [](FileSystemTree* o, quintptr first, quintptr last) {
             quintptr frow = file_system_tree_row(o->m_d, first);
@@ -1509,6 +1561,12 @@ Processes::Processes(QObject *parent):
                 emit o->newDataReady(QModelIndex());
             }
         },
+        [](Processes* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](Processes* o) {
+            emit o->layoutChanged();
+        },
         [](Processes* o, quintptr first, quintptr last) {
             quintptr frow = processes_row(o->m_d, first);
             quintptr lrow = processes_row(o->m_d, first);
@@ -1598,6 +1656,12 @@ TimeSeries::TimeSeries(QObject *parent):
     m_d(time_series_new(this,
         [](const TimeSeries* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](TimeSeries* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](TimeSeries* o) {
+            emit o->layoutChanged();
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),

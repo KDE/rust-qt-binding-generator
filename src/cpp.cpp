@@ -638,6 +638,8 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
         void (*)(const %1*),
+        void (*)(%1*),
+        void (*)(%1*),
         void (*)(%1*, quintptr, quintptr),
         void (*)(%1*),
         void (*)(%1*),
@@ -651,6 +653,8 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
     if (o.type == ObjectType::Tree) {
         cpp << QString(R"(,
         void (*)(const %1*, option_quintptr),
+        void (*)(%1*),
+        void (*)(%1*),
         void (*)(%1*, quintptr, quintptr),
         void (*)(%1*),
         void (*)(%1*),
@@ -682,6 +686,12 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         cpp << QString(R"(,
         [](const %1* o) {
             emit o->newDataReady(QModelIndex());
+        },
+        [](%1* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](%1* o) {
+            emit o->layoutChanged();
         },
         [](%1* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -722,6 +732,12 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
             } else {
                 emit o->newDataReady(QModelIndex());
             }
+        },
+        [](%1* o) {
+            emit o->layoutAboutToBeChanged();
+        },
+        [](%1* o) {
+            emit o->layoutChanged();
         },
         [](%1* o, quintptr first, quintptr last) {
             quintptr frow = %2_row(o->m_d, first);
