@@ -78,7 +78,7 @@ extern "C" {
         void (*)(FibonacciList*),
         void (*)(FibonacciList*, int, int),
         void (*)(FibonacciList*), FileSystemTree*, void (*)(FileSystemTree*),
-        void (*)(const FileSystemTree*, quintptr, bool),
+        void (*)(const FileSystemTree*, option_quintptr),
         void (*)(FileSystemTree*, quintptr, quintptr),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
@@ -86,7 +86,7 @@ extern "C" {
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*, option_quintptr, int, int),
         void (*)(FileSystemTree*), Processes*, void (*)(Processes*),
-        void (*)(const Processes*, quintptr, bool),
+        void (*)(const Processes*, option_quintptr),
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
@@ -277,10 +277,10 @@ extern "C" {
     qint32 file_system_tree_data_file_type(const FileSystemTree::Private*, quintptr);
     void file_system_tree_sort(FileSystemTree::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
-    int file_system_tree_row_count(const FileSystemTree::Private*, quintptr, bool);
-    bool file_system_tree_can_fetch_more(const FileSystemTree::Private*, quintptr, bool);
-    void file_system_tree_fetch_more(FileSystemTree::Private*, quintptr, bool);
-    quintptr file_system_tree_index(const FileSystemTree::Private*, quintptr, bool, int);
+    int file_system_tree_row_count(const FileSystemTree::Private*, option_quintptr);
+    bool file_system_tree_can_fetch_more(const FileSystemTree::Private*, option_quintptr);
+    void file_system_tree_fetch_more(FileSystemTree::Private*, option_quintptr);
+    quintptr file_system_tree_index(const FileSystemTree::Private*, option_quintptr, int);
     qmodelindex_t file_system_tree_parent(const FileSystemTree::Private*, quintptr);
     int file_system_tree_row(const FileSystemTree::Private*, quintptr);
 }
@@ -299,7 +299,11 @@ int FileSystemTree::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return file_system_tree_row_count(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return file_system_tree_row_count(m_d, rust_parent);
 }
 
 bool FileSystemTree::insertRows(int, int, const QModelIndex &)
@@ -323,7 +327,11 @@ QModelIndex FileSystemTree::index(int row, int column, const QModelIndex &parent
     if (row >= rowCount(parent)) {
         return QModelIndex();
     }
-    const quintptr id = file_system_tree_index(m_d, parent.internalId(), parent.isValid(), row);
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    const quintptr id = file_system_tree_index(m_d, rust_parent, row);
     return createIndex(row, column, id);
 }
 
@@ -341,12 +349,20 @@ bool FileSystemTree::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return file_system_tree_can_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return file_system_tree_can_fetch_more(m_d, rust_parent);
 }
 
 void FileSystemTree::fetchMore(const QModelIndex &parent)
 {
-    file_system_tree_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    file_system_tree_fetch_more(m_d, rust_parent);
 }
 
 void FileSystemTree::sort(int column, Qt::SortOrder order)
@@ -486,7 +502,7 @@ bool FileSystemTree::setHeaderData(int section, Qt::Orientation orientation, con
 
 extern "C" {
     FileSystemTree::Private* file_system_tree_new(FileSystemTree*, void (*)(FileSystemTree*),
-        void (*)(const FileSystemTree*, quintptr, bool),
+        void (*)(const FileSystemTree*, option_quintptr),
         void (*)(FileSystemTree*, quintptr, quintptr),
         void (*)(FileSystemTree*),
         void (*)(FileSystemTree*),
@@ -510,10 +526,10 @@ extern "C" {
     quint32 processes_data_uid(const Processes::Private*, quintptr);
     void processes_sort(Processes::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
-    int processes_row_count(const Processes::Private*, quintptr, bool);
-    bool processes_can_fetch_more(const Processes::Private*, quintptr, bool);
-    void processes_fetch_more(Processes::Private*, quintptr, bool);
-    quintptr processes_index(const Processes::Private*, quintptr, bool, int);
+    int processes_row_count(const Processes::Private*, option_quintptr);
+    bool processes_can_fetch_more(const Processes::Private*, option_quintptr);
+    void processes_fetch_more(Processes::Private*, option_quintptr);
+    quintptr processes_index(const Processes::Private*, option_quintptr, int);
     qmodelindex_t processes_parent(const Processes::Private*, quintptr);
     int processes_row(const Processes::Private*, quintptr);
 }
@@ -532,7 +548,11 @@ int Processes::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return processes_row_count(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return processes_row_count(m_d, rust_parent);
 }
 
 bool Processes::insertRows(int, int, const QModelIndex &)
@@ -556,7 +576,11 @@ QModelIndex Processes::index(int row, int column, const QModelIndex &parent) con
     if (row >= rowCount(parent)) {
         return QModelIndex();
     }
-    const quintptr id = processes_index(m_d, parent.internalId(), parent.isValid(), row);
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    const quintptr id = processes_index(m_d, rust_parent, row);
     return createIndex(row, column, id);
 }
 
@@ -574,12 +598,20 @@ bool Processes::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return processes_can_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return processes_can_fetch_more(m_d, rust_parent);
 }
 
 void Processes::fetchMore(const QModelIndex &parent)
 {
-    processes_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    processes_fetch_more(m_d, rust_parent);
 }
 
 void Processes::sort(int column, Qt::SortOrder order)
@@ -711,7 +743,7 @@ bool Processes::setHeaderData(int section, Qt::Orientation orientation, const QV
 
 extern "C" {
     Processes::Private* processes_new(Processes*, void (*)(Processes*),
-        void (*)(const Processes*, quintptr, bool),
+        void (*)(const Processes*, option_quintptr),
         void (*)(Processes*, quintptr, quintptr),
         void (*)(Processes*),
         void (*)(Processes*),
@@ -1022,10 +1054,10 @@ Demo::Demo(QObject *parent):
         }
 , m_fileSystemTree,
         fileSystemTreePathChanged,
-        [](const FileSystemTree* o, quintptr id, bool valid) {
-            if (valid) {
-                int row = file_system_tree_row(o->m_d, id);
-                emit o->newDataReady(o->createIndex(row, 0, id));
+        [](const FileSystemTree* o, option_quintptr id) {
+            if (id.some) {
+                int row = file_system_tree_row(o->m_d, id.value);
+                emit o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
                 emit o->newDataReady(QModelIndex());
             }
@@ -1066,10 +1098,10 @@ Demo::Demo(QObject *parent):
         }
 , m_processes,
         processesActiveChanged,
-        [](const Processes* o, quintptr id, bool valid) {
-            if (valid) {
-                int row = processes_row(o->m_d, id);
-                emit o->newDataReady(o->createIndex(row, 0, id));
+        [](const Processes* o, option_quintptr id) {
+            if (id.some) {
+                int row = processes_row(o->m_d, id.value);
+                emit o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
                 emit o->newDataReady(QModelIndex());
             }
@@ -1299,10 +1331,10 @@ FileSystemTree::FileSystemTree(QObject *parent):
     QAbstractItemModel(parent),
     m_d(file_system_tree_new(this,
         fileSystemTreePathChanged,
-        [](const FileSystemTree* o, quintptr id, bool valid) {
-            if (valid) {
-                int row = file_system_tree_row(o->m_d, id);
-                emit o->newDataReady(o->createIndex(row, 0, id));
+        [](const FileSystemTree* o, option_quintptr id) {
+            if (id.some) {
+                int row = file_system_tree_row(o->m_d, id.value);
+                emit o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
                 emit o->newDataReady(QModelIndex());
             }
@@ -1387,10 +1419,10 @@ Processes::Processes(QObject *parent):
     QAbstractItemModel(parent),
     m_d(processes_new(this,
         processesActiveChanged,
-        [](const Processes* o, quintptr id, bool valid) {
-            if (valid) {
-                int row = processes_row(o->m_d, id);
-                emit o->newDataReady(o->createIndex(row, 0, id));
+        [](const Processes* o, option_quintptr id) {
+            if (id.some) {
+                int row = processes_row(o->m_d, id.value);
+                emit o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
                 emit o->newDataReady(QModelIndex());
             }

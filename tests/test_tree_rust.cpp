@@ -34,10 +34,10 @@ extern "C" {
     bool persons_set_data_user_name(Persons::Private*, quintptr, const ushort* s, int len);
     void persons_sort(Persons::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);
 
-    int persons_row_count(const Persons::Private*, quintptr, bool);
-    bool persons_can_fetch_more(const Persons::Private*, quintptr, bool);
-    void persons_fetch_more(Persons::Private*, quintptr, bool);
-    quintptr persons_index(const Persons::Private*, quintptr, bool, int);
+    int persons_row_count(const Persons::Private*, option_quintptr);
+    bool persons_can_fetch_more(const Persons::Private*, option_quintptr);
+    void persons_fetch_more(Persons::Private*, option_quintptr);
+    quintptr persons_index(const Persons::Private*, option_quintptr, int);
     qmodelindex_t persons_parent(const Persons::Private*, quintptr);
     int persons_row(const Persons::Private*, quintptr);
 }
@@ -56,7 +56,11 @@ int Persons::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return persons_row_count(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return persons_row_count(m_d, rust_parent);
 }
 
 bool Persons::insertRows(int, int, const QModelIndex &)
@@ -80,7 +84,11 @@ QModelIndex Persons::index(int row, int column, const QModelIndex &parent) const
     if (row >= rowCount(parent)) {
         return QModelIndex();
     }
-    const quintptr id = persons_index(m_d, parent.internalId(), parent.isValid(), row);
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    const quintptr id = persons_index(m_d, rust_parent, row);
     return createIndex(row, column, id);
 }
 
@@ -98,12 +106,20 @@ bool Persons::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return persons_can_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return persons_can_fetch_more(m_d, rust_parent);
 }
 
 void Persons::fetchMore(const QModelIndex &parent)
 {
-    persons_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    persons_fetch_more(m_d, rust_parent);
 }
 
 void Persons::sort(int column, Qt::SortOrder order)
@@ -198,7 +214,7 @@ bool Persons::setData(const QModelIndex &index, const QVariant &value, int role)
 
 extern "C" {
     Persons::Private* persons_new(Persons*,
-        void (*)(const Persons*, quintptr, bool),
+        void (*)(const Persons*, option_quintptr),
         void (*)(Persons*, quintptr, quintptr),
         void (*)(Persons*),
         void (*)(Persons*),
@@ -220,10 +236,10 @@ Persons::Persons(bool /*owned*/, QObject *parent):
 Persons::Persons(QObject *parent):
     QAbstractItemModel(parent),
     m_d(persons_new(this,
-        [](const Persons* o, quintptr id, bool valid) {
-            if (valid) {
-                int row = persons_row(o->m_d, id);
-                emit o->newDataReady(o->createIndex(row, 0, id));
+        [](const Persons* o, option_quintptr id) {
+            if (id.some) {
+                int row = persons_row(o->m_d, id.value);
+                emit o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
                 emit o->newDataReady(QModelIndex());
             }

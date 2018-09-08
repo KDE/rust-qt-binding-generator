@@ -327,10 +327,10 @@ void %1::fetchMore(const QModelIndex &parent)
 )").arg(o.name, lcname, QString::number(o.columnCount));
     } else {
         cpp << QString(R"(
-    int %2_row_count(const %1::Private*, quintptr, bool);
-    bool %2_can_fetch_more(const %1::Private*, quintptr, bool);
-    void %2_fetch_more(%1::Private*, quintptr, bool);
-    quintptr %2_index(const %1::Private*, quintptr, bool, int);
+    int %2_row_count(const %1::Private*, option_quintptr);
+    bool %2_can_fetch_more(const %1::Private*, option_quintptr);
+    void %2_fetch_more(%1::Private*, option_quintptr);
+    quintptr %2_index(const %1::Private*, option_quintptr, int);
     qmodelindex_t %2_parent(const %1::Private*, quintptr);
     int %2_row(const %1::Private*, quintptr);
 }
@@ -349,7 +349,11 @@ int %1::rowCount(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return 0;
     }
-    return %2_row_count(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return %2_row_count(m_d, rust_parent);
 }
 
 bool %1::insertRows(int, int, const QModelIndex &)
@@ -373,7 +377,11 @@ QModelIndex %1::index(int row, int column, const QModelIndex &parent) const
     if (row >= rowCount(parent)) {
         return QModelIndex();
     }
-    const quintptr id = %2_index(m_d, parent.internalId(), parent.isValid(), row);
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    const quintptr id = %2_index(m_d, rust_parent, row);
     return createIndex(row, column, id);
 }
 
@@ -391,12 +399,20 @@ bool %1::canFetchMore(const QModelIndex &parent) const
     if (parent.isValid() && parent.column() != 0) {
         return false;
     }
-    return %2_can_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    return %2_can_fetch_more(m_d, rust_parent);
 }
 
 void %1::fetchMore(const QModelIndex &parent)
 {
-    %2_fetch_more(m_d, parent.internalId(), parent.isValid());
+    const option_quintptr rust_parent = {
+        parent.internalId(),
+        parent.isValid()
+    };
+    %2_fetch_more(m_d, rust_parent);
 }
 )").arg(o.name, lcname, QString::number(o.columnCount));
     }
@@ -632,7 +648,7 @@ void constructorArgsDecl(QTextStream& cpp, const Object& o, const Configuration&
     }
     if (o.type == ObjectType::Tree) {
         cpp << QString(R"(,
-        void (*)(const %1*, quintptr, bool),
+        void (*)(const %1*, option_quintptr),
         void (*)(%1*, quintptr, quintptr),
         void (*)(%1*),
         void (*)(%1*),
@@ -689,10 +705,10 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
     }
     if (o.type == ObjectType::Tree) {
         cpp << QString(R"(,
-        [](const %1* o, quintptr id, bool valid) {
-            if (valid) {
-                int row = %2_row(o->m_d, id);
-                emit o->newDataReady(o->createIndex(row, 0, id));
+        [](const %1* o, option_quintptr id) {
+            if (id.some) {
+                int row = %2_row(o->m_d, id.value);
+                emit o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
                 emit o->newDataReady(QModelIndex());
             }
