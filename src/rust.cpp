@@ -82,13 +82,13 @@ void rConstructorArgsDecl(QTextStream& r, const QString& name, const Object& o, 
         r << QString(",\n    %2_new_data_ready: fn(*const %1QObject)")
             .arg(o.name, snakeCase(name));
     } else if (o.type == ObjectType::Tree) {
-        r << QString(",\n    %2_new_data_ready: fn(*const %1QObject, index: usize, valid: bool)")
+        r << QString(",\n    %2_new_data_ready: fn(*const %1QObject, index: COption<usize>)")
             .arg(o.name, snakeCase(name));
     }
     if (o.type != ObjectType::Object) {
         QString indexDecl;
         if (o.type == ObjectType::Tree) {
-            indexDecl = " index: usize, valid: bool,";
+            indexDecl = " index: COption<usize>,";
         }
         r << QString(R"(,
     %3_data_changed: fn(*const %1QObject, usize, usize),
@@ -221,7 +221,7 @@ pub struct %1Emitter {
         r << QString("    new_data_ready: fn(*const %1QObject),\n")
             .arg(o.name);
     } else if (o.type == ObjectType::Tree) {
-        r << QString("    new_data_ready: fn(*const %1QObject, index: usize, valid: bool),\n")
+        r << QString("    new_data_ready: fn(*const %1QObject, index: COption<usize>),\n")
             .arg(o.name);
     }
     r << QString(R"(}
@@ -257,7 +257,7 @@ impl %1Emitter {
         r << R"(    pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.into());
         }
     }
 )";
@@ -272,8 +272,8 @@ impl %1Emitter {
         QString indexCDecl;
         if (o.type == ObjectType::Tree) {
             indexDecl = " index: Option<usize>,";
-            indexCDecl = " index: usize, valid: bool,";
-            index = " index.unwrap_or(13), index.is_some(),";
+            indexCDecl = " index: COption<usize>,";
+            index = " index.into(),";
         }
         r << QString(R"(}
 
@@ -601,34 +601,20 @@ pub unsafe extern "C" fn %2_sort(
 #[no_mangle]
 pub unsafe extern "C" fn %2_row_count(
     ptr: *const %1,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
 ) -> c_int {
-    to_c_int(if valid {
-        (&*ptr).row_count(Some(index))
-    } else {
-        (&*ptr).row_count(None)
-    })
+    to_c_int((&*ptr).row_count(index.into()))
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_can_fetch_more(
     ptr: *const %1,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
 ) -> bool {
-    if valid {
-        (&*ptr).can_fetch_more(Some(index))
-    } else {
-        (&*ptr).can_fetch_more(None)
-    }
+    (&*ptr).can_fetch_more(index.into())
 }
 #[no_mangle]
-pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1, index: usize, valid: bool) {
-    if valid {
-        (&mut *ptr).fetch_more(Some(index))
-    } else {
-        (&mut *ptr).fetch_more(None)
-    }
+pub unsafe extern "C" fn %2_fetch_more(ptr: *mut %1, index: COption<usize>) {
+    (&mut *ptr).fetch_more(index.into())
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_sort(
@@ -641,15 +627,10 @@ pub unsafe extern "C" fn %2_sort(
 #[no_mangle]
 pub unsafe extern "C" fn %2_index(
     ptr: *const %1,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
     row: c_int,
 ) -> usize {
-    if !valid {
-        (&*ptr).index(None, to_usize(row))
-    } else {
-        (&*ptr).index(Some(index), to_usize(row))
-    }
+    (&*ptr).index(index.into(), to_usize(row))
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_parent(ptr: *const %1, index: usize) -> QModelIndex {
@@ -817,6 +798,17 @@ void writeRustTypes(const Configuration& conf, QTextStream& r) {
 pub struct COption<T> {
     data: T,
     some: bool,
+}
+
+impl<T> COption<T> {
+    #![allow(dead_code)]
+    fn into(self) -> Option<T> {
+        if self.some {
+            Some(self.data)
+        } else {
+            None
+        }
+    }
 }
 
 impl<T> From<Option<T>> for COption<T>

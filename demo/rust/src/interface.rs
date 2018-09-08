@@ -17,6 +17,17 @@ pub struct COption<T> {
     some: bool,
 }
 
+impl<T> COption<T> {
+    #![allow(dead_code)]
+    fn into(self) -> Option<T> {
+        if self.some {
+            Some(self.data)
+        } else {
+            None
+        }
+    }
+}
+
 impl<T> From<Option<T>> for COption<T>
 where
     T: Default,
@@ -135,23 +146,23 @@ pub extern "C" fn demo_new(
     fibonacci_list_end_remove_rows: fn(*const FibonacciListQObject),
     file_system_tree: *mut FileSystemTreeQObject,
     file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: usize, valid: bool),
+    file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
     file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
     file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
+    file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_insert_rows: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
+    file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
     processes: *mut ProcessesQObject,
     processes_active_changed: fn(*const ProcessesQObject),
-    processes_new_data_ready: fn(*const ProcessesQObject, index: usize, valid: bool),
+    processes_new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
     processes_data_changed: fn(*const ProcessesQObject, usize, usize),
     processes_begin_reset_model: fn(*const ProcessesQObject),
     processes_end_reset_model: fn(*const ProcessesQObject),
-    processes_begin_insert_rows: fn(*const ProcessesQObject, index: usize, valid: bool, usize, usize),
+    processes_begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_insert_rows: fn(*const ProcessesQObject),
-    processes_begin_remove_rows: fn(*const ProcessesQObject, index: usize, valid: bool, usize, usize),
+    processes_begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_remove_rows: fn(*const ProcessesQObject),
     time_series: *mut TimeSeriesQObject,
     time_series_new_data_ready: fn(*const TimeSeriesQObject),
@@ -499,7 +510,7 @@ pub struct FileSystemTreeQObject {}
 pub struct FileSystemTreeEmitter {
     qobject: Arc<Mutex<*const FileSystemTreeQObject>>,
     path_changed: fn(*const FileSystemTreeQObject),
-    new_data_ready: fn(*const FileSystemTreeQObject, index: usize, valid: bool),
+    new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
 }
 
 unsafe impl Send for FileSystemTreeEmitter {}
@@ -517,7 +528,7 @@ impl FileSystemTreeEmitter {
     pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.into());
         }
     }
 }
@@ -527,9 +538,9 @@ pub struct FileSystemTreeTree {
     data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     begin_reset_model: fn(*const FileSystemTreeQObject),
     end_reset_model: fn(*const FileSystemTreeQObject),
-    begin_insert_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
+    begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     end_insert_rows: fn(*const FileSystemTreeQObject),
-    begin_remove_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
+    begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     end_remove_rows: fn(*const FileSystemTreeQObject),
 }
 
@@ -544,13 +555,13 @@ impl FileSystemTreeTree {
         (self.end_reset_model)(self.qobject);
     }
     pub fn begin_insert_rows(&self, index: Option<usize>, first: usize, last: usize) {
-        (self.begin_insert_rows)(self.qobject, index.unwrap_or(13), index.is_some(), first, last);
+        (self.begin_insert_rows)(self.qobject, index.into(), first, last);
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
-        (self.begin_remove_rows)(self.qobject, index.unwrap_or(13), index.is_some(), first, last);
+        (self.begin_remove_rows)(self.qobject, index.into(), first, last);
     }
     pub fn end_remove_rows(&self) {
         (self.end_remove_rows)(self.qobject);
@@ -583,13 +594,13 @@ pub trait FileSystemTreeTrait {
 pub extern "C" fn file_system_tree_new(
     file_system_tree: *mut FileSystemTreeQObject,
     file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: usize, valid: bool),
+    file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
     file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
     file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
     file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
+    file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_insert_rows: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: usize, valid: bool, usize, usize),
+    file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
     file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
 ) -> *mut FileSystemTree {
     let file_system_tree_emit = FileSystemTreeEmitter {
@@ -647,34 +658,20 @@ pub extern "C" fn file_system_tree_path_set_none(ptr: *mut FileSystemTree) {
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_row_count(
     ptr: *const FileSystemTree,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
 ) -> c_int {
-    to_c_int(if valid {
-        (&*ptr).row_count(Some(index))
-    } else {
-        (&*ptr).row_count(None)
-    })
+    to_c_int((&*ptr).row_count(index.into()))
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_can_fetch_more(
     ptr: *const FileSystemTree,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
 ) -> bool {
-    if valid {
-        (&*ptr).can_fetch_more(Some(index))
-    } else {
-        (&*ptr).can_fetch_more(None)
-    }
+    (&*ptr).can_fetch_more(index.into())
 }
 #[no_mangle]
-pub unsafe extern "C" fn file_system_tree_fetch_more(ptr: *mut FileSystemTree, index: usize, valid: bool) {
-    if valid {
-        (&mut *ptr).fetch_more(Some(index))
-    } else {
-        (&mut *ptr).fetch_more(None)
-    }
+pub unsafe extern "C" fn file_system_tree_fetch_more(ptr: *mut FileSystemTree, index: COption<usize>) {
+    (&mut *ptr).fetch_more(index.into())
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_sort(
@@ -687,15 +684,10 @@ pub unsafe extern "C" fn file_system_tree_sort(
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_index(
     ptr: *const FileSystemTree,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
     row: c_int,
 ) -> usize {
-    if !valid {
-        (&*ptr).index(None, to_usize(row))
-    } else {
-        (&*ptr).index(Some(index), to_usize(row))
-    }
+    (&*ptr).index(index.into(), to_usize(row))
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_parent(ptr: *const FileSystemTree, index: usize) -> QModelIndex {
@@ -778,7 +770,7 @@ pub struct ProcessesQObject {}
 pub struct ProcessesEmitter {
     qobject: Arc<Mutex<*const ProcessesQObject>>,
     active_changed: fn(*const ProcessesQObject),
-    new_data_ready: fn(*const ProcessesQObject, index: usize, valid: bool),
+    new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
 }
 
 unsafe impl Send for ProcessesEmitter {}
@@ -796,7 +788,7 @@ impl ProcessesEmitter {
     pub fn new_data_ready(&self, item: Option<usize>) {
         let ptr = *self.qobject.lock().unwrap();
         if !ptr.is_null() {
-            (self.new_data_ready)(ptr, item.unwrap_or(13), item.is_some());
+            (self.new_data_ready)(ptr, item.into());
         }
     }
 }
@@ -806,9 +798,9 @@ pub struct ProcessesTree {
     data_changed: fn(*const ProcessesQObject, usize, usize),
     begin_reset_model: fn(*const ProcessesQObject),
     end_reset_model: fn(*const ProcessesQObject),
-    begin_insert_rows: fn(*const ProcessesQObject, index: usize, valid: bool, usize, usize),
+    begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     end_insert_rows: fn(*const ProcessesQObject),
-    begin_remove_rows: fn(*const ProcessesQObject, index: usize, valid: bool, usize, usize),
+    begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     end_remove_rows: fn(*const ProcessesQObject),
 }
 
@@ -823,13 +815,13 @@ impl ProcessesTree {
         (self.end_reset_model)(self.qobject);
     }
     pub fn begin_insert_rows(&self, index: Option<usize>, first: usize, last: usize) {
-        (self.begin_insert_rows)(self.qobject, index.unwrap_or(13), index.is_some(), first, last);
+        (self.begin_insert_rows)(self.qobject, index.into(), first, last);
     }
     pub fn end_insert_rows(&self) {
         (self.end_insert_rows)(self.qobject);
     }
     pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
-        (self.begin_remove_rows)(self.qobject, index.unwrap_or(13), index.is_some(), first, last);
+        (self.begin_remove_rows)(self.qobject, index.into(), first, last);
     }
     pub fn end_remove_rows(&self) {
         (self.end_remove_rows)(self.qobject);
@@ -863,13 +855,13 @@ pub trait ProcessesTrait {
 pub extern "C" fn processes_new(
     processes: *mut ProcessesQObject,
     processes_active_changed: fn(*const ProcessesQObject),
-    processes_new_data_ready: fn(*const ProcessesQObject, index: usize, valid: bool),
+    processes_new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
     processes_data_changed: fn(*const ProcessesQObject, usize, usize),
     processes_begin_reset_model: fn(*const ProcessesQObject),
     processes_end_reset_model: fn(*const ProcessesQObject),
-    processes_begin_insert_rows: fn(*const ProcessesQObject, index: usize, valid: bool, usize, usize),
+    processes_begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_insert_rows: fn(*const ProcessesQObject),
-    processes_begin_remove_rows: fn(*const ProcessesQObject, index: usize, valid: bool, usize, usize),
+    processes_begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
     processes_end_remove_rows: fn(*const ProcessesQObject),
 ) -> *mut Processes {
     let processes_emit = ProcessesEmitter {
@@ -909,34 +901,20 @@ pub unsafe extern "C" fn processes_active_set(ptr: *mut Processes, v: bool) {
 #[no_mangle]
 pub unsafe extern "C" fn processes_row_count(
     ptr: *const Processes,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
 ) -> c_int {
-    to_c_int(if valid {
-        (&*ptr).row_count(Some(index))
-    } else {
-        (&*ptr).row_count(None)
-    })
+    to_c_int((&*ptr).row_count(index.into()))
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_can_fetch_more(
     ptr: *const Processes,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
 ) -> bool {
-    if valid {
-        (&*ptr).can_fetch_more(Some(index))
-    } else {
-        (&*ptr).can_fetch_more(None)
-    }
+    (&*ptr).can_fetch_more(index.into())
 }
 #[no_mangle]
-pub unsafe extern "C" fn processes_fetch_more(ptr: *mut Processes, index: usize, valid: bool) {
-    if valid {
-        (&mut *ptr).fetch_more(Some(index))
-    } else {
-        (&mut *ptr).fetch_more(None)
-    }
+pub unsafe extern "C" fn processes_fetch_more(ptr: *mut Processes, index: COption<usize>) {
+    (&mut *ptr).fetch_more(index.into())
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_sort(
@@ -949,15 +927,10 @@ pub unsafe extern "C" fn processes_sort(
 #[no_mangle]
 pub unsafe extern "C" fn processes_index(
     ptr: *const Processes,
-    index: usize,
-    valid: bool,
+    index: COption<usize>,
     row: c_int,
 ) -> usize {
-    if !valid {
-        (&*ptr).index(None, to_usize(row))
-    } else {
-        (&*ptr).index(Some(index), to_usize(row))
-    }
+    (&*ptr).index(index.into(), to_usize(row))
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_parent(ptr: *const Processes, index: usize) -> QModelIndex {

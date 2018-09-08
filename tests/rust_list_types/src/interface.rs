@@ -17,6 +17,17 @@ pub struct COption<T> {
     some: bool,
 }
 
+impl<T> COption<T> {
+    #![allow(dead_code)]
+    fn into(self) -> Option<T> {
+        if self.some {
+            Some(self.data)
+        } else {
+            None
+        }
+    }
+}
+
 impl<T> From<Option<T>> for COption<T>
 where
     T: Default,
