@@ -113,6 +113,7 @@ impl NoRoleEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct NoRoleList {
     qobject: *const NoRoleQObject,
     layout_about_to_be_changed: fn(*const NoRoleQObject),
@@ -312,6 +313,7 @@ impl PersonsEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct PersonsList {
     qobject: *const PersonsQObject,
     layout_about_to_be_changed: fn(*const PersonsQObject),

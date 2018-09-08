@@ -116,6 +116,7 @@ impl ListEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct ListList {
     qobject: *const ListQObject,
     layout_about_to_be_changed: fn(*const ListQObject),

@@ -295,6 +295,7 @@ impl %1Emitter {
         }
         r << QString(R"(}
 
+#[derive(Clone)]
 pub struct %1%2 {
     qobject: *const %1QObject,
     layout_about_to_be_changed: fn(*const %1QObject),

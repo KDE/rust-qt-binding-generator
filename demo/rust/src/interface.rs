@@ -410,6 +410,7 @@ impl FibonacciListEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct FibonacciListList {
     qobject: *const FibonacciListQObject,
     layout_about_to_be_changed: fn(*const FibonacciListQObject),
@@ -589,6 +590,7 @@ impl FileSystemTreeEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct FileSystemTreeTree {
     qobject: *const FileSystemTreeQObject,
     layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
@@ -873,6 +875,7 @@ impl ProcessesEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct ProcessesTree {
     qobject: *const ProcessesQObject,
     layout_about_to_be_changed: fn(*const ProcessesQObject),
@@ -1131,6 +1134,7 @@ impl TimeSeriesEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct TimeSeriesList {
     qobject: *const TimeSeriesQObject,
     layout_about_to_be_changed: fn(*const TimeSeriesQObject),

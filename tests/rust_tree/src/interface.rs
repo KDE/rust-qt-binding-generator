@@ -113,6 +113,7 @@ impl PersonsEmitter {
     }
 }
 
+#[derive(Clone)]
 pub struct PersonsTree {
     qobject: *const PersonsQObject,
     layout_about_to_be_changed: fn(*const PersonsQObject),
