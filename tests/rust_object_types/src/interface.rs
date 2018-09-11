@@ -53,7 +53,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -324,21 +323,21 @@ pub unsafe extern "C" fn object_boolean_set(ptr: *mut Object, v: bool) {
 }
 
 #[no_mangle]
-pub extern "C" fn object_bytearray_get(
+pub unsafe extern "C" fn object_bytearray_get(
     ptr: *const Object,
     p: *mut QByteArray,
     set: fn(*mut QByteArray, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.bytearray();
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn object_bytearray_set(ptr: *mut Object, v: *const c_char, len: c_int) {
-    let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
+pub unsafe extern "C" fn object_bytearray_set(ptr: *mut Object, v: *const c_char, len: c_int) {
+    let o = &mut *ptr;
+    let v = slice::from_raw_parts(v as *const u8, to_usize(len));
     o.set_bytearray(v);
 }
 
@@ -416,18 +415,18 @@ pub unsafe extern "C" fn object_optional_boolean_set(ptr: *mut Object, v: bool) 
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_boolean_set_none(ptr: *mut Object) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_optional_boolean_set_none(ptr: *mut Object) {
+    let o = &mut *ptr;
     o.set_optional_boolean(None);
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_bytearray_get(
+pub unsafe extern "C" fn object_optional_bytearray_get(
     ptr: *const Object,
     p: *mut QByteArray,
     set: fn(*mut QByteArray, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.optional_bytearray();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
@@ -436,25 +435,25 @@ pub extern "C" fn object_optional_bytearray_get(
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_bytearray_set(ptr: *mut Object, v: *const c_char, len: c_int) {
-    let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
+pub unsafe extern "C" fn object_optional_bytearray_set(ptr: *mut Object, v: *const c_char, len: c_int) {
+    let o = &mut *ptr;
+    let v = slice::from_raw_parts(v as *const u8, to_usize(len));
     o.set_optional_bytearray(Some(v.into()));
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_bytearray_set_none(ptr: *mut Object) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_optional_bytearray_set_none(ptr: *mut Object) {
+    let o = &mut *ptr;
     o.set_optional_bytearray(None);
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_string_get(
+pub unsafe extern "C" fn object_optional_string_get(
     ptr: *const Object,
     p: *mut QString,
     set: fn(*mut QString, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.optional_string();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
@@ -463,16 +462,16 @@ pub extern "C" fn object_optional_string_get(
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_string_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_optional_string_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_optional_string(Some(s));
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_string_set_none(ptr: *mut Object) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_optional_string_set_none(ptr: *mut Object) {
+    let o = &mut *ptr;
     o.set_optional_string(None);
 }
 
@@ -490,38 +489,38 @@ pub unsafe extern "C" fn object_optional_u64_set(ptr: *mut Object, v: u64) {
 }
 
 #[no_mangle]
-pub extern "C" fn object_optional_u64_set_none(ptr: *mut Object) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_optional_u64_set_none(ptr: *mut Object) {
+    let o = &mut *ptr;
     o.set_optional_u64(None);
 }
 
 #[no_mangle]
-pub extern "C" fn object_string_get(
+pub unsafe extern "C" fn object_string_get(
     ptr: *const Object,
     p: *mut QString,
     set: fn(*mut QString, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.string();
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn object_string_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_string_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_string(s);
 }
 
 #[no_mangle]
-pub extern "C" fn object_string_by_function_get(
+pub unsafe extern "C" fn object_string_by_function_get(
     ptr: *const Object,
     p: *mut QString,
     set: fn(*mut QString, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     o.string_by_function(|v| {
         let s: *const c_char = v.as_ptr() as (*const c_char);
         set(p, s, to_c_int(v.len()));
@@ -529,8 +528,8 @@ pub extern "C" fn object_string_by_function_get(
 }
 
 #[no_mangle]
-pub extern "C" fn object_string_by_function_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn object_string_by_function_set(ptr: *mut Object, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_string_by_function(s);

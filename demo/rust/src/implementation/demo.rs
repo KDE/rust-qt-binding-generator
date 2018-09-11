@@ -36,12 +36,12 @@ impl DemoTrait for Demo {
         processes: Processes,
         time_series: TimeSeries) -> Self {
         Demo {
-            emit: emit,
-            fibonacci: fibonacci,
-            fibonacci_list: fibonacci_list,
-            file_system_tree: file_system_tree,
-            processes: processes,
-            time_series: time_series
+            emit,
+            fibonacci,
+            fibonacci_list,
+            file_system_tree,
+            processes,
+            time_series
         }
     }
     fn emit(&self) -> &DemoEmitter {

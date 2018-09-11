@@ -16,7 +16,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -97,76 +96,76 @@ pub unsafe extern "C" fn person_free(ptr: *mut Person) {
 }
 
 #[no_mangle]
-pub extern "C" fn person_user_name_get(
+pub unsafe extern "C" fn person_user_name_get(
     ptr: *const Person,
     p: *mut QString,
     set: fn(*mut QString, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.user_name();
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn person_user_name_set(ptr: *mut Person, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn person_user_name_set(ptr: *mut Person, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_user_name(s);
 }
 
 #[no_mangle]
-pub extern "C" fn person_append(ptr: *mut Person, suffix_str: *const c_ushort, suffix_len: c_int, amount: u32) -> () {
+pub unsafe extern "C" fn person_append(ptr: *mut Person, suffix_str: *const c_ushort, suffix_len: c_int, amount: u32) -> () {
     let mut suffix = String::new();
     set_string_from_utf16(&mut suffix, suffix_str, suffix_len);
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let r = o.append(suffix, amount);
     r
 }
 
 #[no_mangle]
-pub extern "C" fn person_double_name(ptr: *mut Person) -> () {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn person_double_name(ptr: *mut Person) -> () {
+    let o = &mut *ptr;
     let r = o.double_name();
     r
 }
 
 #[no_mangle]
-pub extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ushort, name_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+pub unsafe extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ushort, name_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
     let mut name = String::new();
     set_string_from_utf16(&mut name, name_str, name_len);
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let r = o.greet(name);
     let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);
 }
 
 #[no_mangle]
-pub extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, prefix_len: c_int, suffix_str: *const c_ushort, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+pub unsafe extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, prefix_len: c_int, suffix_str: *const c_ushort, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
     let mut prefix = String::new();
     set_string_from_utf16(&mut prefix, prefix_str, prefix_len);
     let mut suffix = String::new();
     set_string_from_utf16(&mut suffix, suffix_str, suffix_len);
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let r = o.quote(prefix, suffix);
     let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);
 }
 
 #[no_mangle]
-pub extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QByteArray, set: fn(*mut QByteArray, str: *const c_char, len: c_int)) {
-    let prefix = unsafe { slice::from_raw_parts(prefix_str as *const u8, to_usize(prefix_len)) };
-    let suffix = unsafe { slice::from_raw_parts(suffix_str as *const u8, to_usize(suffix_len)) };
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QByteArray, set: fn(*mut QByteArray, str: *const c_char, len: c_int)) {
+    let prefix = { slice::from_raw_parts(prefix_str as *const u8, to_usize(prefix_len)) };
+    let suffix = { slice::from_raw_parts(suffix_str as *const u8, to_usize(suffix_len)) };
+    let o = &*ptr;
     let r = o.quote_bytes(prefix, suffix);
     let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);
 }
 
 #[no_mangle]
-pub extern "C" fn person_vowels_in_name(ptr: *const Person) -> u8 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn person_vowels_in_name(ptr: *const Person) -> u8 {
+    let o = &*ptr;
     let r = o.vowels_in_name();
     r
 }

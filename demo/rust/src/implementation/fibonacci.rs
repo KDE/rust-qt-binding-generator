@@ -48,7 +48,7 @@ pub struct Fibonacci {
 impl FibonacciTrait for Fibonacci {
     fn new(emit: FibonacciEmitter) -> Fibonacci {
         Fibonacci {
-            emit: emit,
+            emit,
             input: 0,
             result: Arc::new(AtomicUsize::new(0)),
         }
@@ -84,7 +84,7 @@ pub struct FibonacciList {
 impl FibonacciListTrait for FibonacciList {
     fn new(emit: FibonacciListEmitter, _: FibonacciListList) -> FibonacciList {
         FibonacciList {
-            emit: emit,
+            emit,
         }
     }
     fn emit(&self) -> &FibonacciListEmitter {

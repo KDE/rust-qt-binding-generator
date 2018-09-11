@@ -209,8 +209,8 @@ where
 {
     fn new(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self {
         let mut tree = RGeneralItemModel {
-            emit: emit,
-            model: model,
+            emit,
+            model,
             entries: Vec::new(),
             path: None,
             incoming: Arc::new(Mutex::new(HashMap::new())),

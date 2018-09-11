@@ -53,7 +53,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -255,8 +254,8 @@ pub unsafe extern "C" fn no_role_sort(
 }
 
 #[no_mangle]
-pub extern "C" fn no_role_data_user_age(ptr: *const NoRole, row: c_int) -> u8 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn no_role_data_user_age(ptr: *const NoRole, row: c_int) -> u8 {
+    let o = &*ptr;
     o.user_age(to_usize(row)).into()
 }
 
@@ -269,23 +268,23 @@ pub unsafe extern "C" fn no_role_set_data_user_age(
 }
 
 #[no_mangle]
-pub extern "C" fn no_role_data_user_name(
+pub unsafe extern "C" fn no_role_data_user_name(
     ptr: *const NoRole, row: c_int,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.user_name(to_usize(row));
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn no_role_set_data_user_name(
+pub unsafe extern "C" fn no_role_set_data_user_name(
     ptr: *mut NoRole, row: c_int,
     s: *const c_ushort, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
     o.set_user_name(to_usize(row), v)
@@ -453,23 +452,23 @@ pub unsafe extern "C" fn persons_sort(
 }
 
 #[no_mangle]
-pub extern "C" fn persons_data_user_name(
+pub unsafe extern "C" fn persons_data_user_name(
     ptr: *const Persons, row: c_int,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.user_name(to_usize(row));
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn persons_set_data_user_name(
+pub unsafe extern "C" fn persons_set_data_user_name(
     ptr: *mut Persons, row: c_int,
     s: *const c_ushort, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
     o.set_user_name(to_usize(row), v)

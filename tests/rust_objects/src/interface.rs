@@ -16,7 +16,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -146,20 +145,20 @@ pub unsafe extern "C" fn inner_object_free(ptr: *mut InnerObject) {
 }
 
 #[no_mangle]
-pub extern "C" fn inner_object_description_get(
+pub unsafe extern "C" fn inner_object_description_get(
     ptr: *const InnerObject,
     p: *mut QString,
     set: fn(*mut QString, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.description();
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, to_c_int(v.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn inner_object_description_set(ptr: *mut InnerObject, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn inner_object_description_set(ptr: *mut InnerObject, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_description(s);

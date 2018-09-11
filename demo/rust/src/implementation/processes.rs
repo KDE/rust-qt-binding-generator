@@ -56,7 +56,7 @@ pub struct Processes {
 fn check_process_hierarchy(parent: Option<pid_t>, processes: &HashMap<pid_t, Process>) {
     for (pid, process) in processes {
         assert_eq!(process.pid, *pid);
-        if !parent.is_none() {
+        if parent.is_some() {
             assert_eq!(process.parent, parent);
         }
         check_process_hierarchy(Some(*pid), &process.tasks);
@@ -325,7 +325,7 @@ impl ProcessesTrait for Processes {
         let (tx, rx) = channel();
         let p = Processes {
             emit: emit.clone(),
-            model: model,
+            model,
             p: ProcessTree::default(),
             incoming: Arc::new(Mutex::new(None)),
             active: false,

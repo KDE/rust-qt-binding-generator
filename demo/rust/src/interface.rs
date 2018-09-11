@@ -53,7 +53,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -550,14 +549,14 @@ pub unsafe extern "C" fn fibonacci_list_sort(
 }
 
 #[no_mangle]
-pub extern "C" fn fibonacci_list_data_fibonacci_number(ptr: *const FibonacciList, row: c_int) -> u64 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn fibonacci_list_data_fibonacci_number(ptr: *const FibonacciList, row: c_int) -> u64 {
+    let o = &*ptr;
     o.fibonacci_number(to_usize(row)).into()
 }
 
 #[no_mangle]
-pub extern "C" fn fibonacci_list_data_row(ptr: *const FibonacciList, row: c_int) -> u64 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn fibonacci_list_data_row(ptr: *const FibonacciList, row: c_int) -> u64 {
+    let o = &*ptr;
     o.row(to_usize(row)).into()
 }
 
@@ -711,12 +710,12 @@ pub unsafe extern "C" fn file_system_tree_free(ptr: *mut FileSystemTree) {
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_path_get(
+pub unsafe extern "C" fn file_system_tree_path_get(
     ptr: *const FileSystemTree,
     p: *mut QString,
     set: fn(*mut QString, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.path();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
@@ -725,16 +724,16 @@ pub extern "C" fn file_system_tree_path_get(
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_path_set(ptr: *mut FileSystemTree, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn file_system_tree_path_set(ptr: *mut FileSystemTree, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_path(Some(s));
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_path_set_none(ptr: *mut FileSystemTree) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn file_system_tree_path_set_none(ptr: *mut FileSystemTree) {
+    let o = &mut *ptr;
     o.set_path(None);
 }
 
@@ -800,36 +799,36 @@ pub unsafe extern "C" fn file_system_tree_row(ptr: *const FileSystemTree, index:
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_data_file_icon(
+pub unsafe extern "C" fn file_system_tree_data_file_icon(
     ptr: *const FileSystemTree, index: usize,
     d: *mut QByteArray,
     set: fn(*mut QByteArray, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.file_icon(index);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_data_file_name(
+pub unsafe extern "C" fn file_system_tree_data_file_name(
     ptr: *const FileSystemTree, index: usize,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.file_name(index);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_data_file_path(
+pub unsafe extern "C" fn file_system_tree_data_file_path(
     ptr: *const FileSystemTree, index: usize,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.file_path(index);
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
@@ -838,20 +837,20 @@ pub extern "C" fn file_system_tree_data_file_path(
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_data_file_permissions(ptr: *const FileSystemTree, index: usize) -> i32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn file_system_tree_data_file_permissions(ptr: *const FileSystemTree, index: usize) -> i32 {
+    let o = &*ptr;
     o.file_permissions(index).into()
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_data_file_size(ptr: *const FileSystemTree, index: usize) -> COption<u64> {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn file_system_tree_data_file_size(ptr: *const FileSystemTree, index: usize) -> COption<u64> {
+    let o = &*ptr;
     o.file_size(index).into()
 }
 
 #[no_mangle]
-pub extern "C" fn file_system_tree_data_file_type(ptr: *const FileSystemTree, index: usize) -> i32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn file_system_tree_data_file_type(ptr: *const FileSystemTree, index: usize) -> i32 {
+    let o = &*ptr;
     o.file_type(index).into()
 }
 
@@ -1077,56 +1076,56 @@ pub unsafe extern "C" fn processes_row(ptr: *const Processes, index: usize) -> c
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_cmd(
+pub unsafe extern "C" fn processes_data_cmd(
     ptr: *const Processes, index: usize,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.cmd(index);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_cpu_percentage(ptr: *const Processes, index: usize) -> u8 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn processes_data_cpu_percentage(ptr: *const Processes, index: usize) -> u8 {
+    let o = &*ptr;
     o.cpu_percentage(index).into()
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_cpu_usage(ptr: *const Processes, index: usize) -> f32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn processes_data_cpu_usage(ptr: *const Processes, index: usize) -> f32 {
+    let o = &*ptr;
     o.cpu_usage(index).into()
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_memory(ptr: *const Processes, index: usize) -> u64 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn processes_data_memory(ptr: *const Processes, index: usize) -> u64 {
+    let o = &*ptr;
     o.memory(index).into()
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_name(
+pub unsafe extern "C" fn processes_data_name(
     ptr: *const Processes, index: usize,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.name(index);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_pid(ptr: *const Processes, index: usize) -> u32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn processes_data_pid(ptr: *const Processes, index: usize) -> u32 {
+    let o = &*ptr;
     o.pid(index).into()
 }
 
 #[no_mangle]
-pub extern "C" fn processes_data_uid(ptr: *const Processes, index: usize) -> u32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn processes_data_uid(ptr: *const Processes, index: usize) -> u32 {
+    let o = &*ptr;
     o.uid(index).into()
 }
 
@@ -1296,8 +1295,8 @@ pub unsafe extern "C" fn time_series_sort(
 }
 
 #[no_mangle]
-pub extern "C" fn time_series_data_cos(ptr: *const TimeSeries, row: c_int) -> f32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn time_series_data_cos(ptr: *const TimeSeries, row: c_int) -> f32 {
+    let o = &*ptr;
     o.cos(to_usize(row)).into()
 }
 
@@ -1310,8 +1309,8 @@ pub unsafe extern "C" fn time_series_set_data_cos(
 }
 
 #[no_mangle]
-pub extern "C" fn time_series_data_sin(ptr: *const TimeSeries, row: c_int) -> f32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn time_series_data_sin(ptr: *const TimeSeries, row: c_int) -> f32 {
+    let o = &*ptr;
     o.sin(to_usize(row)).into()
 }
 
@@ -1324,8 +1323,8 @@ pub unsafe extern "C" fn time_series_set_data_sin(
 }
 
 #[no_mangle]
-pub extern "C" fn time_series_data_time(ptr: *const TimeSeries, row: c_int) -> f32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn time_series_data_time(ptr: *const TimeSeries, row: c_int) -> f32 {
+    let o = &*ptr;
     o.time(to_usize(row)).into()
 }
 

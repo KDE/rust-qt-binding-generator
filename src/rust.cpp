@@ -162,7 +162,7 @@ void writeFunction(QTextStream& r, const Function& f, const QString& lcname, con
     const QString lc(snakeCase(f.name));
     r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", o.name);
+pub unsafe extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", o.name);
     // write all the input arguments, for QString and QByteArray, write
     // pointers to their content and the length which is int in Qt
     for (auto a = f.args.begin(); a < f.args.end(); a++) {
@@ -188,13 +188,13 @@ pub extern "C" fn %1_%2(ptr: *%3 %4)").arg(lcname, lc, f.mut ? "mut" : "const", 
             r << "    let mut " << a->name << " = String::new();\n";
             r << QString("    set_string_from_utf16(&mut %1, %1_str, %1_len);\n").arg(a->name);
         } else if (a->type.name == "QByteArray") {
-            r << QString("    let %1 = unsafe { slice::from_raw_parts(%1_str as *const u8, to_usize(%1_len)) };\n").arg(a->name);
+            r << QString("    let %1 = { slice::from_raw_parts(%1_str as *const u8, to_usize(%1_len)) };\n").arg(a->name);
         }
     }
     if (f.mut) {
-        r << "    let o = unsafe { &mut *ptr };\n";
+        r << "    let o = &mut *ptr;\n";
     } else {
-        r << "    let o = unsafe { &*ptr };\n";
+        r << "    let o = &*ptr;\n";
     }
     r << "    let r = o." << lc << "(";
     for (auto a = f.args.begin(); a < f.args.end(); a++) {
@@ -471,12 +471,12 @@ pub unsafe extern "C" fn %2_get(ptr: *mut %1) -> *mut %4 {
             if (p.rustByFunction) {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_get(
+pub unsafe extern "C" fn %2_get(
     ptr: *const %1,
     p: *mut %4,
     set: fn(*mut %4, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     o.%3(|v| {
         let s: *const c_char = v.as_ptr() as (*const c_char);
         set(p, s, to_c_int(v.len()));
@@ -486,12 +486,12 @@ pub extern "C" fn %2_get(
             } else {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_get(
+pub unsafe extern "C" fn %2_get(
     ptr: *const %1,
     p: *mut %4,
     set: fn(*mut %4, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.%3();
     let s: *const c_char = v.as_ptr() as (*const c_char);
     set(p, s, to_c_int(v.len()));
@@ -501,8 +501,8 @@ pub extern "C" fn %2_get(
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_%3(s);
@@ -511,9 +511,9 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
             } else if (p.write) {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
-    let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
+    let o = &mut *ptr;
+    let v = slice::from_raw_parts(v as *const u8, to_usize(len));
     o.set_%3(v);
 }
 )").arg(o.name, base, snakeCase(p.name));
@@ -521,12 +521,12 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
         } else if (p.type.isComplex()) {
             r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_get(
+pub unsafe extern "C" fn %2_get(
     ptr: *const %1,
     p: *mut %4,
     set: fn(*mut %4, *const c_char, c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let v = o.%3();
     if let Some(v) = v {
         let s: *const c_char = v.as_ptr() as (*const c_char);
@@ -537,8 +537,8 @@ pub extern "C" fn %2_get(
             if (p.write && p.type.name == "QString") {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
+    let o = &mut *ptr;
     let mut s = String::new();
     set_string_from_utf16(&mut s, v, len);
     o.set_%3(Some(s));
@@ -547,9 +547,9 @@ pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_ushort, len: c_int) {
             } else if (p.write) {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
-    let o = unsafe { &mut *ptr };
-    let v = unsafe { slice::from_raw_parts(v as *const u8, to_usize(len)) };
+pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: *const c_char, len: c_int) {
+    let o = &mut *ptr;
+    let v = slice::from_raw_parts(v as *const u8, to_usize(len));
     o.set_%3(Some(v.into()));
 }
 )").arg(o.name, base, snakeCase(p.name));
@@ -591,8 +591,8 @@ pub unsafe extern "C" fn %2_set(ptr: *mut %1, v: %4) {
         if (p.write && p.optional) {
             r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set_none(ptr: *mut %1) {
-    let o = unsafe { &mut *ptr };
+pub unsafe extern "C" fn %2_set_none(ptr: *mut %1) {
+    let o = &mut *ptr;
     o.set_%3(None);
 }
 )").arg(o.name, base, snakeCase(p.name));
@@ -707,12 +707,12 @@ pub unsafe extern "C" fn %2_row(ptr: *const %1, index: usize) -> c_int {
             if (ip.type.isComplex() && !ip.optional) {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_data_%3(
+pub unsafe extern "C" fn %2_data_%3(
     ptr: *const %1%4,
     d: *mut %6,
     set: fn(*mut %6, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.%3(%5);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
@@ -721,12 +721,12 @@ pub extern "C" fn %2_data_%3(
             } else if (ip.type.isComplex()) {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_data_%3(
+pub unsafe extern "C" fn %2_data_%3(
     ptr: *const %1%4,
     d: *mut %6,
     set: fn(*mut %6, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.%3(%5);
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
@@ -737,8 +737,8 @@ pub extern "C" fn %2_data_%3(
             } else {
                 r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
+    let o = &*ptr;
     o.%3(%6).into()
 }
 )").arg(o.name, lcname, snakeCase(ip.name), rustCType(ip), indexDecl, index);
@@ -751,11 +751,11 @@ pub extern "C" fn %2_data_%3(ptr: *const %1%5) -> %4 {
                 if (ip.type.name == "QString") {
                     r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set_data_%3(
+pub unsafe extern "C" fn %2_set_data_%3(
     ptr: *mut %1%4,
     s: *const c_ushort, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
     o.set_%3(%5, %6)
@@ -764,12 +764,12 @@ pub extern "C" fn %2_set_data_%3(
                 } else if (ip.type.name == "QByteArray") {
                     r << QString(R"(
 #[no_mangle]
-pub extern "C" fn %2_set_data_%3(
+pub unsafe extern "C" fn %2_set_data_%3(
     ptr: *mut %1%4,
     s: *const c_char, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
-    let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, to_usize(len)) };
+    let o = &mut *ptr;
+    let slice = ::std::slice::from_raw_parts(s as *const u8, to_usize(len));
     o.set_%3(%5, %6)
 }
 )").arg(o.name, lcname, snakeCase(ip.name), indexDecl, index, ip.optional ?"Some(slice)" :"slice");
@@ -883,7 +883,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);

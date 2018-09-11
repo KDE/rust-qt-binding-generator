@@ -53,7 +53,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -286,8 +285,8 @@ pub unsafe extern "C" fn list_sort(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_boolean(ptr: *const List, row: c_int) -> bool {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_boolean(ptr: *const List, row: c_int) -> bool {
+    let o = &*ptr;
     o.boolean(to_usize(row)).into()
 }
 
@@ -300,30 +299,30 @@ pub unsafe extern "C" fn list_set_data_boolean(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_bytearray(
+pub unsafe extern "C" fn list_data_bytearray(
     ptr: *const List, row: c_int,
     d: *mut QByteArray,
     set: fn(*mut QByteArray, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.bytearray(to_usize(row));
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn list_set_data_bytearray(
+pub unsafe extern "C" fn list_set_data_bytearray(
     ptr: *mut List, row: c_int,
     s: *const c_char, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
-    let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, to_usize(len)) };
+    let o = &mut *ptr;
+    let slice = ::std::slice::from_raw_parts(s as *const u8, to_usize(len));
     o.set_bytearray(to_usize(row), slice)
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_f32(ptr: *const List, row: c_int) -> f32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_f32(ptr: *const List, row: c_int) -> f32 {
+    let o = &*ptr;
     o.f32(to_usize(row)).into()
 }
 
@@ -336,8 +335,8 @@ pub unsafe extern "C" fn list_set_data_f32(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_f64(ptr: *const List, row: c_int) -> f64 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_f64(ptr: *const List, row: c_int) -> f64 {
+    let o = &*ptr;
     o.f64(to_usize(row)).into()
 }
 
@@ -350,8 +349,8 @@ pub unsafe extern "C" fn list_set_data_f64(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_i16(ptr: *const List, row: c_int) -> i16 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_i16(ptr: *const List, row: c_int) -> i16 {
+    let o = &*ptr;
     o.i16(to_usize(row)).into()
 }
 
@@ -364,8 +363,8 @@ pub unsafe extern "C" fn list_set_data_i16(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_i32(ptr: *const List, row: c_int) -> i32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_i32(ptr: *const List, row: c_int) -> i32 {
+    let o = &*ptr;
     o.i32(to_usize(row)).into()
 }
 
@@ -378,8 +377,8 @@ pub unsafe extern "C" fn list_set_data_i32(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_i64(ptr: *const List, row: c_int) -> i64 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_i64(ptr: *const List, row: c_int) -> i64 {
+    let o = &*ptr;
     o.i64(to_usize(row)).into()
 }
 
@@ -392,8 +391,8 @@ pub unsafe extern "C" fn list_set_data_i64(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_i8(ptr: *const List, row: c_int) -> i8 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_i8(ptr: *const List, row: c_int) -> i8 {
+    let o = &*ptr;
     o.i8(to_usize(row)).into()
 }
 
@@ -406,8 +405,8 @@ pub unsafe extern "C" fn list_set_data_i8(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_optional_boolean(ptr: *const List, row: c_int) -> COption<bool> {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_optional_boolean(ptr: *const List, row: c_int) -> COption<bool> {
+    let o = &*ptr;
     o.optional_boolean(to_usize(row)).into()
 }
 
@@ -425,12 +424,12 @@ pub unsafe extern "C" fn list_set_data_optional_boolean_none(ptr: *mut List, row
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_optional_bytearray(
+pub unsafe extern "C" fn list_data_optional_bytearray(
     ptr: *const List, row: c_int,
     d: *mut QByteArray,
     set: fn(*mut QByteArray, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.optional_bytearray(to_usize(row));
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
@@ -439,12 +438,12 @@ pub extern "C" fn list_data_optional_bytearray(
 }
 
 #[no_mangle]
-pub extern "C" fn list_set_data_optional_bytearray(
+pub unsafe extern "C" fn list_set_data_optional_bytearray(
     ptr: *mut List, row: c_int,
     s: *const c_char, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
-    let slice = unsafe { ::std::slice::from_raw_parts(s as *const u8, to_usize(len)) };
+    let o = &mut *ptr;
+    let slice = ::std::slice::from_raw_parts(s as *const u8, to_usize(len));
     o.set_optional_bytearray(to_usize(row), Some(slice))
 }
 
@@ -454,12 +453,12 @@ pub unsafe extern "C" fn list_set_data_optional_bytearray_none(ptr: *mut List, r
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_optional_string(
+pub unsafe extern "C" fn list_data_optional_string(
     ptr: *const List, row: c_int,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.optional_string(to_usize(row));
     if let Some(data) = data {
         let s: *const c_char = data.as_ptr() as (*const c_char);
@@ -468,11 +467,11 @@ pub extern "C" fn list_data_optional_string(
 }
 
 #[no_mangle]
-pub extern "C" fn list_set_data_optional_string(
+pub unsafe extern "C" fn list_set_data_optional_string(
     ptr: *mut List, row: c_int,
     s: *const c_ushort, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
     o.set_optional_string(to_usize(row), Some(v))
@@ -484,31 +483,31 @@ pub unsafe extern "C" fn list_set_data_optional_string_none(ptr: *mut List, row:
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_string(
+pub unsafe extern "C" fn list_data_string(
     ptr: *const List, row: c_int,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.string(to_usize(row));
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn list_set_data_string(
+pub unsafe extern "C" fn list_set_data_string(
     ptr: *mut List, row: c_int,
     s: *const c_ushort, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
     o.set_string(to_usize(row), v)
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_u16(ptr: *const List, row: c_int) -> u16 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_u16(ptr: *const List, row: c_int) -> u16 {
+    let o = &*ptr;
     o.u16(to_usize(row)).into()
 }
 
@@ -521,8 +520,8 @@ pub unsafe extern "C" fn list_set_data_u16(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_u32(ptr: *const List, row: c_int) -> u32 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_u32(ptr: *const List, row: c_int) -> u32 {
+    let o = &*ptr;
     o.u32(to_usize(row)).into()
 }
 
@@ -535,8 +534,8 @@ pub unsafe extern "C" fn list_set_data_u32(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_u64(ptr: *const List, row: c_int) -> u64 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_u64(ptr: *const List, row: c_int) -> u64 {
+    let o = &*ptr;
     o.u64(to_usize(row)).into()
 }
 
@@ -549,8 +548,8 @@ pub unsafe extern "C" fn list_set_data_u64(
 }
 
 #[no_mangle]
-pub extern "C" fn list_data_u8(ptr: *const List, row: c_int) -> u8 {
-    let o = unsafe { &*ptr };
+pub unsafe extern "C" fn list_data_u8(ptr: *const List, row: c_int) -> u8 {
+    let o = &*ptr;
     o.u8(to_usize(row)).into()
 }
 

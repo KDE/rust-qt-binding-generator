@@ -53,7 +53,6 @@ pub enum QString {}
 fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {
     let utf16 = unsafe { slice::from_raw_parts(str, to_usize(len)) };
     let characters = decode_utf16(utf16.iter().cloned())
-        .into_iter()
         .map(|r| r.unwrap());
     s.clear();
     s.extend(characters);
@@ -287,23 +286,23 @@ pub unsafe extern "C" fn persons_row(ptr: *const Persons, index: usize) -> c_int
 }
 
 #[no_mangle]
-pub extern "C" fn persons_data_user_name(
+pub unsafe extern "C" fn persons_data_user_name(
     ptr: *const Persons, index: usize,
     d: *mut QString,
     set: fn(*mut QString, *const c_char, len: c_int),
 ) {
-    let o = unsafe { &*ptr };
+    let o = &*ptr;
     let data = o.user_name(index);
     let s: *const c_char = data.as_ptr() as (*const c_char);
     set(d, s, to_c_int(data.len()));
 }
 
 #[no_mangle]
-pub extern "C" fn persons_set_data_user_name(
+pub unsafe extern "C" fn persons_set_data_user_name(
     ptr: *mut Persons, index: usize,
     s: *const c_ushort, len: c_int,
 ) -> bool {
-    let o = unsafe { &mut *ptr };
+    let o = &mut *ptr;
     let mut v = String::new();
     set_string_from_utf16(&mut v, s, len);
     o.set_user_name(index, v)
