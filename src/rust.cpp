@@ -413,6 +413,7 @@ pub trait %1Trait {
     }
     fn fetch_more(&mut self, Option<usize>) {}
     fn sort(&mut self, u8, SortOrder) {}
+    fn check_row(&self, index: usize, row: usize) -> Option<usize>;
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, index: usize) -> Option<usize>;
     fn row(&self, index: usize) -> usize;
@@ -658,6 +659,14 @@ pub unsafe extern "C" fn %2_sort(
     order: SortOrder
 ) {
     (&mut *ptr).sort(column, order)
+}
+#[no_mangle]
+pub unsafe extern "C" fn %2_check_row(
+    ptr: *const %1,
+    index: usize,
+    row: c_int,
+) -> COption<usize> {
+    (&*ptr).check_row(index.into(), to_usize(row)).into()
 }
 #[no_mangle]
 pub unsafe extern "C" fn %2_index(

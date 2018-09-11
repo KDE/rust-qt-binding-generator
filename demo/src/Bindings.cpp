@@ -194,6 +194,7 @@ void FibonacciList::fetchMore(const QModelIndex &parent)
         fibonacci_list_fetch_more(m_d);
     }
 }
+void FibonacciList::updatePersistentIndexes() {}
 
 void FibonacciList::sort(int column, Qt::SortOrder order)
 {
@@ -303,6 +304,7 @@ extern "C" {
     quintptr file_system_tree_index(const FileSystemTree::Private*, option_quintptr, int);
     qmodelindex_t file_system_tree_parent(const FileSystemTree::Private*, quintptr);
     int file_system_tree_row(const FileSystemTree::Private*, quintptr);
+    option_quintptr file_system_tree_check_row(const FileSystemTree::Private*, quintptr, int);
 }
 int FileSystemTree::columnCount(const QModelIndex &) const
 {
@@ -383,6 +385,21 @@ void FileSystemTree::fetchMore(const QModelIndex &parent)
         parent.isValid()
     };
     file_system_tree_fetch_more(m_d, rust_parent);
+}
+void FileSystemTree::updatePersistentIndexes() {
+    const auto from = persistentIndexList();
+    auto to = from;
+    auto len = to.size();
+    for (int i = 0; i < len; ++i) {
+        auto index = to.at(i);
+        auto row = file_system_tree_check_row(m_d, index.internalId(), index.row());
+        if (row.some) {
+            to[i] = createIndex(row.value, index.column(), index.internalId());
+        } else {
+            to[i] = QModelIndex();
+        }
+    }
+    changePersistentIndexList(from, to);
 }
 
 void FileSystemTree::sort(int column, Qt::SortOrder order)
@@ -556,6 +573,7 @@ extern "C" {
     quintptr processes_index(const Processes::Private*, option_quintptr, int);
     qmodelindex_t processes_parent(const Processes::Private*, quintptr);
     int processes_row(const Processes::Private*, quintptr);
+    option_quintptr processes_check_row(const Processes::Private*, quintptr, int);
 }
 int Processes::columnCount(const QModelIndex &) const
 {
@@ -636,6 +654,21 @@ void Processes::fetchMore(const QModelIndex &parent)
         parent.isValid()
     };
     processes_fetch_more(m_d, rust_parent);
+}
+void Processes::updatePersistentIndexes() {
+    const auto from = persistentIndexList();
+    auto to = from;
+    auto len = to.size();
+    for (int i = 0; i < len; ++i) {
+        auto index = to.at(i);
+        auto row = processes_check_row(m_d, index.internalId(), index.row());
+        if (row.some) {
+            to[i] = createIndex(row.value, index.column(), index.internalId());
+        } else {
+            to[i] = QModelIndex();
+        }
+    }
+    changePersistentIndexList(from, to);
 }
 
 void Processes::sort(int column, Qt::SortOrder order)
@@ -848,6 +881,7 @@ void TimeSeries::fetchMore(const QModelIndex &parent)
         time_series_fetch_more(m_d);
     }
 }
+void TimeSeries::updatePersistentIndexes() {}
 
 void TimeSeries::sort(int column, Qt::SortOrder order)
 {
@@ -1066,6 +1100,7 @@ Demo::Demo(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](FibonacciList* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
@@ -1110,6 +1145,7 @@ Demo::Demo(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](FileSystemTree* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](FileSystemTree* o, quintptr first, quintptr last) {
@@ -1176,6 +1212,7 @@ Demo::Demo(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](Processes* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](Processes* o, quintptr first, quintptr last) {
@@ -1236,6 +1273,7 @@ Demo::Demo(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](TimeSeries* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
@@ -1383,6 +1421,7 @@ FibonacciList::FibonacciList(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](FibonacciList* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
@@ -1455,6 +1494,7 @@ FileSystemTree::FileSystemTree(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](FileSystemTree* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](FileSystemTree* o, quintptr first, quintptr last) {
@@ -1565,6 +1605,7 @@ Processes::Processes(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](Processes* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](Processes* o, quintptr first, quintptr last) {
@@ -1661,6 +1702,7 @@ TimeSeries::TimeSeries(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](TimeSeries* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](TimeSeries* o, quintptr first, quintptr last) {

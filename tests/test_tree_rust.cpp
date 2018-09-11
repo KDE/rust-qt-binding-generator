@@ -40,6 +40,7 @@ extern "C" {
     quintptr persons_index(const Persons::Private*, option_quintptr, int);
     qmodelindex_t persons_parent(const Persons::Private*, quintptr);
     int persons_row(const Persons::Private*, quintptr);
+    option_quintptr persons_check_row(const Persons::Private*, quintptr, int);
 }
 int Persons::columnCount(const QModelIndex &) const
 {
@@ -120,6 +121,21 @@ void Persons::fetchMore(const QModelIndex &parent)
         parent.isValid()
     };
     persons_fetch_more(m_d, rust_parent);
+}
+void Persons::updatePersistentIndexes() {
+    const auto from = persistentIndexList();
+    auto to = from;
+    auto len = to.size();
+    for (int i = 0; i < len; ++i) {
+        auto index = to.at(i);
+        auto row = persons_check_row(m_d, index.internalId(), index.row());
+        if (row.some) {
+            to[i] = createIndex(row.value, index.column(), index.internalId());
+        } else {
+            to[i] = QModelIndex();
+        }
+    }
+    changePersistentIndexList(from, to);
 }
 
 void Persons::sort(int column, Qt::SortOrder order)
@@ -252,6 +268,7 @@ Persons::Persons(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](Persons* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](Persons* o, quintptr first, quintptr last) {

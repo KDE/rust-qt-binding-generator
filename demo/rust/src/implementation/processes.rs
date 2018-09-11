@@ -390,6 +390,14 @@ impl ProcessesTrait for Processes {
     fn row(&self, index: usize) -> usize {
         self.get(index).row
     }
+    fn check_row(&self, index: usize, _row: usize) -> Option<usize> {
+        let pid = index as pid_t;
+        if self.p.processes.contains_key(&pid) {
+            Some(self.row(index))
+        } else {
+            None
+        }
+    }
     fn pid(&self, index: usize) -> u32 {
         self.process(index).pid as u32
     }

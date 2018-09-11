@@ -280,6 +280,13 @@ where
     fn row(&self, index: usize) -> usize {
         self.entries[index].row
     }
+    fn check_row(&self, index: usize, _row: usize) -> Option<usize> {
+        if index < self.entries.len() {
+            Some(self.row(index))
+        } else {
+            None
+        }
+    }
     fn file_name(&self, index: usize) -> String {
         self.get(index).data.file_name()
     }

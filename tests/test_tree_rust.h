@@ -46,6 +46,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 signals:
 };
 #endif // TEST_TREE_RUST_H

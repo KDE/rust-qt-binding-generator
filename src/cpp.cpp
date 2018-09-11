@@ -117,6 +117,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 )";
 }
 
@@ -324,6 +325,7 @@ void %1::fetchMore(const QModelIndex &parent)
         %2_fetch_more(m_d);
     }
 }
+void %1::updatePersistentIndexes() {}
 )").arg(o.name, lcname, QString::number(o.columnCount));
     } else {
         cpp << QString(R"(
@@ -333,6 +335,7 @@ void %1::fetchMore(const QModelIndex &parent)
     quintptr %2_index(const %1::Private*, option_quintptr, int);
     qmodelindex_t %2_parent(const %1::Private*, quintptr);
     int %2_row(const %1::Private*, quintptr);
+    option_quintptr %2_check_row(const %1::Private*, quintptr, int);
 }
 int %1::columnCount(const QModelIndex &) const
 {
@@ -413,6 +416,21 @@ void %1::fetchMore(const QModelIndex &parent)
         parent.isValid()
     };
     %2_fetch_more(m_d, rust_parent);
+}
+void %1::updatePersistentIndexes() {
+    const auto from = persistentIndexList();
+    auto to = from;
+    auto len = to.size();
+    for (int i = 0; i < len; ++i) {
+        auto index = to.at(i);
+        auto row = %2_check_row(m_d, index.internalId(), index.row());
+        if (row.some) {
+            to[i] = createIndex(row.value, index.column(), index.internalId());
+        } else {
+            to[i] = QModelIndex();
+        }
+    }
+    changePersistentIndexList(from, to);
 }
 )").arg(o.name, lcname, QString::number(o.columnCount));
     }
@@ -691,6 +709,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
             emit o->layoutAboutToBeChanged();
         },
         [](%1* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](%1* o, quintptr first, quintptr last) {
@@ -737,6 +756,7 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
             emit o->layoutAboutToBeChanged();
         },
         [](%1* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](%1* o, quintptr first, quintptr last) {

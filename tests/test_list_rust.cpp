@@ -91,6 +91,7 @@ void NoRole::fetchMore(const QModelIndex &parent)
         no_role_fetch_more(m_d);
     }
 }
+void NoRole::updatePersistentIndexes() {}
 
 void NoRole::sort(int column, Qt::SortOrder order)
 {
@@ -282,6 +283,7 @@ void Persons::fetchMore(const QModelIndex &parent)
         persons_fetch_more(m_d);
     }
 }
+void Persons::updatePersistentIndexes() {}
 
 void Persons::sort(int column, Qt::SortOrder order)
 {
@@ -409,6 +411,7 @@ NoRole::NoRole(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](NoRole* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](NoRole* o, quintptr first, quintptr last) {
@@ -473,6 +476,7 @@ Persons::Persons(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](Persons* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](Persons* o, quintptr first, quintptr last) {

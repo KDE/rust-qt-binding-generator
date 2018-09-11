@@ -114,6 +114,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 signals:
 };
 
@@ -163,6 +164,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 signals:
     void pathChanged();
 };
@@ -214,6 +216,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 signals:
     void activeChanged();
 };
@@ -262,6 +265,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 signals:
 };
 #endif // BINDINGS_H

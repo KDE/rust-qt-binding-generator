@@ -145,6 +145,7 @@ void List::fetchMore(const QModelIndex &parent)
         list_fetch_more(m_d);
     }
 }
+void List::updatePersistentIndexes() {}
 
 void List::sort(int column, Qt::SortOrder order)
 {
@@ -653,6 +654,7 @@ List::List(QObject *parent):
             emit o->layoutAboutToBeChanged();
         },
         [](List* o) {
+            o->updatePersistentIndexes();
             emit o->layoutChanged();
         },
         [](List* o, quintptr first, quintptr last) {

@@ -76,6 +76,7 @@ signals:
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
+    void updatePersistentIndexes();
 signals:
 };
 #endif // TEST_LIST_TYPES_RUST_H

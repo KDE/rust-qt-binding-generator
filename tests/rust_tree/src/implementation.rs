@@ -37,6 +37,13 @@ impl PersonsTrait for Persons {
     fn row(&self, index: usize) -> usize {
         index
     }
+    fn check_row(&self, index: usize, _row: usize) -> Option<usize> {
+        if index < self.list.len() {
+            Some(index)
+        } else {
+            None
+        }
+    }
     fn user_name(&self, index: usize) -> &str {
         &self.list[index].user_name
     }
