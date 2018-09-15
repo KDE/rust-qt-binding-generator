@@ -70,13 +70,13 @@ public:
     Q_INVOKABLE quint8 u8(int row) const;
     Q_INVOKABLE bool setU8(int row, quint8 value);
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
 };
 #endif // TEST_LIST_TYPES_RUST_H

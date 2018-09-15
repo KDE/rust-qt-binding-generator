@@ -43,14 +43,14 @@ public:
     Q_INVOKABLE QString userName(int row) const;
     Q_INVOKABLE bool setUserName(int row, const QString& value);
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
 };
 
 class Persons : public QAbstractItemModel
@@ -86,13 +86,13 @@ public:
     Q_INVOKABLE QString userName(int row) const;
     Q_INVOKABLE bool setUserName(int row, const QString& value);
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
 };
 #endif // TEST_LIST_RUST_H

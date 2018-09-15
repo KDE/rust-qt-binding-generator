@@ -73,7 +73,7 @@ public:
     void setU64(quint64 v);
     quint8 u8() const;
     void setU8(quint8 v);
-signals:
+Q_SIGNALS:
     void booleanChanged();
     void bytearrayChanged();
     void f32Changed();

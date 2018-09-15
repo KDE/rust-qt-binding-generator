@@ -26,7 +26,7 @@ public:
     ~Group();
     const Person* person() const;
     Person* person();
-signals:
+Q_SIGNALS:
     void personChanged();
 };
 
@@ -47,7 +47,7 @@ public:
     ~InnerObject();
     QString description() const;
     void setDescription(const QString& v);
-signals:
+Q_SIGNALS:
     void descriptionChanged();
 };
 
@@ -68,7 +68,7 @@ public:
     ~Person();
     const InnerObject* object() const;
     InnerObject* object();
-signals:
+Q_SIGNALS:
     void objectChanged();
 };
 #endif // TEST_OBJECTS_RUST_H

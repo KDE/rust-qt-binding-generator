@@ -22,7 +22,7 @@ public:
     ~Person();
     QString userName() const;
     void setUserName(const QString& v);
-signals:
+Q_SIGNALS:
     void userNameChanged();
 };
 #endif // TEST_OBJECT_RUST_H

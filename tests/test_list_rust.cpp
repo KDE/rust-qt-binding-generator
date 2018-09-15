@@ -117,7 +117,7 @@ bool NoRole::setUserAge(int row, quint8 value)
     set = no_role_set_data_user_age(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -135,7 +135,7 @@ bool NoRole::setUserName(int row, const QString& value)
     set = no_role_set_data_user_name(m_d, row, value.utf16(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -312,7 +312,7 @@ bool Persons::setUserName(int row, const QString& value)
     set = persons_set_data_user_name(m_d, row, value.utf16(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -407,14 +407,14 @@ NoRole::NoRole(QObject *parent):
     QAbstractItemModel(parent),
     m_d(no_role_new(this,
         [](const NoRole* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](NoRole* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](NoRole* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](NoRole* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -472,14 +472,14 @@ Persons::Persons(QObject *parent):
     QAbstractItemModel(parent),
     m_d(persons_new(this,
         [](const Persons* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](Persons* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](Persons* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](Persons* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),

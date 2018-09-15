@@ -163,7 +163,7 @@ bool Persons::setUserName(const QModelIndex& index, const QString& value)
     bool set = false;
     set = persons_set_data_user_name(m_d, index.internalId(), value.utf16(), value.length());
     if (set) {
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -260,17 +260,17 @@ Persons::Persons(QObject *parent):
         [](const Persons* o, option_quintptr id) {
             if (id.some) {
                 int row = persons_row(o->m_d, id.value);
-                emit o->newDataReady(o->createIndex(row, 0, id.value));
+                Q_EMIT o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
-                emit o->newDataReady(QModelIndex());
+                Q_EMIT o->newDataReady(QModelIndex());
             }
         },
         [](Persons* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](Persons* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](Persons* o, quintptr first, quintptr last) {
             quintptr frow = persons_row(o->m_d, first);

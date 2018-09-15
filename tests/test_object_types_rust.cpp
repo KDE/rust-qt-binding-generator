@@ -45,75 +45,75 @@ namespace {
     }
     inline void objectBooleanChanged(Object* o)
     {
-        emit o->booleanChanged();
+        Q_EMIT o->booleanChanged();
     }
     inline void objectBytearrayChanged(Object* o)
     {
-        emit o->bytearrayChanged();
+        Q_EMIT o->bytearrayChanged();
     }
     inline void objectF32Changed(Object* o)
     {
-        emit o->f32Changed();
+        Q_EMIT o->f32Changed();
     }
     inline void objectF64Changed(Object* o)
     {
-        emit o->f64Changed();
+        Q_EMIT o->f64Changed();
     }
     inline void objectI16Changed(Object* o)
     {
-        emit o->i16Changed();
+        Q_EMIT o->i16Changed();
     }
     inline void objectI32Changed(Object* o)
     {
-        emit o->i32Changed();
+        Q_EMIT o->i32Changed();
     }
     inline void objectI64Changed(Object* o)
     {
-        emit o->i64Changed();
+        Q_EMIT o->i64Changed();
     }
     inline void objectI8Changed(Object* o)
     {
-        emit o->i8Changed();
+        Q_EMIT o->i8Changed();
     }
     inline void objectOptionalBooleanChanged(Object* o)
     {
-        emit o->optionalBooleanChanged();
+        Q_EMIT o->optionalBooleanChanged();
     }
     inline void objectOptionalBytearrayChanged(Object* o)
     {
-        emit o->optionalBytearrayChanged();
+        Q_EMIT o->optionalBytearrayChanged();
     }
     inline void objectOptionalStringChanged(Object* o)
     {
-        emit o->optionalStringChanged();
+        Q_EMIT o->optionalStringChanged();
     }
     inline void objectOptionalU64Changed(Object* o)
     {
-        emit o->optionalU64Changed();
+        Q_EMIT o->optionalU64Changed();
     }
     inline void objectStringChanged(Object* o)
     {
-        emit o->stringChanged();
+        Q_EMIT o->stringChanged();
     }
     inline void objectStringByFunctionChanged(Object* o)
     {
-        emit o->stringByFunctionChanged();
+        Q_EMIT o->stringByFunctionChanged();
     }
     inline void objectU16Changed(Object* o)
     {
-        emit o->u16Changed();
+        Q_EMIT o->u16Changed();
     }
     inline void objectU32Changed(Object* o)
     {
-        emit o->u32Changed();
+        Q_EMIT o->u32Changed();
     }
     inline void objectU64Changed(Object* o)
     {
-        emit o->u64Changed();
+        Q_EMIT o->u64Changed();
     }
     inline void objectU8Changed(Object* o)
     {
-        emit o->u8Changed();
+        Q_EMIT o->u8Changed();
     }
 }
 extern "C" {

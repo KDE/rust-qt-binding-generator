@@ -111,7 +111,7 @@ void writeHeaderItemModel(QTextStream& h, const Object& o) {
         }
     }
     h << R"(
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
@@ -215,7 +215,7 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
     if (o.type == ObjectType::List) {
         cpp << R"(    if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -223,7 +223,7 @@ void writeModelGetterSetter(QTextStream& cpp, const QString& index,
 )";
     } else {
         cpp << R"(    if (set) {
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -636,7 +636,7 @@ public:
     if (baseType(o) == "QAbstractItemModel") {
         writeHeaderItemModel(h, o);
     }
-    h << "signals:" << endl;
+    h << "Q_SIGNALS:" << endl;
     for (auto p: o.properties) {
         h << "    void " << p.name << "Changed();" << endl;
     }
@@ -703,14 +703,14 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
     if (o.type == ObjectType::List) {
         cpp << QString(R"(,
         [](const %1* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](%1* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](%1* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](%1* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -747,17 +747,17 @@ void constructorArgs(QTextStream& cpp, const QString& prefix, const Object& o, c
         [](const %1* o, option_quintptr id) {
             if (id.some) {
                 int row = %2_row(o->m_d, id.value);
-                emit o->newDataReady(o->createIndex(row, 0, id.value));
+                Q_EMIT o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
-                emit o->newDataReady(QModelIndex());
+                Q_EMIT o->newDataReady(QModelIndex());
             }
         },
         [](%1* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](%1* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](%1* o, quintptr first, quintptr last) {
             quintptr frow = %2_row(o->m_d, first);
@@ -1173,7 +1173,7 @@ namespace {
                 continue;
             }
             cpp << "    inline void " << changedF(o, p) << "(" << o.name << "* o)\n";
-            cpp << "    {\n        emit o->" << p.name << "Changed();\n    }\n";
+            cpp << "    {\n        Q_EMIT o->" << p.name << "Changed();\n    }\n";
         }
     }
     cpp << "}\n";

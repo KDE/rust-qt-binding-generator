@@ -53,19 +53,19 @@ namespace {
     }
     inline void fibonacciInputChanged(Fibonacci* o)
     {
-        emit o->inputChanged();
+        Q_EMIT o->inputChanged();
     }
     inline void fibonacciResultChanged(Fibonacci* o)
     {
-        emit o->resultChanged();
+        Q_EMIT o->resultChanged();
     }
     inline void fileSystemTreePathChanged(FileSystemTree* o)
     {
-        emit o->pathChanged();
+        Q_EMIT o->pathChanged();
     }
     inline void processesActiveChanged(Processes* o)
     {
-        emit o->activeChanged();
+        Q_EMIT o->activeChanged();
     }
 }
 extern "C" {
@@ -923,7 +923,7 @@ bool TimeSeries::setCos(int row, float value)
     set = time_series_set_data_cos(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -939,7 +939,7 @@ bool TimeSeries::setSin(int row, float value)
     set = time_series_set_data_sin(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -955,7 +955,7 @@ bool TimeSeries::setTime(int row, float value)
     set = time_series_set_data_time(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -1107,14 +1107,14 @@ Demo::Demo(QObject *parent):
         fibonacciInputChanged,
         fibonacciResultChanged, m_fibonacciList,
         [](const FibonacciList* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](FibonacciList* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](FibonacciList* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -1149,17 +1149,17 @@ Demo::Demo(QObject *parent):
         [](const FileSystemTree* o, option_quintptr id) {
             if (id.some) {
                 int row = file_system_tree_row(o->m_d, id.value);
-                emit o->newDataReady(o->createIndex(row, 0, id.value));
+                Q_EMIT o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
-                emit o->newDataReady(QModelIndex());
+                Q_EMIT o->newDataReady(QModelIndex());
             }
         },
         [](FileSystemTree* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](FileSystemTree* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](FileSystemTree* o, quintptr first, quintptr last) {
             quintptr frow = file_system_tree_row(o->m_d, first);
@@ -1216,17 +1216,17 @@ Demo::Demo(QObject *parent):
         [](const Processes* o, option_quintptr id) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
-                emit o->newDataReady(o->createIndex(row, 0, id.value));
+                Q_EMIT o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
-                emit o->newDataReady(QModelIndex());
+                Q_EMIT o->newDataReady(QModelIndex());
             }
         },
         [](Processes* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](Processes* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](Processes* o, quintptr first, quintptr last) {
             quintptr frow = processes_row(o->m_d, first);
@@ -1280,14 +1280,14 @@ Demo::Demo(QObject *parent):
         }
 , m_timeSeries,
         [](const TimeSeries* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](TimeSeries* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](TimeSeries* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -1428,14 +1428,14 @@ FibonacciList::FibonacciList(QObject *parent):
     QAbstractItemModel(parent),
     m_d(fibonacci_list_new(this,
         [](const FibonacciList* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](FibonacciList* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](FibonacciList* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](FibonacciList* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -1498,17 +1498,17 @@ FileSystemTree::FileSystemTree(QObject *parent):
         [](const FileSystemTree* o, option_quintptr id) {
             if (id.some) {
                 int row = file_system_tree_row(o->m_d, id.value);
-                emit o->newDataReady(o->createIndex(row, 0, id.value));
+                Q_EMIT o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
-                emit o->newDataReady(QModelIndex());
+                Q_EMIT o->newDataReady(QModelIndex());
             }
         },
         [](FileSystemTree* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](FileSystemTree* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](FileSystemTree* o, quintptr first, quintptr last) {
             quintptr frow = file_system_tree_row(o->m_d, first);
@@ -1609,17 +1609,17 @@ Processes::Processes(QObject *parent):
         [](const Processes* o, option_quintptr id) {
             if (id.some) {
                 int row = processes_row(o->m_d, id.value);
-                emit o->newDataReady(o->createIndex(row, 0, id.value));
+                Q_EMIT o->newDataReady(o->createIndex(row, 0, id.value));
             } else {
-                emit o->newDataReady(QModelIndex());
+                Q_EMIT o->newDataReady(QModelIndex());
             }
         },
         [](Processes* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](Processes* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](Processes* o, quintptr first, quintptr last) {
             quintptr frow = processes_row(o->m_d, first);
@@ -1709,14 +1709,14 @@ TimeSeries::TimeSeries(QObject *parent):
     QAbstractItemModel(parent),
     m_d(time_series_new(this,
         [](const TimeSeries* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](TimeSeries* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](TimeSeries* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](TimeSeries* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),

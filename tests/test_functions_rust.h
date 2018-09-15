@@ -28,7 +28,7 @@ public:
     Q_INVOKABLE QString quote(const QString& prefix, const QString& suffix) const;
     Q_INVOKABLE QByteArray quoteBytes(const QByteArray& prefix, const QByteArray& suffix) const;
     Q_INVOKABLE quint8 vowelsInName() const;
-signals:
+Q_SIGNALS:
     void userNameChanged();
 };
 #endif // TEST_FUNCTIONS_RUST_H

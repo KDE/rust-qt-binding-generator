@@ -40,13 +40,13 @@ public:
     Q_INVOKABLE QString userName(const QModelIndex& index) const;
     Q_INVOKABLE bool setUserName(const QModelIndex& index, const QString& value);
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
 };
 #endif // TEST_TREE_RUST_H

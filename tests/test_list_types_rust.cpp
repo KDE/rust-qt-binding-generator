@@ -171,7 +171,7 @@ bool List::setBoolean(int row, bool value)
     set = list_set_data_boolean(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -189,7 +189,7 @@ bool List::setBytearray(int row, const QByteArray& value)
     set = list_set_data_bytearray(m_d, row, value.data(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -205,7 +205,7 @@ bool List::setF32(int row, float value)
     set = list_set_data_f32(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -221,7 +221,7 @@ bool List::setF64(int row, double value)
     set = list_set_data_f64(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -237,7 +237,7 @@ bool List::setI16(int row, qint16 value)
     set = list_set_data_i16(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -253,7 +253,7 @@ bool List::setI32(int row, qint32 value)
     set = list_set_data_i32(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -269,7 +269,7 @@ bool List::setI64(int row, qint64 value)
     set = list_set_data_i64(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -285,7 +285,7 @@ bool List::setI8(int row, qint8 value)
     set = list_set_data_i8(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -310,7 +310,7 @@ bool List::setOptionalBoolean(int row, const QVariant& value)
     }
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -332,7 +332,7 @@ bool List::setOptionalBytearray(int row, const QByteArray& value)
     }
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -354,7 +354,7 @@ bool List::setOptionalString(int row, const QString& value)
     }
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -372,7 +372,7 @@ bool List::setString(int row, const QString& value)
     set = list_set_data_string(m_d, row, value.utf16(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -388,7 +388,7 @@ bool List::setU16(int row, quint16 value)
     set = list_set_data_u16(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -404,7 +404,7 @@ bool List::setU32(int row, quint32 value)
     set = list_set_data_u32(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -420,7 +420,7 @@ bool List::setU64(int row, quint64 value)
     set = list_set_data_u64(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -436,7 +436,7 @@ bool List::setU8(int row, quint8 value)
     set = list_set_data_u8(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -649,14 +649,14 @@ List::List(QObject *parent):
     QAbstractItemModel(parent),
     m_d(list_new(this,
         [](const List* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
         },
         [](List* o) {
-            emit o->layoutAboutToBeChanged();
+            Q_EMIT o->layoutAboutToBeChanged();
         },
         [](List* o) {
             o->updatePersistentIndexes();
-            emit o->layoutChanged();
+            Q_EMIT o->layoutChanged();
         },
         [](List* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),

@@ -9,7 +9,7 @@ namespace {
     }
     inline void personUserNameChanged(Person* o)
     {
-        emit o->userNameChanged();
+        Q_EMIT o->userNameChanged();
     }
 }
 extern "C" {

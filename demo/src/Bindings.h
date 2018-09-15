@@ -44,7 +44,7 @@ public:
     Processes* processes();
     const TimeSeries* timeSeries() const;
     TimeSeries* timeSeries();
-signals:
+Q_SIGNALS:
     void fibonacciChanged();
     void fibonacciListChanged();
     void fileSystemTreeChanged();
@@ -70,7 +70,7 @@ public:
     quint32 input() const;
     void setInput(quint32 v);
     quint64 result() const;
-signals:
+Q_SIGNALS:
     void inputChanged();
     void resultChanged();
 };
@@ -108,14 +108,14 @@ public:
     Q_INVOKABLE quint64 fibonacciNumber(int row) const;
     Q_INVOKABLE quint64 row(int row) const;
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
 };
 
 class FileSystemTree : public QAbstractItemModel
@@ -158,14 +158,14 @@ public:
     Q_INVOKABLE QVariant fileSize(const QModelIndex& index) const;
     Q_INVOKABLE qint32 fileType(const QModelIndex& index) const;
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
     void pathChanged();
 };
 
@@ -210,14 +210,14 @@ public:
     Q_INVOKABLE quint32 pid(const QModelIndex& index) const;
     Q_INVOKABLE quint32 uid(const QModelIndex& index) const;
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
     void activeChanged();
 };
 
@@ -259,13 +259,13 @@ public:
     Q_INVOKABLE float time(int row) const;
     Q_INVOKABLE bool setTime(int row, float value);
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();
-signals:
+Q_SIGNALS:
 };
 #endif // BINDINGS_H

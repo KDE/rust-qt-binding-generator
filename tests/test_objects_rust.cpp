@@ -9,7 +9,7 @@ namespace {
     }
     inline void innerObjectDescriptionChanged(InnerObject* o)
     {
-        emit o->descriptionChanged();
+        Q_EMIT o->descriptionChanged();
     }
 }
 extern "C" {
