@@ -483,7 +483,7 @@ Qt::ItemFlags %1::flags(const QModelIndex &i) const
                 cpp << QString("            return QVariant::fromValue(%1(index%2));\n").arg(ip.name, ii);
             }
         }
-        cpp << "        }\n";
+        cpp << "        }\n        break;\n";
     }
     cpp << "    }\n    return QVariant();\n}\n\n";
     cpp << "int " << o.name << "::role(const char* name) const {\n";

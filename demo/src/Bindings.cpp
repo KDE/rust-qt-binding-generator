@@ -228,12 +228,14 @@ QVariant FibonacciList::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 1:
             return QVariant::fromValue(row(index.row()));
         }
+        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 0:
             return QVariant::fromValue(fibonacciNumber(index.row()));
         }
+        break;
     }
     return QVariant();
 }
@@ -471,30 +473,35 @@ QVariant FileSystemTree::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 5:
             return QVariant::fromValue(fileType(index));
         }
+        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 4:
             return fileSize(index);
         }
+        break;
     case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
             return cleanNullQVariant(QVariant::fromValue(filePath(index)));
         }
+        break;
     case 3:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
             return QVariant::fromValue(filePermissions(index));
         }
+        break;
     case 4:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 5:
             return QVariant::fromValue(fileType(index));
         }
+        break;
     }
     return QVariant();
 }
@@ -743,18 +750,21 @@ QVariant Processes::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 6:
             return QVariant::fromValue(uid(index));
         }
+        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 2:
             return QVariant::fromValue(cpuUsage(index));
         }
+        break;
     case 2:
         switch (role) {
         case Qt::DisplayRole:
         case Qt::UserRole + 3:
             return QVariant::fromValue(memory(index));
         }
+        break;
     }
     return QVariant();
 }
@@ -965,6 +975,7 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 2:
             return QVariant::fromValue(time(index.row()));
         }
+        break;
     case 1:
         switch (role) {
         case Qt::DisplayRole:
@@ -972,6 +983,7 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 1:
             return QVariant::fromValue(sin(index.row()));
         }
+        break;
     case 2:
         switch (role) {
         case Qt::DisplayRole:
@@ -979,6 +991,7 @@ QVariant TimeSeries::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 0:
             return QVariant::fromValue(cos(index.row()));
         }
+        break;
     }
     return QVariant();
 }

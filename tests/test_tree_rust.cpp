@@ -179,6 +179,7 @@ QVariant Persons::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 0:
             return QVariant::fromValue(userName(index));
         }
+        break;
     }
     return QVariant();
 }

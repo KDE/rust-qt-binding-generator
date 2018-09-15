@@ -482,6 +482,7 @@ QVariant List::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 15:
             return QVariant::fromValue(u8(index.row()));
         }
+        break;
     }
     return QVariant();
 }

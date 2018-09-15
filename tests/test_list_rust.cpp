@@ -151,6 +151,7 @@ QVariant NoRole::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 1:
             return QVariant::fromValue(userName(index.row()));
         }
+        break;
     }
     return QVariant();
 }
@@ -327,6 +328,7 @@ QVariant Persons::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 0:
             return QVariant::fromValue(userName(index.row()));
         }
+        break;
     }
     return QVariant();
 }
