@@ -1,12 +1,11 @@
 #include "Bindings.h"
 
-#include <QtQml/qqml.h>
-#include <QApplication>
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
     qmlRegisterType<Todos>("RustCode", 1, 0, "Todos");
 
     QQmlApplicationEngine engine;

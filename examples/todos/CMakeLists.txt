@@ -25,11 +25,10 @@ find_package(Threads REQUIRED)
 
 set(QT_MIN_VERSION "5.6.0")
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG
-    REQUIRED COMPONENTS Core Quick Widgets
+    REQUIRED COMPONENTS Core Quick
 )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 find_package(RustQtBindingGenerator REQUIRED)
 
@@ -62,7 +61,7 @@ add_custom_command(
 add_custom_target(rust_target DEPENDS "${RUST_LIB}")
 
 list(APPEND Libs "${RUST_LIB}")
-list(APPEND Libs Qt5::Core Qt5::Quick Qt5::Widgets Threads::Threads ${CMAKE_DL_LIBS})
+list(APPEND Libs Qt5::Core Qt5::Quick Threads::Threads ${CMAKE_DL_LIBS})
 set(SRCS src/main.cpp src/Bindings.cpp "qml.qrc")
 add_executable(todos ${SRCS})
 add_dependencies(todos rust_target)
