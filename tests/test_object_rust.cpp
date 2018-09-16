@@ -21,7 +21,7 @@ extern "C" {
 
 Person::Person(bool /*owned*/, QObject *parent):
     QObject(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }

@@ -34,7 +34,7 @@ extern "C" {
 Group::Group(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_person(new Person(false, this)),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }
@@ -65,7 +65,7 @@ Person* Group::person()
 }
 InnerObject::InnerObject(bool /*owned*/, QObject *parent):
     QObject(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }
@@ -95,7 +95,7 @@ void InnerObject::setDescription(const QString& v) {
 Person::Person(bool /*owned*/, QObject *parent):
     QObject(parent),
     m_object(new InnerObject(false, this)),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }

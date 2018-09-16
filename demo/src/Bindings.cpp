@@ -1091,7 +1091,7 @@ Demo::Demo(bool /*owned*/, QObject *parent):
     m_fileSystemTree(new FileSystemTree(false, this)),
     m_processes(new Processes(false, this)),
     m_timeSeries(new TimeSeries(false, this)),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }
@@ -1386,7 +1386,7 @@ TimeSeries* Demo::timeSeries()
 }
 Fibonacci::Fibonacci(bool /*owned*/, QObject *parent):
     QObject(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }
@@ -1418,7 +1418,7 @@ quint64 Fibonacci::result() const
 }
 FibonacciList::FibonacciList(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();
@@ -1485,7 +1485,7 @@ void FibonacciList::initHeaderData() {
 }
 FileSystemTree::FileSystemTree(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();
@@ -1596,7 +1596,7 @@ void FileSystemTree::setPath(const QString& v) {
 }
 Processes::Processes(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();
@@ -1699,7 +1699,7 @@ void Processes::setActive(bool v) {
 }
 TimeSeries::TimeSeries(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();

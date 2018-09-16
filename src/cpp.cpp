@@ -945,7 +945,7 @@ void writeCppObject(QTextStream& cpp, const Object& o, const Configuration& conf
                    .arg(p.name, p.type.name);
         }
     }
-    cpp << "    m_d(0),\n    m_ownsPrivate(false)\n{\n";
+    cpp << "    m_d(nullptr),\n    m_ownsPrivate(false)\n{\n";
     if (o.type != ObjectType::Object) {
         cpp << "    initHeaderData();\n";
     }

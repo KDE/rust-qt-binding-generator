@@ -248,7 +248,7 @@ extern "C" {
 
 Persons::Persons(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();

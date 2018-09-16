@@ -397,7 +397,7 @@ extern "C" {
 
 NoRole::NoRole(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();
@@ -462,7 +462,7 @@ void NoRole::initHeaderData() {
 }
 Persons::Persons(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();
