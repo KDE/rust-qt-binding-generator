@@ -170,6 +170,8 @@ To get started quickly, the project comes with a `Dockerfile`. You can start a d
 
 * [Initial blog post](https://www.vandenoever.info/blog/2017/09/04/rust_qt_binding_generator.html)
 * [Rust and QML: a timely example](https://www.vandenoever.info/blog/2017/09/10/time_for_rust_and_qml.html)
+* [To do a Rust GUI](https://www.vandenoever.info/blog/2018/06/09/to-do-a-rust-gui.html)
+* [Browsing your mail with Rust and Qt](https://www.vandenoever.info/blog/2018/09/16/browsing_your_mail_with_rust_and_qt.html)
 * [Qt](http://doc.qt.io/)
 * [Qt Examples and tutorials](http://doc.qt.io/qt-5/qtexamplesandtutorials.html)
 * [The QML Book](https://qmlbook.github.io/)
