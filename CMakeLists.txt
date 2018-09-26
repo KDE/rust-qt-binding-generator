@@ -70,7 +70,18 @@ else()
     set(RUST_BUILD_FLAG --release)
 endif()
 
-add_subdirectory(src)
+set(RustQtBindingGenerator_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/${RUST_TARGET_DIR}rust_qt_binding_generator")
+add_custom_command(
+  OUTPUT "${RustQtBindingGenerator_EXECUTABLE}"
+  COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
+  DEPENDS src/lib.rs
+          src/configuration.rs
+          src/cpp.rs
+          src/util.rs
+          src/bin/rust_qt_binding_generator.rs
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+add_custom_target(rust_qt_binding_generator DEPENDS "${RustQtBindingGenerator_EXECUTABLE}")
 
 add_subdirectory(tests)
 

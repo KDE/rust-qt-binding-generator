@@ -1,5 +1,5 @@
 
-SET(GENERATOR "${CMAKE_BINARY_DIR}/src/rust_qt_binding_generator")
+set(GENERATOR "${RustQtBindingGenerator_EXECUTABLE}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_custom_target("clean-rust")

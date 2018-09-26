@@ -1,5 +1,6 @@
 **/Cargo.lock
 **/target/
+**/*.rs.bk
 /docker_home/
 
 # tutorial build
