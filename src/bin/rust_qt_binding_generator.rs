@@ -5,7 +5,7 @@ use rust_qt_binding_generator::*;
 
 fn main() {
     let matches = App::new("rust_qt_binding_generator")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .about("Generates bindings between Qt and Rust")
         .arg(
             Arg::with_name("overwrite-implementation")
