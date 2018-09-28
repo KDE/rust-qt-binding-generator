@@ -7,7 +7,7 @@ add_custom_command(
   # if the cpp file is marked GENERATED, CMake will not check it for moc
   #      "${CMAKE_CURRENT_SOURCE_DIR}/src/Bindings.cpp"
   COMMAND ${RustQtBindingGenerator_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/bindings.json"
-  DEPENDS ${RustQtBindingGenerator_EXECUTABLE} bindings.json
+  DEPENDS rust_qt_binding_generator bindings.json
 )
 
 # compile the rust code into a static library
