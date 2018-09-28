@@ -1,3 +1,4 @@
+use configuration_private::*;
 use serde_json;
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
@@ -64,8 +65,8 @@ pub struct Config {
     pub overwrite_implementation: bool,
 }
 
-impl Config {
-    pub fn types(&self) -> BTreeSet<String> {
+impl ConfigPrivate for Config {
+    fn types(&self) -> BTreeSet<String> {
         let mut ops = BTreeSet::new();
         for o in self.objects.values() {
             for p in o.properties.values() {
@@ -83,7 +84,7 @@ impl Config {
         }
         ops
     }
-    pub fn optional_types(&self) -> BTreeSet<String> {
+    fn optional_types(&self) -> BTreeSet<String> {
         let mut ops = BTreeSet::new();
         for o in self.objects.values() {
             for p in o.properties.values() {
@@ -102,7 +103,7 @@ impl Config {
         }
         ops
     }
-    pub fn has_list_or_tree(&self) -> bool {
+    fn has_list_or_tree(&self) -> bool {
         self.objects
             .values()
             .any(|o| o.object_type == ObjectType::List || o.object_type == ObjectType::Tree)
@@ -116,12 +117,18 @@ pub struct Object {
     pub item_properties: BTreeMap<String, ItemProperty>,
     pub object_type: ObjectType,
     pub properties: BTreeMap<String, Property>,
-    pub column_count: usize,
 }
 
-impl Object {
-    pub fn contains_object(&self) -> bool {
+impl ObjectPrivate for Object {
+    fn contains_object(&self) -> bool {
         self.properties.values().any(|p| p.is_object())
+    }
+    fn column_count(&self) -> usize {
+        let mut column_count = 1;
+        for ip in self.item_properties.values() {
+            column_count = column_count.max(ip.roles.len());
+        }
+        column_count
     }
 }
 
@@ -133,19 +140,22 @@ pub struct Property {
     pub write: bool,
 }
 
-impl Property {
-    pub fn is_object(&self) -> bool {
+impl PropertyPrivate for Property {
+    fn is_object(&self) -> bool {
         self.property_type.is_object()
     }
-    pub fn is_complex(&self) -> bool {
+    fn is_complex(&self) -> bool {
         self.property_type.is_complex()
     }
-    pub fn type_name(&self) -> &str {
-        self.property_type.name()
-    }
-    pub fn c_get_type(&self) -> String {
+    fn c_get_type(&self) -> String {
         let name = self.property_type.name();
         name.to_string() + "*, " + &name.to_lowercase() + "_set"
+    }
+}
+
+impl TypeName for Property {
+    fn type_name(&self) -> &str {
+        self.property_type.name()
     }
 }
 
@@ -196,8 +206,8 @@ pub enum SimpleType {
     QUint64,
 }
 
-impl SimpleType {
-    pub fn name(&self) -> &str {
+impl SimpleTypePrivate for SimpleType {
+    fn name(&self) -> &str {
         match self {
             SimpleType::QString => "QString",
             SimpleType::QByteArray => "QByteArray",
@@ -215,7 +225,7 @@ impl SimpleType {
             SimpleType::QUint64 => "quint64",
         }
     }
-    pub fn cpp_set_type(&self) -> &str {
+    fn cpp_set_type(&self) -> &str {
         match self {
             SimpleType::QString => "const QString&",
             SimpleType::QByteArray => "const QByteArray&",
@@ -233,7 +243,7 @@ impl SimpleType {
             SimpleType::QUint64 => "quint64",
         }
     }
-    pub fn c_set_type(&self) -> &str {
+    fn c_set_type(&self) -> &str {
         match self {
             SimpleType::QString => "qstring_t",
             SimpleType::QByteArray => "qbytearray_t",
@@ -251,7 +261,7 @@ impl SimpleType {
             SimpleType::QUint64 => "quint64",
         }
     }
-    pub fn rust_type(&self) -> &str {
+    fn rust_type(&self) -> &str {
         match self {
             SimpleType::QString => "String",
             SimpleType::QByteArray => "Vec<u8>",
@@ -269,7 +279,7 @@ impl SimpleType {
             SimpleType::QUint64 => "u64",
         }
     }
-    pub fn rust_type_init(&self) -> &str {
+    fn rust_type_init(&self) -> &str {
         match self {
             SimpleType::QString => "String::new()",
             SimpleType::QByteArray => "Vec::new()",
@@ -287,7 +297,7 @@ impl SimpleType {
             SimpleType::QUint64 => "0",
         }
     }
-    pub fn is_complex(self) -> bool {
+    fn is_complex(self) -> bool {
         self == SimpleType::QString || self == SimpleType::QByteArray
     }
 }
@@ -298,46 +308,46 @@ pub enum Type {
     Object(Rc<Object>),
 }
 
-impl Type {
-    pub fn is_object(&self) -> bool {
+impl TypePrivate for Type {
+    fn is_object(&self) -> bool {
         if let Type::Object(_) = self {
             true
         } else {
             false
         }
     }
-    pub fn is_complex(&self) -> bool {
+    fn is_complex(&self) -> bool {
         if let Type::Simple(simple) = self {
             simple.is_complex()
         } else {
             false
         }
     }
-    pub fn name(&self) -> &str {
+    fn name(&self) -> &str {
         match self {
             Type::Simple(s) => s.name(),
             Type::Object(o) => &o.name,
         }
     }
-    pub fn cpp_set_type(&self) -> &str {
+    fn cpp_set_type(&self) -> &str {
         match self {
             Type::Simple(s) => s.cpp_set_type(),
             Type::Object(o) => &o.name,
         }
     }
-    pub fn c_set_type(&self) -> &str {
+    fn c_set_type(&self) -> &str {
         match self {
             Type::Simple(s) => s.c_set_type(),
             Type::Object(o) => &o.name,
         }
     }
-    pub fn rust_type(&self) -> &str {
+    fn rust_type(&self) -> &str {
         match self {
             Type::Simple(s) => s.rust_type(),
             Type::Object(o) => &o.name,
         }
     }
-    pub fn rust_type_init(&self) -> &str {
+    fn rust_type_init(&self) -> &str {
         match self {
             Type::Simple(s) => s.rust_type_init(),
             Type::Object(_) => unimplemented!(),
@@ -360,25 +370,28 @@ pub struct ItemProperty {
     pub write: bool,
 }
 
-impl ItemProperty {
-    pub fn type_name(&self) -> &str {
+impl TypeName for ItemProperty {
+    fn type_name(&self) -> &str {
         self.item_property_type.name()
     }
-    pub fn is_complex(&self) -> bool {
+}
+
+impl ItemPropertyPrivate for ItemProperty {
+    fn is_complex(&self) -> bool {
         self.item_property_type.is_complex()
     }
-    pub fn cpp_set_type(&self) -> String {
+    fn cpp_set_type(&self) -> String {
         let mut t = self.item_property_type.cpp_set_type().to_string();
         if self.optional {
             t = "option_".to_string() + &t;
         }
         t
     }
-    pub fn c_get_type(&self) -> String {
+    fn c_get_type(&self) -> String {
         let name = self.item_property_type.name();
         name.to_string() + "*, " + &name.to_lowercase() + "_set"
     }
-    pub fn c_set_type(&self) -> &str {
+    fn c_set_type(&self) -> &str {
         self.item_property_type.c_set_type()
     }
 }
@@ -394,8 +407,8 @@ pub struct Function {
     pub arguments: Vec<Argument>,
 }
 
-impl Function {
-    pub fn type_name(&self) -> &str {
+impl TypeName for Function {
+    fn type_name(&self) -> &str {
         self.return_type.name()
     }
 }
@@ -408,8 +421,8 @@ pub struct Argument {
     pub argument_type: SimpleType,
 }
 
-impl Argument {
-    pub fn type_name(&self) -> &str {
+impl TypeName for Argument {
+    fn type_name(&self) -> &str {
         self.argument_type.name()
     }
 }
@@ -450,17 +463,12 @@ fn post_process_object(
     for p in &a.1.properties {
         properties.insert(p.0.clone(), post_process_property(p, b, c)?);
     }
-    let mut column_count = 1;
-    for ip in &a.1.item_properties {
-        column_count = column_count.max(ip.1.roles.len());
-    }
     let object = Rc::new(Object {
         name: a.0.clone(),
         object_type: a.1.object_type,
         functions: a.1.functions.clone(),
         item_properties: a.1.item_properties.clone(),
         properties,
-        column_count,
     });
     b.insert(a.0.clone(), object);
     Ok(())

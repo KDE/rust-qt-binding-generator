@@ -1,4 +1,5 @@
-use configuration::{Config, Function, ItemProperty, Object, ObjectType, Type};
+use configuration::*;
+use configuration_private::*;
 use std::io::{Result, Write};
 use util::{snake_case, write_if_different};
 
@@ -421,7 +422,7 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
     )?;
     if o.object_type != ObjectType::Object {
         writeln!(w, "void {}::initHeaderData() {{", o.name)?;
-        for col in 0..o.column_count {
+        for col in 0..o.column_count() {
             for (name, ip) in &o.item_properties {
                 let empty = Vec::new();
                 let roles = ip.roles.get(col).unwrap_or(&empty);
@@ -893,7 +894,9 @@ void {0}::fetchMore(const QModelIndex &parent)
     }}
 }}
 void {0}::updatePersistentIndexes() {{}}",
-            o.name, lcname, o.column_count
+            o.name,
+            lcname,
+            o.column_count()
         )?;
     } else {
         writeln!(
@@ -1002,7 +1005,9 @@ void {0}::updatePersistentIndexes() {{
     }}
     changePersistentIndexList(from, to);
 }}",
-            o.name, lcname, o.column_count
+            o.name,
+            lcname,
+            o.column_count()
         )?;
     }
     writeln!(
@@ -1017,7 +1022,7 @@ Qt::ItemFlags {0}::flags(const QModelIndex &i) const
     auto flags = QAbstractItemModel::flags(i);",
         o.name, lcname
     )?;
-    for col in 0..o.column_count {
+    for col in 0..o.column_count() {
         if is_column_write(o, col) {
             writeln!(w, "    if (i.column() == {}) {{", col)?;
             writeln!(w, "        flags |= Qt::ItemIsEditable;\n    }}")?;
@@ -1036,7 +1041,7 @@ Qt::ItemFlags {0}::flags(const QModelIndex &i) const
         o.name
     )?;
 
-    for col in 0..o.column_count {
+    for col in 0..o.column_count() {
         writeln!(w, "    case {}:", col)?;
         writeln!(w, "        switch (role) {{")?;
         for (i, (name, ip)) in o.item_properties.iter().enumerate() {
@@ -1125,7 +1130,7 @@ bool {0}::setHeaderData(int section, Qt::Orientation orientation, const QVariant
             "bool {}::setData(const QModelIndex &index, const QVariant &value, int role)\n{{",
             o.name
         )?;
-        for col in 0..o.column_count {
+        for col in 0..o.column_count() {
             if !is_column_write(o, col) {
                 continue;
             }
@@ -1294,7 +1299,7 @@ fn constructor_args(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) ->
             o->endRemoveRows();
         }}",
             o.name,
-            o.column_count - 1
+            o.column_count() - 1
         )?;
     }
     if o.object_type == ObjectType::Tree {
@@ -1368,7 +1373,7 @@ fn constructor_args(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) ->
         }}",
             o.name,
             lcname,
-            o.column_count - 1
+            o.column_count() - 1
         )?;
     }
     Ok(())

@@ -3,7 +3,8 @@ extern crate regex;
 extern crate serde_derive;
 extern crate serde_json;
 
-mod configuration;
+pub mod configuration;
+mod configuration_private;
 mod cpp;
 mod rust;
 mod util;
@@ -11,8 +12,17 @@ mod util;
 use std::error::Error;
 use std::fmt::Display;
 use std::path::Path;
+use configuration::Config;
 
-pub fn generate_rust_qt_bindings<P: AsRef<Path> + Display>(
+pub fn generate_bindings(config: &Config) -> Result<(), Box<Error>> {
+    cpp::write_header(config)?;
+    cpp::write_cpp(config)?;
+    rust::write_interface(config)?;
+    rust::write_implementation(config)?;
+    Ok(())
+}
+
+pub fn generate_bindings_from_config_file<P: AsRef<Path> + Display>(
     config_file: P,
     overwrite_implementation: bool,
 ) -> Result<(), Box<Error>> {
@@ -20,9 +30,5 @@ pub fn generate_rust_qt_bindings<P: AsRef<Path> + Display>(
     if overwrite_implementation {
         config.overwrite_implementation = true;
     }
-    cpp::write_header(&config)?;
-    cpp::write_cpp(&config)?;
-    rust::write_interface(&config)?;
-    rust::write_implementation(&config)?;
-    Ok(())
+    generate_bindings(&config)
 }

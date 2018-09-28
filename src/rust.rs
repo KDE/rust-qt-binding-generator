@@ -1,6 +1,5 @@
-use configuration::{
-    Config, Function, ItemProperty, Object, ObjectType, Property, SimpleType, Type,
-};
+use configuration::*;
+use configuration_private::*;
 use std::io::{Result, Write};
 use util::{snake_case, write_if_different};
 
