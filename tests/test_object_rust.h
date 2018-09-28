@@ -2,8 +2,8 @@
 #ifndef TEST_OBJECT_RUST_H
 #define TEST_OBJECT_RUST_H
 
-#include <QObject>
-#include <QAbstractItemModel>
+#include <QtCore/QObject>
+#include <QtCore/QAbstractItemModel>
 
 class Person;
 

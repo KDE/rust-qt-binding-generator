@@ -1390,8 +1390,8 @@ pub fn write_header(conf: &Config) -> Result<()> {
 #ifndef {0}
 #define {0}
 
-#include <QObject>
-#include <QAbstractItemModel>
+#include <QtCore/QObject>
+#include <QtCore/QAbstractItemModel>
 ",
         guard
     )?;
