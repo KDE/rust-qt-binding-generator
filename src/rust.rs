@@ -1479,6 +1479,9 @@ pub fn write_implementation(conf: &Config) -> Result<()> {
         .join(&conf.rust.dir)
         .join("src")
         .join(&conf.rust.implementation_module);
+    if !conf.overwrite_implementation && file.exists() {
+        return Ok(());
+    }
     file.set_extension("rs");
     if !conf.overwrite_implementation && file.exists() {
         return Ok(());
