@@ -77,6 +77,7 @@ add_custom_command(
   DEPENDS src/lib.rs
           src/configuration.rs
           src/cpp.rs
+          src/rust.rs
           src/util.rs
           src/bin/rust_qt_binding_generator.rs
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
