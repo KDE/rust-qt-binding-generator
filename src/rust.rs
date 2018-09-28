@@ -1,4 +1,6 @@
-use configuration::{Config, Function, ItemProperty, Object, ObjectType, Property, SimpleType, Type};
+use configuration::{
+    Config, Function, ItemProperty, Object, ObjectType, Property, SimpleType, Type,
+};
 use std::io::{Result, Write};
 use util::{snake_case, write_if_different};
 
@@ -64,12 +66,12 @@ fn rust_type_init(p: &Property) -> &str {
     p.property_type.rust_type_init()
 }
 
-fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) {
-    write!(r, "    {}: *mut {}QObject", snake_case(name), o.name);
+fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) -> Result<()> {
+    write!(r, "    {}: *mut {}QObject", snake_case(name), o.name)?;
     for (p_name, p) in &o.properties {
         if let Type::Object(object) = &p.property_type {
-            writeln!(r, ",");
-            r_constructor_args_decl(r, p_name, object, conf);
+            writeln!(r, ",")?;
+            r_constructor_args_decl(r, p_name, object, conf)?;
         } else {
             write!(
                 r,
@@ -77,7 +79,7 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
                 snake_case(name),
                 snake_case(p_name),
                 o.name
-            );
+            )?;
         }
     }
     if o.object_type == ObjectType::List {
@@ -86,14 +88,14 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
             ",\n    {}_new_data_ready: fn(*const {}QObject)",
             snake_case(name),
             o.name
-        );
+        )?;
     } else if o.object_type == ObjectType::Tree {
         write!(
             r,
             ",\n    {}_new_data_ready: fn(*const {}QObject, index: COption<usize>)",
             snake_case(name),
             o.name
-        );
+        )?;
     }
     if o.object_type != ObjectType::Object {
         let index_decl = if o.object_type == ObjectType::Tree {
@@ -124,14 +126,15 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
             index_decl,
             snake_case(name),
             dest_decl
-        );
+        )?;
     }
+    Ok(())
 }
 
-fn r_constructor_args(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) {
+fn r_constructor_args(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) -> Result<()> {
     for (name, p) in &o.properties {
         if let Type::Object(object) = &p.property_type {
-            r_constructor_args(r, name, object, conf);
+            r_constructor_args(r, name, object, conf)?;
         }
     }
     writeln!(
@@ -140,7 +143,7 @@ fn r_constructor_args(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) {
         qobject: Arc::new(Mutex::new({0})),",
         snake_case(name),
         o.name
-    );
+    )?;
     for (p_name, p) in &o.properties {
         if p.is_object() {
             continue;
@@ -150,14 +153,14 @@ fn r_constructor_args(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) {
             "        {}_changed: {}_{0}_changed,",
             snake_case(p_name),
             snake_case(name)
-        );
+        )?;
     }
     if o.object_type != ObjectType::Object {
         writeln!(
             r,
             "        new_data_ready: {}_new_data_ready,",
             snake_case(name)
-        );
+        )?;
     }
     let mut model = String::new();
     if o.object_type != ObjectType::Object {
@@ -186,7 +189,7 @@ fn r_constructor_args(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) {
             o.name,
             type_,
             snake_case(name)
-        );
+        )?;
     }
     write!(
         r,
@@ -194,16 +197,21 @@ fn r_constructor_args(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Config) {
         snake_case(name),
         o.name,
         model
-    );
+    )?;
     for (name, p) in &o.properties {
         if p.is_object() {
-            write!(r, ",\n        d_{}", snake_case(name));
+            write!(r, ",\n        d_{}", snake_case(name))?;
         }
     }
-    writeln!(r, ");");
+    writeln!(r, ");")
 }
 
-fn write_function(r: &mut Vec<u8>, (name, f): (&String, &Function), lcname: &str, o: &Object) {
+fn write_function(
+    r: &mut Vec<u8>,
+    (name, f): (&String, &Function),
+    lcname: &str,
+    o: &Object,
+) -> Result<()> {
     let lc = snake_case(name);
     write!(
         r,
@@ -214,17 +222,17 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
         lc,
         if f.mutable { "mut" } else { "const" },
         o.name
-    );
+    )?;
     // write all the input arguments, for QString and QByteArray, write
     // pointers to their content and the length which is int in Qt
     for a in &f.arguments {
-        write!(r, ", ");
+        write!(r, ", ")?;
         if a.argument_type.name() == "QString" {
-            write!(r, "{}_str: *const c_ushort, {0}_len: c_int", a.name);
+            write!(r, "{}_str: *const c_ushort, {0}_len: c_int", a.name)?;
         } else if a.argument_type.name() == "QByteArray" {
-            write!(r, "{}_str: *const c_char, {0}_len: c_int", a.name);
+            write!(r, "{}_str: *const c_char, {0}_len: c_int", a.name)?;
         } else {
-            write!(r, "{}: {}", a.name, a.argument_type.rust_type());
+            write!(r, "{}: {}", a.name, a.argument_type.rust_type())?;
         }
     }
     // If the return type is QString or QByteArray, append a pointer to the
@@ -235,9 +243,9 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
             r,
             ", d: *mut {}, set: fn(*mut {0}, str: *const c_char, len: c_int)) {{",
             f.return_type.name()
-        );
+        )?;
     } else {
-        writeln!(r, ") -> {} {{", f.return_type.rust_type());
+        writeln!(r, ") -> {} {{", f.return_type.rust_type())?;
     }
     for a in &f.arguments {
         if a.argument_type.name() == "QString" {
@@ -246,41 +254,41 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
                 "    let mut {} = String::new();
     set_string_from_utf16(&mut {0}, {0}_str, {0}_len);",
                 a.name
-            );
+            )?;
         } else if a.argument_type.name() == "QByteArray" {
             writeln!(
                 r,
                 "    let {} = {{ slice::from_raw_parts({0}_str as *const u8, to_usize({0}_len)) }};",
                 a.name
-            );
+            )?;
         }
     }
     if f.mutable {
-        writeln!(r, "    let o = &mut *ptr;");
+        writeln!(r, "    let o = &mut *ptr;")?;
     } else {
-        writeln!(r, "    let o = &*ptr;");
+        writeln!(r, "    let o = &*ptr;")?;
     }
-    write!(r, "    let r = o.{}(", lc);
+    write!(r, "    let r = o.{}(", lc)?;
     for (i, a) in f.arguments.iter().enumerate() {
         if i > 0 {
-            write!(r, ", ");
+            write!(r, ", ")?;
         }
-        write!(r, "{}", a.name);
+        write!(r, "{}", a.name)?;
     }
-    writeln!(r, ");");
+    writeln!(r, ");")?;
     if f.return_type.is_complex() {
         writeln!(
             r,
             "    let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);"
-        );
+        )?;
     } else {
-        writeln!(r, "    r");
+        writeln!(r, "    r")?;
     }
-    writeln!(r, "}}");
+    writeln!(r, "}}")
 }
 
-fn write_rust_interface_object(r: &mut Vec<u8>, o: &Object, conf: &Config) {
+fn write_rust_interface_object(r: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
     let lcname = snake_case(&o.name);
     writeln!(
         r,
@@ -291,7 +299,7 @@ pub struct {}QObject {{}}
 pub struct {0}Emitter {{
     qobject: Arc<Mutex<*const {0}QObject>>,",
         o.name
-    );
+    )?;
     for (name, p) in &o.properties {
         if p.is_object() {
             continue;
@@ -301,16 +309,16 @@ pub struct {0}Emitter {{
             "    {}_changed: fn(*const {}QObject),",
             snake_case(name),
             o.name
-        );
+        )?;
     }
     if o.object_type == ObjectType::List {
-        writeln!(r, "    new_data_ready: fn(*const {}QObject),", o.name);
+        writeln!(r, "    new_data_ready: fn(*const {}QObject),", o.name)?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
             "    new_data_ready: fn(*const {}QObject, index: COption<usize>),",
             o.name
-        );
+        )?;
     }
     writeln!(
         r,
@@ -323,7 +331,7 @@ impl {0}Emitter {{
         *self.qobject.lock().unwrap() = null();
     }}",
         o.name
-    );
+    )?;
 
     for (name, p) in &o.properties {
         if p.is_object() {
@@ -338,7 +346,7 @@ impl {0}Emitter {{
         }}
     }}",
             snake_case(name)
-        );
+        )?;
     }
 
     if o.object_type == ObjectType::List {
@@ -350,7 +358,7 @@ impl {0}Emitter {{
             (self.new_data_ready)(ptr);
         }}
     }}"
-        );
+        )?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
@@ -360,7 +368,7 @@ impl {0}Emitter {{
             (self.new_data_ready)(ptr, item.into());
         }}
     }}"
-        );
+        )?;
     }
 
     let mut model_struct = String::new();
@@ -439,15 +447,8 @@ impl {0}{1} {{
     pub fn end_remove_rows(&self) {{
         (self.end_remove_rows)(self.qobject);
     }}",
-            o.name,
-            type_,
-            index_decl,
-            index,
-            index_c_decl,
-            dest_decl,
-            dest,
-            dest_c_decl
-        );
+            o.name, type_, index_decl, index, index_c_decl, dest_decl, dest, dest_c_decl
+        )?;
     }
 
     write!(
@@ -456,12 +457,11 @@ impl {0}{1} {{
 
 pub trait {}Trait {{
     fn new(emit: {0}Emitter{}",
-        o.name,
-        model_struct
-    );
+        o.name, model_struct
+    )?;
     for (name, p) in &o.properties {
         if p.is_object() {
-            write!(r, ",\n        {}: {}", snake_case(name), p.type_name());
+            write!(r, ",\n        {}: {}", snake_case(name), p.type_name())?;
         }
     }
     writeln!(
@@ -469,12 +469,12 @@ pub trait {}Trait {{
         ") -> Self;
     fn emit(&self) -> &{}Emitter;",
         o.name
-    );
+    )?;
     for (name, p) in &o.properties {
         let lc = snake_case(name).to_lowercase();
         if p.is_object() {
-            writeln!(r, "    fn {}(&self) -> &{};", lc, rust_type(p));
-            writeln!(r, "    fn {}_mut(&mut self) -> &mut {};", lc, rust_type(p));
+            writeln!(r, "    fn {}(&self) -> &{};", lc, rust_type(p))?;
+            writeln!(r, "    fn {}_mut(&mut self) -> &mut {};", lc, rust_type(p))?;
         } else {
             if p.rust_by_function {
                 write!(
@@ -482,19 +482,19 @@ pub trait {}Trait {{
                     "    fn {}<F>(&self, getter: F) where F: FnOnce({});",
                     lc,
                     rust_return_type(p)
-                );
+                )?;
             } else {
-                writeln!(r, "    fn {}(&self) -> {};", lc, rust_return_type(p));
+                writeln!(r, "    fn {}(&self) -> {};", lc, rust_return_type(p))?;
             }
             if p.write {
                 if p.type_name() == "QByteArray" {
                     if p.optional {
-                        writeln!(r, "    fn set_{}(&mut self, value: Option<&[u8]>);", lc);
+                        writeln!(r, "    fn set_{}(&mut self, value: Option<&[u8]>);", lc)?;
                     } else {
-                        writeln!(r, "    fn set_{}(&mut self, value: &[u8]);", lc);
+                        writeln!(r, "    fn set_{}(&mut self, value: &[u8]);", lc)?;
                     }
                 } else {
-                    writeln!(r, "    fn set_{}(&mut self, value: {});", lc, rust_type(p));
+                    writeln!(r, "    fn set_{}(&mut self, value: {});", lc, rust_type(p))?;
                 }
             }
         }
@@ -519,7 +519,7 @@ pub trait {}Trait {{
             if f.mutable { "mut " } else { "" },
             arg_list,
             f.return_type.rust_type()
-        );
+        )?;
     }
     if o.object_type == ObjectType::List {
         writeln!(
@@ -532,7 +532,7 @@ pub trait {}Trait {{
     }}
     fn fetch_more(&mut self) {{}}
     fn sort(&mut self, u8, SortOrder) {{}}"
-        );
+        )?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
@@ -546,7 +546,7 @@ pub trait {}Trait {{
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, index: usize) -> Option<usize>;
     fn row(&self, index: usize) -> usize;"
-        );
+        )?;
     }
     if o.object_type != ObjectType::Object {
         for (name, ip) in &o.item_properties {
@@ -556,7 +556,7 @@ pub trait {}Trait {{
                 "    fn {}(&self, index: usize) -> {};",
                 name,
                 rust_return_type_(ip)
-            );
+            )?;
             if ip.write {
                 if ip.item_property_type.name() == "QByteArray" {
                     if ip.optional {
@@ -564,13 +564,13 @@ pub trait {}Trait {{
                             r,
                             "    fn set_{}(&mut self, index: usize, Option<&[u8]>) -> bool;",
                             name
-                        );
+                        )?;
                     } else {
                         writeln!(
                             r,
                             "    fn set_{}(&mut self, index: usize, &[u8]) -> bool;",
                             name
-                        );
+                        )?;
                     }
                 } else {
                     writeln!(
@@ -578,7 +578,7 @@ pub trait {}Trait {{
                         "    fn set_{}(&mut self, index: usize, {}) -> bool;",
                         name,
                         rust_type_(ip)
-                    );
+                    )?;
                 }
             }
         }
@@ -590,10 +590,10 @@ pub trait {}Trait {{
 #[no_mangle]
 pub extern \"C\" fn {}_new(",
         lcname
-    );
-    r_constructor_args_decl(r, &lcname, o, conf);
-    writeln!(r, ",\n) -> *mut {} {{", o.name);
-    r_constructor_args(r, &lcname, o, conf);
+    )?;
+    r_constructor_args_decl(r, &lcname, o, conf)?;
+    writeln!(r, ",\n) -> *mut {} {{", o.name)?;
+    r_constructor_args(r, &lcname, o, conf)?;
     writeln!(
         r,
         "    Box::into_raw(Box::new(d_{}))
@@ -603,9 +603,8 @@ pub extern \"C\" fn {}_new(",
 pub unsafe extern \"C\" fn {0}_free(ptr: *mut {}) {{
     Box::from_raw(ptr).emit().clear();
 }}",
-        lcname,
-        o.name
-    );
+        lcname, o.name
+    )?;
 
     for (name, p) in &o.properties {
         let base = format!("{}_{}", lcname, snake_case(name));
@@ -621,7 +620,7 @@ pub unsafe extern \"C\" fn {}_get(ptr: *mut {}) -> *mut {} {{
                 o.name,
                 rust_type(p),
                 snake_case(name)
-            );
+            )?;
         } else if p.is_complex() && !p.optional {
             if p.rust_by_function {
                 writeln!(
@@ -643,7 +642,7 @@ pub unsafe extern \"C\" fn {}_get(
                     o.name,
                     p.type_name(),
                     snake_case(name)
-                );
+                )?;
             } else {
                 writeln!(
                     r,
@@ -663,7 +662,7 @@ pub unsafe extern \"C\" fn {}_get(
                     o.name,
                     p.type_name(),
                     snake_case(name)
-                );
+                )?;
             }
             if p.write && p.type_name() == "QString" {
                 writeln!(
@@ -679,7 +678,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: *const c_ushort, len: c_int) 
                     base,
                     o.name,
                     snake_case(name)
-                );
+                )?;
             } else if p.write {
                 writeln!(
                     r,
@@ -693,7 +692,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: *const c_char, len: c_int) {{
                     base,
                     o.name,
                     snake_case(name)
-                );
+                )?;
             }
         } else if p.is_complex() {
             writeln!(
@@ -716,7 +715,7 @@ pub unsafe extern \"C\" fn {}_get(
                 o.name,
                 p.type_name(),
                 snake_case(name)
-            );
+            )?;
             if p.write && p.type_name() == "QString" {
                 writeln!(
                     r,
@@ -731,7 +730,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: *const c_ushort, len: c_int) 
                     base,
                     o.name,
                     snake_case(name)
-                );
+                )?;
             } else if p.write {
                 writeln!(
                     r,
@@ -745,7 +744,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: *const c_char, len: c_int) {{
                     base,
                     o.name,
                     snake_case(name)
-                );
+                )?;
             }
         } else if p.optional {
             writeln!(
@@ -762,7 +761,7 @@ pub unsafe extern \"C\" fn {}_get(ptr: *const {}) -> COption<{}> {{
                 o.name,
                 p.property_type.rust_type(),
                 snake_case(name)
-            );
+            )?;
             if p.write {
                 writeln!(
                     r,
@@ -775,7 +774,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: {}) {{
                     o.name,
                     p.property_type.rust_type(),
                     snake_case(name)
-                );
+                )?;
             }
         } else {
             writeln!(
@@ -789,7 +788,7 @@ pub unsafe extern \"C\" fn {}_get(ptr: *const {}) -> {} {{
                 o.name,
                 rust_type(p),
                 snake_case(name)
-            );
+            )?;
             if p.write {
                 writeln!(
                     r,
@@ -802,7 +801,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: {}) {{
                     o.name,
                     rust_type(p),
                     snake_case(name)
-                );
+                )?;
             }
         }
         if p.write && p.optional {
@@ -817,11 +816,11 @@ pub unsafe extern \"C\" fn {}_set_none(ptr: *mut {}) {{
                 base,
                 o.name,
                 snake_case(name)
-            );
+            )?;
         }
     }
     for f in &o.functions {
-        write_function(r, f, &lcname, o);
+        write_function(r, f, &lcname, o)?;
     }
     if o.object_type == ObjectType::List {
         writeln!(
@@ -855,9 +854,8 @@ pub unsafe extern \"C\" fn {1}_sort(
 ) {{
     (&mut *ptr).sort(column, order)
 }}",
-            o.name,
-            lcname
-        );
+            o.name, lcname
+        )?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
@@ -922,9 +920,8 @@ pub unsafe extern \"C\" fn {1}_parent(ptr: *const {0}, index: usize) -> QModelIn
 pub unsafe extern \"C\" fn {1}_row(ptr: *const {0}, index: usize) -> c_int {{
     to_c_int((&*ptr).row(index))
 }}",
-            o.name,
-            lcname
-        );
+            o.name, lcname
+        )?;
     }
     if o.object_type != ObjectType::Object {
         let (index_decl, index) = if o.object_type == ObjectType::Tree {
@@ -954,7 +951,7 @@ pub unsafe extern \"C\" fn {}_data_{}(
                     index_decl,
                     ip.type_name(),
                     index
-                );
+                )?;
             } else if ip.is_complex() {
                 writeln!(
                     r,
@@ -978,7 +975,7 @@ pub unsafe extern \"C\" fn {}_data_{}(
                     index_decl,
                     ip.type_name(),
                     index
-                );
+                )?;
             } else {
                 writeln!(
                     r,
@@ -994,7 +991,7 @@ pub unsafe extern \"C\" fn {}_data_{}(ptr: *const {}{}) -> {} {{
                     index_decl,
                     rust_c_type(ip),
                     index
-                );
+                )?;
             }
             if ip.write {
                 let val = if ip.optional { "Some(v)" } else { "v" };
@@ -1018,7 +1015,7 @@ pub unsafe extern \"C\" fn {}_set_data_{}(
                         index_decl,
                         index,
                         val
-                    );
+                    )?;
                 } else if ip.type_name() == "QByteArray" {
                     writeln!(
                         r,
@@ -1038,7 +1035,7 @@ pub unsafe extern \"C\" fn {}_set_data_{}(
                         index_decl,
                         index,
                         if ip.optional { "Some(slice)" } else { "slice" }
-                    );
+                    )?;
                 } else {
                     let type_ = ip.item_property_type.rust_type();
                     writeln!(
@@ -1058,7 +1055,7 @@ pub unsafe extern \"C\" fn {}_set_data_{}(
                         type_,
                         index,
                         val
-                    );
+                    )?;
                 }
             }
             if ip.write && ip.optional {
@@ -1074,13 +1071,14 @@ pub unsafe extern \"C\" fn {}_set_data_{}_none(ptr: *mut {}{}) -> bool {{
                     o.name,
                     index_decl,
                     index
-                );
+                )?;
             }
         }
     }
+    Ok(())
 }
 
-fn write_rust_types(conf: &Config, r: &mut Vec<u8>) {
+fn write_rust_types(conf: &Config, r: &mut Vec<u8>) -> Result<()> {
     let mut has_option = false;
     let mut has_string = false;
     let mut has_byte_array = false;
@@ -1165,7 +1163,7 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {{
     s.extend(characters);
 }}
 "
-        );
+        )?;
     }
     if has_byte_array {
         writeln!(
@@ -1173,7 +1171,7 @@ fn set_string_from_utf16(s: &mut String, str: *const c_ushort, len: c_int) {{
             "
 
 pub enum QByteArray {{}}"
-        );
+        )?;
     }
     if has_list_or_tree {
         writeln!(
@@ -1192,7 +1190,7 @@ pub struct QModelIndex {{
     row: c_int,
     internal_id: usize,
 }}"
-        );
+        )?;
     }
 
     if has_string || has_byte_array || has_list_or_tree {
@@ -1207,7 +1205,7 @@ fn to_usize(n: c_int) -> usize {{
     n as usize
 }}
 "
-        );
+        )?;
     }
 
     if has_string || has_byte_array || has_list_or_tree {
@@ -1221,8 +1219,9 @@ fn to_c_int(n: usize) -> c_int {{
     n as c_int
 }}
 "
-        );
+        )?;
     }
+    Ok(())
 }
 
 pub fn write_interface(conf: &Config) -> Result<()> {
@@ -1241,14 +1240,15 @@ use std::ptr::null;
 
 use {}::*;",
         conf.rust.implementation_module
-    );
+    )?;
 
-    write_rust_types(conf, &mut r);
+    write_rust_types(conf, &mut r)?;
 
     for object in conf.objects.values() {
-        write_rust_interface_object(&mut r, object, conf);
+        write_rust_interface_object(&mut r, object, conf)?;
     }
-    let mut file = conf.config_file
+    let mut file = conf
+        .config_file
         .parent()
         .unwrap()
         .join(&conf.rust.dir)
@@ -1258,10 +1258,10 @@ use {}::*;",
     write_if_different(file, &r)
 }
 
-fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
+fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) -> Result<()> {
     if o.object_type != ObjectType::Object {
-        writeln!(r, "#[derive(Default, Clone)]");
-        writeln!(r, "struct {}Item {{", o.name);
+        writeln!(r, "#[derive(Default, Clone)]")?;
+        writeln!(r, "struct {}Item {{", o.name)?;
         for (name, ip) in &o.item_properties {
             let lc = snake_case(name);
             if ip.optional {
@@ -1270,30 +1270,30 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
                     "    {}: Option<{}>,",
                     lc,
                     ip.item_property_type.rust_type()
-                );
+                )?;
             } else {
-                writeln!(r, "    {}: {},", lc, ip.item_property_type.rust_type());
+                writeln!(r, "    {}: {},", lc, ip.item_property_type.rust_type())?;
             }
         }
-        writeln!(r, "}}\n");
+        writeln!(r, "}}\n")?;
     }
     let mut model_struct = String::new();
-    writeln!(r, "pub struct {} {{\n    emit: {0}Emitter,", o.name);
+    writeln!(r, "pub struct {} {{\n    emit: {0}Emitter,", o.name)?;
     if o.object_type == ObjectType::List {
         model_struct = format!(", model: {}List", o.name);
-        writeln!(r, "    model: {}List,", o.name);
+        writeln!(r, "    model: {}List,", o.name)?;
     } else if o.object_type == ObjectType::Tree {
         model_struct = format!(", model: {}Tree", o.name);
-        writeln!(r, "    model: {}Tree,", o.name);
+        writeln!(r, "    model: {}Tree,", o.name)?;
     }
     for (name, p) in &o.properties {
         let lc = snake_case(name);
-        writeln!(r, "    {}: {},", lc, rust_type(p));
+        writeln!(r, "    {}: {},", lc, rust_type(p))?;
     }
     if o.object_type != ObjectType::Object {
-        writeln!(r, "    list: Vec<{}Item>,", o.name);
+        writeln!(r, "    list: Vec<{}Item>,", o.name)?;
     }
-    writeln!(r, "}}\n");
+    writeln!(r, "}}\n")?;
     for (name, p) in &o.properties {
         if p.is_object() {
             model_struct += &format!(", {}: {}", name, p.type_name());
@@ -1305,19 +1305,18 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
     fn new(emit: {0}Emitter{}) -> {0} {{
         {0} {{
             emit,",
-        o.name,
-        model_struct
-    );
+        o.name, model_struct
+    )?;
     if o.object_type != ObjectType::Object {
-        writeln!(r, "            model,");
-        writeln!(r, "            list: Vec::new(),");
+        writeln!(r, "            model,")?;
+        writeln!(r, "            list: Vec::new(),")?;
     }
     for (name, p) in &o.properties {
         let lc = snake_case(name);
         if p.is_object() {
-            writeln!(r, "            {},", lc);
+            writeln!(r, "            {},", lc)?;
         } else {
-            writeln!(r, "            {}: {},", lc, rust_type_init(p));
+            writeln!(r, "            {}: {},", lc, rust_type_init(p))?;
         }
     }
     writeln!(
@@ -1328,7 +1327,7 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
         &self.emit
     }}",
         o.name
-    );
+    )?;
     for (name, p) in &o.properties {
         let lc = snake_case(name);
         if p.is_object() {
@@ -1342,7 +1341,7 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
     }}",
                 lc,
                 rust_return_type(p)
-            );
+            )?;
         } else if p.rust_by_function {
             writeln!(
                 r,
@@ -1354,19 +1353,19 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
     }}",
                 lc,
                 rust_return_type(p)
-            );
+            )?;
         } else {
-            writeln!(r, "    fn {}(&self) -> {} {{", lc, rust_return_type(p));
+            writeln!(r, "    fn {}(&self) -> {} {{", lc, rust_return_type(p))?;
             if p.is_complex() {
                 if p.optional {
-                    writeln!(r, "        self.{}.as_ref().map(|p| &p[..])", lc);
+                    writeln!(r, "        self.{}.as_ref().map(|p| &p[..])", lc)?;
                 } else {
-                    writeln!(r, "        &self.{}", lc);
+                    writeln!(r, "        &self.{}", lc)?;
                 }
             } else {
-                writeln!(r, "        self.{}", lc);
+                writeln!(r, "        self.{}", lc)?;
             }
-            writeln!(r, "    }}");
+            writeln!(r, "    }}")?;
         }
         if !p.is_object() && p.write {
             let bytearray = p.property_type == Type::Simple(SimpleType::QByteArray);
@@ -1383,17 +1382,15 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
         self.{0} = value{};
         self.emit.{0}_changed();
     }}",
-                lc,
-                t,
-                v
-            );
+                lc, t, v
+            )?;
         }
     }
     if o.object_type == ObjectType::List {
         writeln!(
             r,
             "    fn row_count(&self) -> usize {{\n        self.list.len()\n    }}"
-        );
+        )?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
@@ -1416,7 +1413,7 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
             None
         }}
     }}"
-        );
+        )?;
     }
     if o.object_type != ObjectType::Object {
         for (name, ip) in &o.item_properties {
@@ -1426,19 +1423,19 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
                 "    fn {}(&self, index: usize) -> {} {{",
                 lc,
                 rust_return_type_(ip)
-            );
+            )?;
             if ip.is_complex() && ip.optional {
                 writeln!(
                     r,
                     "        self.list[index].{}.as_ref().map(|v| &v[..])",
                     lc
-                );
+                )?;
             } else if ip.is_complex() {
-                writeln!(r, "        &self.list[index].{}", lc);
+                writeln!(r, "        &self.list[index].{}", lc)?;
             } else {
-                writeln!(r, "        self.list[index].{}", lc);
+                writeln!(r, "        self.list[index].{}", lc)?;
             }
-            writeln!(r, "    }}");
+            writeln!(r, "    }}")?;
             let bytearray = ip.item_property_type == SimpleType::QByteArray;
             if ip.write && bytearray && ip.optional {
                 writeln!(
@@ -1448,7 +1445,7 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
         true
     }}",
                     lc
-                );
+                )?;
             } else if ip.write && bytearray {
                 writeln!(
                     r,
@@ -1457,7 +1454,7 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
         true
     }}",
                     lc
-                );
+                )?;
             } else if ip.write {
                 writeln!(
                     r,
@@ -1467,15 +1464,16 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) {
     }}",
                     lc,
                     rust_type_(ip)
-                );
+                )?;
             }
         }
     }
-    writeln!(r, "}}");
+    writeln!(r, "}}")
 }
 
 pub fn write_implementation(conf: &Config) -> Result<()> {
-    let mut file = conf.config_file
+    let mut file = conf
+        .config_file
         .parent()
         .unwrap()
         .join(&conf.rust.dir)
@@ -1494,10 +1492,10 @@ pub fn write_implementation(conf: &Config) -> Result<()> {
 use {}::*;
 ",
         conf.rust.interface_module
-    );
+    )?;
 
     for object in conf.objects.values() {
-        write_rust_implementation_object(&mut r, object);
+        write_rust_implementation_object(&mut r, object)?;
     }
     write_if_different(file, &r)
 }

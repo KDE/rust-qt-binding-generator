@@ -1,7 +1,7 @@
-use std::fs;
-use std::path::Path;
-use std::io::Result;
 use regex::Regex;
+use std::fs;
+use std::io::Result;
+use std::path::Path;
 
 pub fn write_if_different<P: AsRef<Path>>(path: P, contents: &[u8]) -> Result<()> {
     let old_contents = fs::read(&path).ok();

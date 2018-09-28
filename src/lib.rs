@@ -8,9 +8,9 @@ mod cpp;
 mod rust;
 mod util;
 
+use std::error::Error;
 use std::fmt::Display;
 use std::path::Path;
-use std::error::Error;
 
 pub fn generate_rust_qt_bindings<P: AsRef<Path> + Display>(
     config_file: P,

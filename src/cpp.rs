@@ -1,5 +1,5 @@
+use configuration::{Config, Function, ItemProperty, Object, ObjectType, Type};
 use std::io::{Result, Write};
-use configuration::{Config, Function, Object, ObjectType, ItemProperty, Type};
 use util::{snake_case, write_if_different};
 
 fn property_type(p: &ItemProperty) -> String {
@@ -57,12 +57,12 @@ fn write_header_item_model(h: &mut Vec<u8>, o: &Object) -> Result<()> {
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
     Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;"
-    );
+    )?;
     if model_is_writable(o) {
         writeln!(
             h,
             "    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;"
-        );
+        )?;
     }
     for (name, ip) in &o.item_properties {
         let r = property_type(ip);
@@ -72,29 +72,28 @@ fn write_header_item_model(h: &mut Vec<u8>, o: &Object) -> Result<()> {
             r.clone()
         };
         if o.object_type == ObjectType::List {
-            writeln!(h, "    Q_INVOKABLE {} {}(int row) const;", r, name);
+            writeln!(h, "    Q_INVOKABLE {} {}(int row) const;", r, name)?;
             if ip.write {
                 writeln!(
                     h,
                     "    Q_INVOKABLE bool set{}(int row, {} value);",
                     upper_initial(name),
                     rw
-                );
+                )?;
             }
         } else {
             writeln!(
                 h,
                 "    Q_INVOKABLE {} {}(const QModelIndex& index) const;",
-                r,
-                name
-            );
+                r, name
+            )?;
             if ip.write {
                 writeln!(
                     h,
                     "    Q_INVOKABLE bool set{}(const QModelIndex& index, {} value);",
                     upper_initial(name),
                     rw
-                );
+                )?;
             }
         }
     }
@@ -108,7 +107,7 @@ private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
     void updatePersistentIndexes();"
-    );
+    )?;
     Ok(())
 }
 
@@ -121,10 +120,10 @@ class {} : public {}
     Q_OBJECT",
         o.name,
         base_type(o)
-    );
+    )?;
     for object in conf.objects.values() {
         if object.contains_object() && o.name != object.name {
-            writeln!(h, "    friend class {};", object.name);
+            writeln!(h, "    friend class {};", object.name)?;
         }
     }
     writeln!(
@@ -132,17 +131,17 @@ class {} : public {}
         "public:
     class Private;
 private:"
-    );
+    )?;
     for (name, p) in &o.properties {
         if p.is_object() {
-            writeln!(h, "    {}* const m_{};", p.type_name(), name);
+            writeln!(h, "    {}* const m_{};", p.type_name(), name)?;
         }
     }
     writeln!(
         h,
         "    Private * m_d;
     bool m_ownsPrivate;"
-    );
+    )?;
     for (name, p) in &o.properties {
         let mut t = if p.optional && !p.is_complex() {
             "QVariant"
@@ -162,7 +161,7 @@ private:"
             } else {
                 String::new()
             }
-        );
+        )?;
     }
     writeln!(
         h,
@@ -171,41 +170,41 @@ public:
     explicit {0}(QObject *parent = nullptr);
     ~{0}();",
         o.name
-    );
+    )?;
     for (name, p) in &o.properties {
         if p.is_object() {
-            writeln!(h, "    const {}* {}() const;", p.type_name(), name);
-            writeln!(h, "    {}* {}();", p.type_name(), name);
+            writeln!(h, "    const {}* {}() const;", p.type_name(), name)?;
+            writeln!(h, "    {}* {}();", p.type_name(), name)?;
         } else {
             let (t, t2) = if p.optional && !p.is_complex() {
                 ("QVariant", "const QVariant&")
             } else {
                 (p.type_name(), p.property_type.cpp_set_type())
             };
-            writeln!(h, "    {} {}() const;", t, name);
+            writeln!(h, "    {} {}() const;", t, name)?;
             if p.write {
-                writeln!(h, "    void set{}({} v);", upper_initial(name), t2);
+                writeln!(h, "    void set{}({} v);", upper_initial(name), t2)?;
             }
         }
     }
     for (name, f) in &o.functions {
-        write!(h, "    Q_INVOKABLE {} {}(", f.return_type.name(), name);
+        write!(h, "    Q_INVOKABLE {} {}(", f.return_type.name(), name)?;
         for (i, a) in f.arguments.iter().enumerate() {
             if i != 0 {
-                write!(h, ", ");
+                write!(h, ", ")?;
             }
-            write!(h, "{} {}", a.argument_type.cpp_set_type(), a.name);
+            write!(h, "{} {}", a.argument_type.cpp_set_type(), a.name)?;
         }
-        writeln!(h, "){};", if f.mutable { "" } else { " const" });
+        writeln!(h, "){};", if f.mutable { "" } else { " const" })?;
     }
     if base_type(o) == "QAbstractItemModel" {
         write_header_item_model(h, o)?;
     }
-    writeln!(h, "Q_SIGNALS:");
+    writeln!(h, "Q_SIGNALS:")?;
     for name in o.properties.keys() {
-        writeln!(h, "    void {}Changed();", name);
+        writeln!(h, "    void {}Changed();", name)?;
     }
-    writeln!(h, "}};");
+    writeln!(h, "}};")?;
     Ok(())
 }
 
@@ -225,11 +224,11 @@ fn write_function_c_decl(
     o: &Object,
 ) -> Result<()> {
     let lc = snake_case(name);
-    write!(w, "    ");
+    write!(w, "    ")?;
     if f.return_type.is_complex() {
-        write!(w, "void");
+        write!(w, "void")?;
     } else {
-        write!(w, "{}", f.type_name());
+        write!(w, "{}", f.type_name())?;
     }
     let name = format!("{}_{}", lcname, lc);
     write!(
@@ -238,37 +237,37 @@ fn write_function_c_decl(
         name,
         if f.mutable { "" } else { "const " },
         o.name
-    );
+    )?;
 
     // write all the input arguments, for QString and QByteArray, write
     // pointers to their content and the length
     for a in &f.arguments {
         if a.type_name() == "QString" {
-            write!(w, ", const ushort*, int");
+            write!(w, ", const ushort*, int")?;
         } else if a.type_name() == "QByteArray" {
-            write!(w, ", const char*, int");
+            write!(w, ", const char*, int")?;
         } else {
-            write!(w, ", {}", a.type_name());
+            write!(w, ", {}", a.type_name())?;
         }
     }
     // If the return type is QString or QByteArray, append a pointer to the
     // variable that will be set to the argument list. Also add a setter
     // function.
     if f.return_type.name() == "QString" {
-        write!(w, ", QString*, qstring_set");
+        write!(w, ", QString*, qstring_set")?;
     } else if f.return_type.name() == "QByteArray" {
-        write!(w, ", QByteArray*, qbytearray_set");
+        write!(w, ", QByteArray*, qbytearray_set")?;
     }
-    writeln!(w, ");");
+    writeln!(w, ");")?;
     Ok(())
 }
 
 fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
     let lcname = snake_case(&o.name);
-    write!(w, "    {}::Private* {}_new(", o.name, lcname);
+    write!(w, "    {}::Private* {}_new(", o.name, lcname)?;
     constructor_args_decl(w, o, conf)?;
-    writeln!(w, ");");
-    writeln!(w, "    void {}_free({}::Private*);", lcname, o.name);
+    writeln!(w, ");")?;
+    writeln!(w, "    void {}_free({}::Private*);", lcname, o.name)?;
     for (name, p) in &o.properties {
         let base = format!("{}_{}", lcname, snake_case(name));
         if p.is_object() {
@@ -278,7 +277,7 @@ fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()>
                 p.type_name(),
                 base,
                 o.name
-            );
+            )?;
         } else if p.is_complex() {
             writeln!(
                 w,
@@ -286,7 +285,7 @@ fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()>
                 base,
                 o.name,
                 p.c_get_type()
-            );
+            )?;
         } else if p.optional {
             writeln!(
                 w,
@@ -294,7 +293,7 @@ fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()>
                 p.type_name(),
                 base,
                 o.name
-            );
+            )?;
         } else {
             writeln!(
                 w,
@@ -302,7 +301,7 @@ fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()>
                 p.type_name(),
                 base,
                 o.name
-            );
+            )?;
         }
         if p.write {
             let mut t = p.property_type.c_set_type();
@@ -311,9 +310,9 @@ fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()>
             } else if t == "qbytearray_t" {
                 t = "const char* bytes, int len";
             }
-            writeln!(w, "    void {}_set({}::Private*, {});", base, o.name, t);
+            writeln!(w, "    void {}_set({}::Private*, {});", base, o.name, t)?;
             if p.optional {
-                writeln!(w, "    void {}_set_none({}::Private*);", base, o.name);
+                writeln!(w, "    void {}_set_none({}::Private*);", base, o.name)?;
             }
         }
     }
@@ -323,15 +322,16 @@ fn write_object_c_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()>
     Ok(())
 }
 
-fn initialize_members_zero(w: &mut Vec<u8>, o: &Object) {
+fn initialize_members_zero(w: &mut Vec<u8>, o: &Object) -> Result<()> {
     for (name, p) in &o.properties {
         if p.is_object() {
-            writeln!(w, "    m_{}(new {}(false, this)),", name, p.type_name());
+            writeln!(w, "    m_{}(new {}(false, this)),", name, p.type_name())?;
         }
     }
+    Ok(())
 }
 
-fn initialize_members(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) {
+fn initialize_members(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) -> Result<()> {
     for (name, p) in &o.properties {
         if let Type::Object(object) = &p.property_type {
             writeln!(
@@ -341,16 +341,17 @@ fn initialize_members(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) 
                 name,
                 snake_case(&o.name),
                 snake_case(name)
-            );
-            initialize_members(w, &format!("m_{}->", name), object, conf);
+            )?;
+            initialize_members(w, &format!("m_{}->", name), object, conf)?;
         }
     }
+    Ok(())
 }
 
-fn connect(w: &mut Vec<u8>, d: &str, o: &Object, conf: &Config) {
+fn connect(w: &mut Vec<u8>, d: &str, o: &Object, conf: &Config) -> Result<()> {
     for (name, p) in &o.properties {
         if let Type::Object(object) = &p.property_type {
-            connect(w, &format!("{}->m_{}", d, name), object, conf);
+            connect(w, &format!("{}->m_{}", d, name), object, conf)?;
         }
     }
     if o.object_type != ObjectType::Object {
@@ -359,10 +360,10 @@ fn connect(w: &mut Vec<u8>, d: &str, o: &Object, conf: &Config) {
             "    connect({}, &{1}::newDataReady, {0}, [this](const QModelIndex& i) {{
         {0}->fetchMore(i);
     }}, Qt::QueuedConnection);",
-            d,
-            o.name
-        );
+            d, o.name
+        )?;
     }
+    Ok(())
 }
 
 fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
@@ -373,16 +374,16 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
     {}(parent),",
         o.name,
         base_type(o)
-    );
-    initialize_members_zero(w, o);
+    )?;
+    initialize_members_zero(w, o)?;
     writeln!(
         w,
         "    m_d(nullptr),
     m_ownsPrivate(false)
 {{"
-    );
+    )?;
     if o.object_type != ObjectType::Object {
-        writeln!(w, "    initHeaderData();");
+        writeln!(w, "    initHeaderData();")?;
     }
     writeln!(
         w,
@@ -392,20 +393,20 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
     {}(parent),",
         o.name,
         base_type(o)
-    );
-    initialize_members_zero(w, o);
-    write!(w, "    m_d({}_new(this", lcname);
-    constructor_args(w, "", o, conf);
+    )?;
+    initialize_members_zero(w, o)?;
+    write!(w, "    m_d({}_new(this", lcname)?;
+    constructor_args(w, "", o, conf)?;
     writeln!(
         w,
         ")),
     m_ownsPrivate(true)
 {{"
-    );
-    initialize_members(w, "", o, conf);
-    connect(w, "this", o, conf);
+    )?;
+    initialize_members(w, "", o, conf)?;
+    connect(w, "this", o, conf)?;
     if o.object_type != ObjectType::Object {
-        writeln!(w, "    initHeaderData();");
+        writeln!(w, "    initHeaderData();")?;
     }
     writeln!(
         w,
@@ -416,11 +417,10 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
         {1}_free(m_d);
     }}
 }}",
-        o.name,
-        lcname
-    );
+        o.name, lcname
+    )?;
     if o.object_type != ObjectType::Object {
-        writeln!(w, "void {}::initHeaderData() {{", o.name);
+        writeln!(w, "void {}::initHeaderData() {{", o.name)?;
         for col in 0..o.column_count {
             for (name, ip) in &o.item_properties {
                 let empty = Vec::new();
@@ -431,11 +431,11 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                         "    m_headerData.insert(qMakePair({}, Qt::DisplayRole), QVariant(\"{}\"));",
                         col,
                         name
-                    );
+                    )?;
                 }
             }
         }
-        writeln!(w, "}}");
+        writeln!(w, "}}")?;
     }
 
     for (name, p) in &o.properties {
@@ -454,7 +454,7 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                 p.type_name(),
                 o.name,
                 name
-            );
+            )?;
         } else if p.is_complex() {
             writeln!(
                 w,
@@ -469,7 +469,7 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                 name,
                 base,
                 p.type_name().to_lowercase()
-            );
+            )?;
         } else if p.optional {
             writeln!(
                 w,
@@ -482,10 +482,8 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
     }}
     return r;
 }}",
-                o.name,
-                name,
-                base
-            );
+                o.name, name, base
+            )?;
         } else {
             writeln!(
                 w,
@@ -497,7 +495,7 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                 o.name,
                 name,
                 base
-            );
+            )?;
         }
         if p.write {
             let t = if p.optional && !p.is_complex() {
@@ -505,56 +503,56 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
             } else {
                 p.property_type.cpp_set_type()
             };
-            writeln!(w, "void {}::set{}({} v) {{", o.name, upper_initial(name), t);
+            writeln!(w, "void {}::set{}({} v) {{", o.name, upper_initial(name), t)?;
             if p.optional {
                 if p.is_complex() {
-                    writeln!(w, "    if (v.isNull()) {{");
+                    writeln!(w, "    if (v.isNull()) {{")?;
                 } else {
                     writeln!(
                         w,
                         "    if (v.isNull() || !v.canConvert<{}>()) {{",
                         p.type_name()
-                    );
+                    )?;
                 }
-                writeln!(w, "        {}_set_none(m_d);", base);
-                writeln!(w, "    }} else {{");
+                writeln!(w, "        {}_set_none(m_d);", base)?;
+                writeln!(w, "    }} else {{")?;
                 if p.type_name() == "QString" {
                     writeln!(
                         w,
                         "    {}_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());",
                         base
-                    );
+                    )?;
                 } else if p.type_name() == "QByteArray" {
-                    writeln!(w, "    {}_set(m_d, v.data(), v.size());", base);
+                    writeln!(w, "    {}_set(m_d, v.data(), v.size());", base)?;
                 } else if p.optional {
                     writeln!(
                         w,
                         "        {}_set(m_d, v.value<{}>());",
                         base,
                         p.type_name()
-                    );
+                    )?;
                 } else {
-                    writeln!(w, "        {}_set(m_d, v);", base);
+                    writeln!(w, "        {}_set(m_d, v);", base)?;
                 }
-                writeln!(w, "    }}");
+                writeln!(w, "    }}")?;
             } else if p.type_name() == "QString" {
                 writeln!(
                     w,
                     "    {}_set(m_d, reinterpret_cast<const ushort*>(v.data()), v.size());",
                     base
-                );
+                )?;
             } else if p.type_name() == "QByteArray" {
-                writeln!(w, "    {}_set(m_d, v.data(), v.size());", base);
+                writeln!(w, "    {}_set(m_d, v.data(), v.size());", base)?;
             } else {
-                writeln!(w, "    {}_set(m_d, v);", base);
+                writeln!(w, "    {}_set(m_d, v);", base)?;
             }
-            writeln!(w, "}}");
+            writeln!(w, "}}")?;
         }
     }
 
     for (name, f) in &o.functions {
         let base = format!("{}_{}", lcname, snake_case(name));
-        write!(w, "{} {}::{}(", f.type_name(), o.name, name);
+        write!(w, "{} {}::{}(", f.type_name(), o.name, name)?;
         for (i, a) in f.arguments.iter().enumerate() {
             write!(
                 w,
@@ -562,9 +560,9 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                 a.argument_type.cpp_set_type(),
                 a.name,
                 if i + 1 < f.arguments.len() { ", " } else { "" }
-            );
+            )?;
         }
-        writeln!(w, "){}\n{{", if f.mutable { "" } else { " const" });
+        writeln!(w, "){}\n{{", if f.mutable { "" } else { " const" })?;
         let mut arg_list = String::new();
         for a in &f.arguments {
             if a.type_name() == "QString" {
@@ -584,7 +582,7 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                 f.type_name(),
                 base,
                 arg_list
-            );
+            )?;
         } else if f.return_type.name() == "QByteArray" {
             writeln!(
                 w,
@@ -594,11 +592,11 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
                 f.type_name(),
                 base,
                 arg_list
-            );
+            )?;
         } else {
-            writeln!(w, "    return {}(m_d{});", base, arg_list);
+            writeln!(w, "    return {}(m_d{});", base, arg_list)?;
         }
-        writeln!(w, "}}");
+        writeln!(w, "}}")?;
     }
     Ok(())
 }
@@ -629,18 +627,16 @@ fn write_model_getter_setter(
     let mut r = property_type(ip);
     if o.object_type == ObjectType::List {
         idx = ", row";
-        writeln!(w, "{} {}::{}(int row) const\n{{", r, o.name, name);
+        writeln!(w, "{} {}::{}(int row) const\n{{", r, o.name, name)?;
     } else {
         writeln!(
             w,
             "{} {}::{}(const QModelIndex& index) const\n{{",
-            r,
-            o.name,
-            name
-        );
+            r, o.name, name
+        )?;
     }
     if ip.type_name() == "QString" {
-        writeln!(w, "    QString s;");
+        writeln!(w, "    QString s;")?;
         writeln!(
             w,
             "    {}_data_{}(m_d{}, &s, set_{});",
@@ -648,10 +644,10 @@ fn write_model_getter_setter(
             snake_case(name),
             idx,
             ip.type_name().to_lowercase()
-        );
-        writeln!(w, "    return s;");
+        )?;
+        writeln!(w, "    return s;")?;
     } else if ip.type_name() == "QByteArray" {
-        writeln!(w, "    QByteArray b;");
+        writeln!(w, "    QByteArray b;")?;
         writeln!(
             w,
             "    {}_data_{}(m_d{}, &b, set_{});",
@@ -659,18 +655,18 @@ fn write_model_getter_setter(
             snake_case(name),
             idx,
             ip.type_name().to_lowercase()
-        );
-        writeln!(w, "    return b;");
+        )?;
+        writeln!(w, "    return b;")?;
     } else if ip.optional {
-        writeln!(w, "    QVariant v;");
+        writeln!(w, "    QVariant v;")?;
         writeln!(
             w,
             "    v = {}_data_{}(m_d{});",
             lcname,
             snake_case(name),
             idx
-        );
-        writeln!(w, "    return v;");
+        )?;
+        writeln!(w, "    return v;")?;
     } else {
         writeln!(
             w,
@@ -678,9 +674,9 @@ fn write_model_getter_setter(
             lcname,
             snake_case(name),
             idx
-        );
+        )?;
     }
-    writeln!(w, "}}\n");
+    writeln!(w, "}}\n")?;
     if !ip.write {
         return Ok(());
     }
@@ -697,7 +693,7 @@ fn write_model_getter_setter(
             o.name,
             upper_initial(name),
             r
-        );
+        )?;
     } else {
         writeln!(
             w,
@@ -705,23 +701,23 @@ fn write_model_getter_setter(
             o.name,
             upper_initial(name),
             r
-        );
+        )?;
     }
-    writeln!(w, "    bool set = false;");
+    writeln!(w, "    bool set = false;")?;
     if ip.optional {
         let mut test = "value.isNull()".to_string();
         if !ip.is_complex() {
             test += " || !value.isValid()";
         }
-        writeln!(w, "    if ({}) {{", test);
+        writeln!(w, "    if ({}) {{", test)?;
         writeln!(
             w,
             "        set = {}_set_data_{}_none(m_d{});",
             lcname,
             snake_case(name),
             idx
-        );
-        writeln!(w, "    }} else {{");
+        )?;
+        writeln!(w, "    }} else {{")?;
     }
     if ip.optional && !ip.is_complex() {
         writeln!(
@@ -730,7 +726,7 @@ fn write_model_getter_setter(
         return false;
     }}",
             ip.type_name()
-        );
+        )?;
         writeln!(
             w,
             "    set = {}_set_data_{}(m_d{}, value.value<{}>());",
@@ -738,7 +734,7 @@ fn write_model_getter_setter(
             snake_case(name),
             idx,
             ip.type_name()
-        );
+        )?;
     } else {
         let mut val = "value";
         if ip.is_complex() {
@@ -755,10 +751,10 @@ fn write_model_getter_setter(
             snake_case(name),
             idx,
             val
-        );
+        )?;
     }
     if ip.optional {
-        writeln!(w, "    }}");
+        writeln!(w, "    }}")?;
     }
     if o.object_type == ObjectType::List {
         writeln!(
@@ -770,7 +766,7 @@ fn write_model_getter_setter(
     return set;
 }}
 "
-        );
+        )?;
     } else {
         writeln!(
             w,
@@ -780,7 +776,7 @@ fn write_model_getter_setter(
     return set;
 }}
 "
-        );
+        )?;
     }
     Ok(())
 }
@@ -792,7 +788,7 @@ fn write_cpp_model(w: &mut Vec<u8>, o: &Object) -> Result<()> {
     } else {
         (", int", ", index.row()")
     };
-    writeln!(w, "extern \"C\" {{");
+    writeln!(w, "extern \"C\" {{")?;
 
     for (name, ip) in &o.item_properties {
         if ip.is_complex() {
@@ -804,7 +800,7 @@ fn write_cpp_model(w: &mut Vec<u8>, o: &Object) -> Result<()> {
                 o.name,
                 index_decl,
                 ip.c_get_type()
-            );
+            )?;
         } else {
             writeln!(
                 w,
@@ -814,20 +810,20 @@ fn write_cpp_model(w: &mut Vec<u8>, o: &Object) -> Result<()> {
                 snake_case(name),
                 o.name,
                 index_decl
-            );
+            )?;
         }
         if ip.write {
             let a = format!("    bool {}_set_data_{}", lcname, snake_case(name));
             let b = format!("({}::Private*{}", o.name, index_decl);
             if ip.type_name() == "QString" {
-                writeln!(w, "{}{}, const ushort* s, int len);", a, b);
+                writeln!(w, "{}{}, const ushort* s, int len);", a, b)?;
             } else if ip.type_name() == "QByteArray" {
-                writeln!(w, "{}{}, const char* s, int len);", a, b);
+                writeln!(w, "{}{}, const char* s, int len);", a, b)?;
             } else {
-                writeln!(w, "{}{}, {});", a, b, ip.c_set_type());
+                writeln!(w, "{}{}, {});", a, b, ip.c_set_type())?;
             }
             if ip.optional {
-                writeln!(w, "{}_none{});", a, b);
+                writeln!(w, "{}_none{});", a, b)?;
             }
         }
     }
@@ -836,7 +832,7 @@ fn write_cpp_model(w: &mut Vec<u8>, o: &Object) -> Result<()> {
         "    void {}_sort({}::Private*, unsigned char column, Qt::SortOrder order = Qt::AscendingOrder);",
         lcname,
         o.name
-    );
+    )?;
     if o.object_type == ObjectType::List {
         writeln!(
             w,
@@ -897,10 +893,8 @@ void {0}::fetchMore(const QModelIndex &parent)
     }}
 }}
 void {0}::updatePersistentIndexes() {{}}",
-            o.name,
-            lcname,
-            o.column_count
-        );
+            o.name, lcname, o.column_count
+        )?;
     } else {
         writeln!(
             w,
@@ -1008,10 +1002,8 @@ void {0}::updatePersistentIndexes() {{
     }}
     changePersistentIndexList(from, to);
 }}",
-            o.name,
-            lcname,
-            o.column_count
-        );
+            o.name, lcname, o.column_count
+        )?;
     }
     writeln!(
         w,
@@ -1023,16 +1015,15 @@ void {0}::sort(int column, Qt::SortOrder order)
 Qt::ItemFlags {0}::flags(const QModelIndex &i) const
 {{
     auto flags = QAbstractItemModel::flags(i);",
-        o.name,
-        lcname
-    );
+        o.name, lcname
+    )?;
     for col in 0..o.column_count {
         if is_column_write(o, col) {
-            writeln!(w, "    if (i.column() == {}) {{", col);
-            writeln!(w, "        flags |= Qt::ItemIsEditable;\n    }}");
+            writeln!(w, "    if (i.column() == {}) {{", col)?;
+            writeln!(w, "        flags |= Qt::ItemIsEditable;\n    }}")?;
         }
     }
-    writeln!(w, "    return flags;\n}}\n");
+    writeln!(w, "    return flags;\n}}\n")?;
     for ip in &o.item_properties {
         write_model_getter_setter(w, index, ip.0, ip.1, o)?;
     }
@@ -1043,11 +1034,11 @@ Qt::ItemFlags {0}::flags(const QModelIndex &i) const
     Q_ASSERT(rowCount(index.parent()) > index.row());
     switch (index.column()) {{",
         o.name
-    );
+    )?;
 
     for col in 0..o.column_count {
-        writeln!(w, "    case {}:", col);
-        writeln!(w, "        switch (role) {{");
+        writeln!(w, "    case {}:", col)?;
+        writeln!(w, "        switch (role) {{")?;
         for (i, (name, ip)) in o.item_properties.iter().enumerate() {
             let empty = Vec::new();
             let roles = ip.roles.get(col).unwrap_or(&empty);
@@ -1055,33 +1046,31 @@ Qt::ItemFlags {0}::flags(const QModelIndex &i) const
                 continue;
             }
             for role in roles {
-                writeln!(w, "        case Qt::{}:", role_name(role));
+                writeln!(w, "        case Qt::{}:", role_name(role))?;
             }
-            writeln!(w, "        case Qt::UserRole + {}:", i);
+            writeln!(w, "        case Qt::UserRole + {}:", i)?;
             let ii = if o.object_type == ObjectType::List {
                 ".row()"
             } else {
                 ""
             };
             if ip.optional && !ip.is_complex() {
-                writeln!(w, "            return {}(index{});", name, ii);
+                writeln!(w, "            return {}(index{});", name, ii)?;
             } else if ip.optional {
                 writeln!(
                     w,
                     "            return cleanNullQVariant(QVariant::fromValue({}(index{})));",
-                    name,
-                    ii
-                );
+                    name, ii
+                )?;
             } else {
                 writeln!(
                     w,
                     "            return QVariant::fromValue({}(index{}));",
-                    name,
-                    ii
-                );
+                    name, ii
+                )?;
             }
         }
-        writeln!(w, "        }}\n        break;");
+        writeln!(w, "        }}\n        break;")?;
     }
     writeln!(
         w,
@@ -1103,9 +1092,9 @@ int {}::role(const char* name) const {{
 QHash<int, QByteArray> {0}::roleNames() const {{
     QHash<int, QByteArray> names = QAbstractItemModel::roleNames();",
         o.name
-    );
+    )?;
     for (i, (name, _)) in o.item_properties.iter().enumerate() {
-        writeln!(w, "    names.insert(Qt::UserRole + {}, \"{}\");", i, name);
+        writeln!(w, "    names.insert(Qt::UserRole + {}, \"{}\");", i, name)?;
     }
     writeln!(
         w,
@@ -1129,18 +1118,18 @@ bool {0}::setHeaderData(int section, Qt::Orientation orientation, const QVariant
 }}
 ",
         o.name
-    );
+    )?;
     if model_is_writable(o) {
         writeln!(
             w,
             "bool {}::setData(const QModelIndex &index, const QVariant &value, int role)\n{{",
             o.name
-        );
+        )?;
         for col in 0..o.column_count {
             if !is_column_write(o, col) {
                 continue;
             }
-            writeln!(w, "    if (index.column() == {}) {{", col);
+            writeln!(w, "    if (index.column() == {}) {{", col)?;
             for (i, (name, ip)) in o.item_properties.iter().enumerate() {
                 if !ip.write {
                     continue;
@@ -1150,11 +1139,11 @@ bool {0}::setHeaderData(int section, Qt::Orientation orientation, const QVariant
                 if col > 0 && roles.is_empty() {
                     continue;
                 }
-                write!(w, "        if (");
+                write!(w, "        if (")?;
                 for role in roles {
-                    write!(w, "role == Qt::{} || ", role_name(role));
+                    write!(w, "role == Qt::{} || ", role_name(role))?;
                 }
-                writeln!(w, "role == Qt::UserRole + {}) {{", i);
+                writeln!(w, "role == Qt::UserRole + {}) {{", i)?;
                 let ii = if o.object_type == ObjectType::List {
                     ".row()"
                 } else {
@@ -1166,7 +1155,7 @@ bool {0}::setHeaderData(int section, Qt::Orientation orientation, const QVariant
                         "            return set{}(index{}, value);",
                         upper_initial(name),
                         ii
-                    );
+                    )?;
                 } else {
                     let pre = if ip.optional {
                         "!value.isValid() || value.isNull() ||"
@@ -1178,33 +1167,33 @@ bool {0}::setHeaderData(int section, Qt::Orientation orientation, const QVariant
                         "            if ({}value.canConvert(qMetaTypeId<{}>())) {{",
                         pre,
                         ip.type_name()
-                    );
+                    )?;
                     writeln!(
                         w,
                         "                return set{}(index{}, value.value<{}>());",
                         upper_initial(name),
                         ii,
                         ip.type_name()
-                    );
-                    writeln!(w, "            }}");
+                    )?;
+                    writeln!(w, "            }}")?;
                 }
-                writeln!(w, "        }}");
+                writeln!(w, "        }}")?;
             }
-            writeln!(w, "    }}");
+            writeln!(w, "    }}")?;
         }
-        writeln!(w, "    return false;\n}}\n");
+        writeln!(w, "    return false;\n}}\n")?;
     }
     Ok(())
 }
 
 fn constructor_args_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
-    write!(w, "{}*", o.name);
+    write!(w, "{}*", o.name)?;
     for p in o.properties.values() {
         if let Type::Object(object) = &p.property_type {
-            write!(w, ", ");
+            write!(w, ", ")?;
             constructor_args_decl(w, object, conf)?;
         } else {
-            write!(w, ", void (*)({}*)", o.name);
+            write!(w, ", void (*)({}*)", o.name)?;
         }
     }
     if o.object_type == ObjectType::List {
@@ -1224,7 +1213,7 @@ fn constructor_args_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<(
         void (*)({0}*, int, int),
         void (*)({0}*)",
             o.name
-        );
+        )?;
     }
     if o.object_type == ObjectType::Tree {
         write!(
@@ -1243,7 +1232,7 @@ fn constructor_args_decl(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<(
         void (*)({0}*, option_quintptr, int, int),
         void (*)({0}*)",
             o.name
-        );
+        )?;
     }
     Ok(())
 }
@@ -1252,14 +1241,14 @@ fn changed_f(o: &Object, p_name: &str) -> String {
     lower_initial(&o.name) + &upper_initial(p_name) + "Changed"
 }
 
-fn constructor_args(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) {
+fn constructor_args(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) -> Result<()> {
     let lcname = snake_case(&o.name);
     for (name, p) in &o.properties {
         if let Type::Object(object) = &p.property_type {
-            write!(w, ", {}m_{}", prefix, name);
-            constructor_args(w, &format!("m_{}->", name), object, conf);
+            write!(w, ", {}m_{}", prefix, name)?;
+            constructor_args(w, &format!("m_{}->", name), object, conf)?;
         } else {
-            write!(w, ",\n        {}", changed_f(o, name));
+            write!(w, ",\n        {}", changed_f(o, name))?;
         }
     }
     if o.object_type == ObjectType::List {
@@ -1306,7 +1295,7 @@ fn constructor_args(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) {
         }}",
             o.name,
             o.column_count - 1
-        );
+        )?;
     }
     if o.object_type == ObjectType::Tree {
         writeln!(
@@ -1380,8 +1369,9 @@ fn constructor_args(w: &mut Vec<u8>, prefix: &str, o: &Object, conf: &Config) {
             o.name,
             lcname,
             o.column_count - 1
-        );
+        )?;
     }
+    Ok(())
 }
 
 pub fn write_header(conf: &Config) -> Result<()> {
@@ -1404,15 +1394,15 @@ pub fn write_header(conf: &Config) -> Result<()> {
 #include <QAbstractItemModel>
 ",
         guard
-    );
+    )?;
 
     for name in conf.objects.keys() {
-        writeln!(h, "class {};", name);
+        writeln!(h, "class {};", name)?;
     }
     for object in conf.objects.values() {
         write_header_object(&mut h, object, conf)?;
     }
-    writeln!(h, "#endif // {}", guard);
+    writeln!(h, "#endif // {}", guard)?;
 
     write_if_different(h_file, &h)?;
     Ok(())
@@ -1430,7 +1420,7 @@ pub fn write_cpp(conf: &Config) -> Result<()> {
 
 namespace {{",
         file_name
-    );
+    )?;
     for option in conf.optional_types() {
         if option != "QString" && option != "QByteArray" {
             writeln!(
@@ -1449,7 +1439,7 @@ namespace {{",
     }};
     static_assert(std::is_pod<option_{0}>::value, \"option_{0} must be a POD type.\");",
                 option
-            );
+            )?;
         }
     }
     if conf.types().contains("QString") {
@@ -1460,7 +1450,7 @@ namespace {{",
     void set_qstring(QString* val, const char* utf8, int nbytes) {{
         *val = QString::fromUtf8(utf8, nbytes);
     }}"
-        );
+        )?;
     }
     if conf.types().contains("QByteArray") {
         writeln!(
@@ -1475,7 +1465,7 @@ namespace {{",
             v->append(bytes, nbytes);
         }}
     }}"
-        );
+        )?;
     }
     if conf.has_list_or_tree() {
         writeln!(
@@ -1488,26 +1478,26 @@ namespace {{",
     inline QVariant cleanNullQVariant(const QVariant& v) {{
         return (v.isNull()) ?QVariant() :v;
     }}"
-        );
+        )?;
     }
     for (name, o) in &conf.objects {
         for (p_name, p) in &o.properties {
             if p.is_object() {
                 continue;
             }
-            writeln!(w, "    inline void {}({}* o)", changed_f(o, p_name), name);
-            writeln!(w, "    {{\n        Q_EMIT o->{}Changed();\n    }}", p_name);
+            writeln!(w, "    inline void {}({}* o)", changed_f(o, p_name), name)?;
+            writeln!(w, "    {{\n        Q_EMIT o->{}Changed();\n    }}", p_name)?;
         }
     }
-    writeln!(w, "}}");
+    writeln!(w, "}}")?;
 
     for o in conf.objects.values() {
         if o.object_type != ObjectType::Object {
             write_cpp_model(&mut w, o)?;
         }
-        writeln!(w, "extern \"C\" {{");
+        writeln!(w, "extern \"C\" {{")?;
         write_object_c_decl(&mut w, o, conf)?;
-        writeln!(w, "}};\n");
+        writeln!(w, "}};\n")?;
     }
 
     for o in conf.objects.values() {

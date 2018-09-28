@@ -1,14 +1,14 @@
-use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Path, PathBuf};
-use std::error::Error;
 use serde_json;
+use std::collections::{BTreeMap, BTreeSet};
+use std::error::Error;
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 mod json {
-    use std::path::PathBuf;
-    use std::collections::BTreeMap;
     use super::Rust;
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
 
     pub fn false_bool() -> bool {
         false
@@ -103,9 +103,9 @@ impl Config {
         ops
     }
     pub fn has_list_or_tree(&self) -> bool {
-        self.objects.values().any(|o| {
-            o.object_type == ObjectType::List || o.object_type == ObjectType::Tree
-        })
+        self.objects
+            .values()
+            .any(|o| o.object_type == ObjectType::List || o.object_type == ObjectType::Tree)
     }
 }
 
