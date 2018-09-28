@@ -1146,7 +1146,7 @@ where
         }}
     }}
 }}"
-        );
+        )?;
     }
     if has_string {
         writeln!(
