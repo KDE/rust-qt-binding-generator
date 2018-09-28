@@ -71,7 +71,11 @@ RowLayout {
         }
     }
     SplitView {
-        anchors.fill: parent
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        handleDelegate: Rectangle {
+            width: 3
+        }
         TableView {
             model: demo.timeSeries
             Layout.fillHeight: true
