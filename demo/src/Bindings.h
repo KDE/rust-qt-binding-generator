@@ -2,8 +2,8 @@
 #ifndef BINDINGS_H
 #define BINDINGS_H
 
-#include <QObject>
-#include <QAbstractItemModel>
+#include <QtCore/QObject>
+#include <QtCore/QAbstractItemModel>
 
 class Demo;
 class Fibonacci;
