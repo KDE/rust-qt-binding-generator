@@ -8,6 +8,7 @@ pub fn write_if_different<P: AsRef<Path>>(path: P, contents: &[u8]) -> Result<()
     if old_contents.map(|c| c == contents).unwrap_or(false) {
         Ok(())
     } else {
+        let _ = fs::create_dir_all(path.as_ref().parent().unwrap());
         fs::write(path, contents)
     }
 }
