@@ -21,6 +21,7 @@
   <summary>Generate bindings to use Rust code in Qt and QML</summary>
   <summary xml:lang="ca">Genera vincles per usar el codi en Rust a les Qt i el QML</summary>
   <summary xml:lang="ca-valencia">Genera vincles per usar el codi en Rust a les Qt i el QML</summary>
+  <summary xml:lang="de">Generiert Bindungen für Rust-Quelltext in Qt und QML</summary>
   <summary xml:lang="en-GB">Generate bindings to use Rust code in Qt and QML</summary>
   <summary xml:lang="fi">Luo sidokset Rust-koodisi käyttämiseksi Qt:ssa ja QML:ssä</summary>
   <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML</summary>
@@ -36,6 +37,7 @@
     <p>Rust Qt Binding Generator is command-line program for using Rust code in Qt programs. It generates QObject types that give access to Rust code. The implementation of the QObject is written in a Rust trait.</p>
     <p xml:lang="ca">El Generador de vincles pel Rust a les Qt és un programa de línia d'ordres per usar el codi en Rust als programes Qt. Genera tipus QObject que donen accés al codi en Rust. La implementació del QObject està escrita en un tret de Rust.</p>
     <p xml:lang="ca-valencia">El Generador de vincles pel Rust a les Qt és un programa de línia d'ordres per usar el codi en Rust als programes Qt. Genera tipus QObject que donen accés al codi en Rust. La implementació del QObject està escrita en un tret de Rust.</p>
+    <p xml:lang="de">Rust Qt Binding Generator ist ein Befehlszeilenprogramm, um Rust-Quelltext in Qt-Programmen zu verwenden. Es werden QObject-Typen generiert, mit denen Zugriff auf Rust Quelltext möglich ist. Die Implementation von QObject ist in einem Rust-Trait geschrieben.</p>
     <p xml:lang="en-GB">Rust Qt Binding Generator is command-line program for using Rust code in Qt programs. It generates QObject types that give access to Rust code. The implementation of the QObject is written in a Rust trait.</p>
     <p xml:lang="fi">Rustin Qt-sidosgeneraattori on komentoriviohjelma Rust-koodin käyttämiseksi Qt-ohjelmissa. Se luo QObject-tyypit, joilla on pääsy Rust-koodiin. QObjectin toteutus on kirjoitettu Rustin traitinä.</p>
     <p xml:lang="gl">O xerador de adaptadores para Qt de Rust é un programa da liña de ordes para usar código Rust en programas de Qt. Xera tipos QObject que dan acceso a código Rust. O QObject está feito nun trazo de Rust.</p>
