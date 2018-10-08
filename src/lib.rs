@@ -2,7 +2,9 @@ extern crate regex;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate serde_xml_rs;
 
+pub mod build;
 pub mod configuration;
 mod configuration_private;
 mod cpp;
