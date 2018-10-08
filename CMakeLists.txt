@@ -32,15 +32,17 @@ find_package(Threads REQUIRED)
 # Runtime information library -- dl on Debian, execinfo on FreeBSD.
 # This quiets a warning from rustc about linking to native artifacts.
 if (CMAKE_SYSTEM MATCHES "FreeBSD")
+    set(NEED_DL_LIBRARY true)
     find_library(DL_LIBRARY execinfo)
-else()
+elseif (DEFINED CMAKE_DL_LIBS)
+    set(NEED_DL_LIBRARY true)
     find_library(DL_LIBRARY ${CMAKE_DL_LIBS})
 endif()
 
 # It would be neater to use set_package_properties() here and to
 # rely on feature_summary(), below, but that entails using find_package()
 # and moving this whole thing into a Find-module, which is over-wrought.
-if (NOT DL_LIBRARY)
+if (NEED_DL_LIBRARY AND NOT DL_LIBRARY)
     message(FATAL_ERROR "No runtime information library (-ldl or -lexecinfo)")
 endif()
 
