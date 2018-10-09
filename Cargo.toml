@@ -1,8 +1,8 @@
 [package]
 name = "rust_qt_binding_generator"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jos van den Oever <jos@vandenoever.info>"]
-description = "A proof-of-concept mail viewer writting with Qt using QML"
+description = "Generate code to build Qt applications with Rust"
 license = "AGPL-3.0-or-later"
 documentation = "https://phabricator.kde.org/source/rust-qt-binding-generator/"
 homepage = "https://phabricator.kde.org/source/rust-qt-binding-generator/"
