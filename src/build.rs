@@ -1,10 +1,11 @@
 extern crate cc;
 
+use regex::Regex;
 use serde_xml_rs::deserialize;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::io::{self, Write};
-use super::{Config, generate_bindings, read_config_file};
+use super::{Config, generate_bindings, read_bindings_file};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Deserialize)]
@@ -18,13 +19,13 @@ struct QResource {
     file: Vec<PathBuf>,
 }
 
-/// Parse the qrc file, panic if it fails
+/// Parse the qrc file, panic if it fails.
 fn read_qrc(qrc: &Path) -> RCC {
     let bytes = ::std::fs::read(qrc).expect(&format!("Could not read {}", qrc.display()));
     deserialize(&bytes[..]).expect(&format!("could not parse {}", qrc.display()))
 }
 
-/// Get the list of files that are listed in the qrc file
+/// Get the list of files that are listed in the qrc file.
 fn qrc_to_input_list<'a>(qrc: &'a Path, rcc: &'a RCC) -> Vec<&'a Path> {
     let mut list = Vec::new();
     list.push(qrc);
@@ -36,8 +37,8 @@ fn qrc_to_input_list<'a>(qrc: &'a Path, rcc: &'a RCC) -> Vec<&'a Path> {
     list
 }
 
-/// run a commmand and return the standard output if the command ran ok
-/// otherwise print an error and exit this program
+/// Run a commmand and return the standard output if the command ran ok.
+/// Otherwise print an error and exit this program.
 fn run(cmd: &str, command: &mut Command) -> Vec<u8> {
     eprintln!("running: {:?}", command);
     match command.output() {
@@ -65,12 +66,77 @@ fn run(cmd: &str, command: &mut Command) -> Vec<u8> {
     ::std::process::exit(-1);
 }
 
-/// query a Qt environment variable via qmake
+/// Query a Qt environment variable via qmake.
 fn qmake_query(var: &str) -> String {
     String::from_utf8(run("qmake", Command::new("qmake").args(&["-query", var])))
         .expect("qmake output was not valid UTF-8")
 }
 
+struct Version {
+    major: u8,
+    minor: u8,
+    patch: u8,
+}
+
+/// Return the qt version number as an integer.
+///
+/// # Panics
+///
+/// Panic if the value could not be parsed.
+fn parse_qt_version(qt_version: &str) -> Version {
+    let re = Regex::new(r"(\d)\.(\d{1,2})(\.(\d{1,2}))").unwrap();
+    match re.captures(&qt_version) {
+        None => panic!("Cannot parse Qt version number {}", qt_version),
+        Some(cap) => {
+            Version {
+                major: cap[1].parse::<u8>().unwrap(),
+                minor: cap[2].parse::<u8>().unwrap(),
+                patch: cap.get(4)
+                    .map(|m| m.as_str())
+                    .unwrap_or("0")
+                    .parse::<u8>()
+                    .unwrap(),
+            }
+        }
+    }
+}
+
+/// Check for a minimal Qt version.
+///
+/// # Example
+///
+/// ```
+/// # use std::env;
+/// # use rust_qt_binding_generator::build::require_qt_version;
+/// require_qt_version(5, 1, 0);
+/// ```
+///
+/// # Panics
+///
+/// Panics if the installed version is smaller than the required version or if
+/// no version of Qt could be determined.
+pub fn require_qt_version(major: u8, minor: u8, patch: u8) {
+    let qt_version = qmake_query("QT_VERSION");
+    let version = parse_qt_version(&qt_version);
+    if version.major < major ||
+        (version.major == major &&
+             (version.minor < minor || (version.minor == minor && version.patch < patch)))
+    {
+        panic!(
+            "Please use a version of Qt >= {}.{}.{}, not {}",
+            major,
+            minor,
+            patch,
+            qt_version
+        );
+    }
+}
+
+/// A builder for binding generation and compilation of a Qt application.
+///
+/// Pass options into this `Build` and then run `build` to generate binddings
+/// and compile the Qt C++ code and resources into a static library.
+/// This struct is meant to be used in a `build.rs` script.
 pub struct Build {
     qt_library_path: PathBuf,
     out_dir: PathBuf,
@@ -82,6 +148,24 @@ pub struct Build {
 }
 
 impl Build {
+    /// Create a new `Build` struct.
+    ///
+    /// Initialize the struct with the build output directory. That directory
+    /// is available via the environment variable `OUT_DIR`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::env;
+    /// use rust_qt_binding_generator::build::Build;
+    /// if let Ok(out_dir) = env::var("OUT_DIR") {
+    ///     Build::new(&out_dir)
+    ///         .bindings("bindings.json")
+    ///         .qrc("qml.qrc")
+    ///         .cpp("src/main.cpp")
+    ///         .compile("my_app");
+    /// }
+    /// ```
     pub fn new<P: AsRef<Path>>(out_dir: P) -> Build {
         let qt_include_path = qmake_query("QT_INSTALL_HEADERS");
         let mut build = cc::Build::new();
@@ -99,18 +183,38 @@ impl Build {
             cpp: Vec::new(),
         }
     }
+    /// Add a bindings file to be processed.
     pub fn bindings<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
         self.bindings.push(path.as_ref().to_path_buf());
         self
     }
+    /// Add a qrc file to be processed.
+    ///
+    /// qrc files are Qt Resource files. Files listed in a qrc file are
+    /// compiled into a the binary. Here is an example qrc file that adds a qml
+    /// file.
+    /// ```xml
+    /// <RCC>
+    ///    <qresource prefix="/">
+    ///      <file>main.qml</file>
+    ///    </qresource>
+    /// </RCC>
+    /// ```
     pub fn qrc<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
         self.qrc.push(path.as_ref().to_path_buf());
         self
     }
+    /// Add a C++ file to be compiled into the program.
     pub fn cpp<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
         self.cpp.push(path.as_ref().to_path_buf());
         self
     }
+    /// Compile the static library.
+    ///
+    /// # Panics
+    ///
+    /// Panics if there is any kind of error. Run `cargo build -vv` to
+    /// get more output while debugging.
     pub fn compile(&mut self, lib_name: &str) {
         for binding in &self.bindings {
             handle_binding(&self.out_dir, binding, &mut self.h, &mut self.cpp);
@@ -143,6 +247,7 @@ impl Build {
         println!("cargo:rustc-link-lib=Qt5Qml");
     }
 }
+
 /// Return true if all outputs and exist are older than the given input time.
 fn are_outputs_up_to_date(paths: &[&Path], input: SystemTime) -> bool {
     for path in paths {
@@ -177,6 +282,7 @@ fn get_youngest_mtime(paths: &[&Path]) -> Result<SystemTime, String> {
     }
     Ok(max)
 }
+
 /// Run moc to generate C++ code from a Qt C++ header
 fn moc(header: &Path, output: &Path) {
     run("moc", Command::new("moc").arg("-o").arg(output).arg(header));
@@ -186,6 +292,7 @@ fn moc(header: &Path, output: &Path) {
 fn rcc(rcfile: &Path, output: &Path) {
     run("rcc", Command::new("rcc").arg("-o").arg(output).arg(rcfile));
 }
+
 /// return true if a command should run.
 /// It returns true if all inputs are present and if any of the inputs is newer
 /// than the newest output or if the outputs do not exist yet.
@@ -197,19 +304,21 @@ fn should_run(input: &[&Path], output: &[&Path]) -> bool {
     };
     !are_outputs_up_to_date(output, input_time)
 }
+
 fn get_interface_module_path(config: &Config) -> PathBuf {
     let mut path = config.rust.dir.join("src");
     path.push(&config.rust.interface_module);
     path.set_extension("rs");
     PathBuf::new()
 }
+
 fn handle_binding(
     out_dir: &Path,
     bindings_json: &Path,
     h: &mut Vec<PathBuf>,
     cpp: &mut Vec<PathBuf>,
 ) {
-    let mut config = read_config_file(&bindings_json).unwrap_or_else(|e| {
+    let mut config = read_bindings_file(&bindings_json).unwrap_or_else(|e| {
         panic!("Could not parse {}: {}", bindings_json.display(), e)
     });
     let bindings_cpp = out_dir.join(&config.cpp_file);
@@ -228,6 +337,7 @@ fn handle_binding(
     h.push(bindings_h);
     cpp.push(bindings_cpp);
 }
+
 fn handle_qrc(out_dir: &Path, qrc_path: &Path, cpp: &mut Vec<PathBuf>) {
     let qrc = read_qrc(qrc_path);
     let qml_cpp = out_dir.join(format!(
@@ -240,6 +350,7 @@ fn handle_qrc(out_dir: &Path, qrc_path: &Path, cpp: &mut Vec<PathBuf>) {
     }
     cpp.push(qml_cpp);
 }
+
 fn handle_header(h: &Path, cpp: &mut Vec<PathBuf>) {
     let moc_file = h.parent().unwrap().join(format!(
         "moc_{}.cpp",
