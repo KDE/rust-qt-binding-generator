@@ -115,18 +115,20 @@ impl Build {
         for binding in &self.bindings {
             handle_binding(&self.out_dir, binding, &mut self.h, &mut self.cpp);
         }
+        let mut compile_inputs: Vec<&Path> = Vec::new();
         for h in &self.h {
+            compile_inputs.push(h);
             handle_header(h, &mut self.cpp);
         }
         for qrc in &self.qrc {
             handle_qrc(&self.out_dir, qrc, &mut self.cpp);
         }
         for cpp in &self.cpp {
+            compile_inputs.push(cpp);
             self.build.file(cpp);
         }
         let lib = self.out_dir.join(&format!("lib{}.a", lib_name));
-        let inputs = Vec::new();
-        if should_run(&inputs, &[&lib]) {
+        if should_run(&compile_inputs, &[&lib]) {
             self.build.compile(lib_name);
         } else {
             // normally cc::Build outputs this information
