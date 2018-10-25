@@ -74,7 +74,7 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
         } else {
             write!(
                 r,
-                ",\n    {}_{}_changed: fn(*const {}QObject)",
+                ",\n    {}_{}_changed: fn(*mut {}QObject)",
                 snake_case(name),
                 snake_case(p_name),
                 o.name
@@ -84,14 +84,14 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
     if o.object_type == ObjectType::List {
         write!(
             r,
-            ",\n    {}_new_data_ready: fn(*const {}QObject)",
+            ",\n    {}_new_data_ready: fn(*mut {}QObject)",
             snake_case(name),
             o.name
         )?;
     } else if o.object_type == ObjectType::Tree {
         write!(
             r,
-            ",\n    {}_new_data_ready: fn(*const {}QObject, index: COption<usize>)",
+            ",\n    {}_new_data_ready: fn(*mut {}QObject, index: COption<usize>)",
             snake_case(name),
             o.name
         )?;
@@ -110,17 +110,17 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
         write!(
             r,
             ",
-    {2}_layout_about_to_be_changed: fn(*const {0}QObject),
-    {2}_layout_changed: fn(*const {0}QObject),
-    {2}_data_changed: fn(*const {0}QObject, usize, usize),
-    {2}_begin_reset_model: fn(*const {0}QObject),
-    {2}_end_reset_model: fn(*const {0}QObject),
-    {2}_begin_insert_rows: fn(*const {0}QObject,{1} usize, usize),
-    {2}_end_insert_rows: fn(*const {0}QObject),
-    {2}_begin_move_rows: fn(*const {0}QObject,{1} usize, usize,{3} usize),
-    {2}_end_move_rows: fn(*const {0}QObject),
-    {2}_begin_remove_rows: fn(*const {0}QObject,{1} usize, usize),
-    {2}_end_remove_rows: fn(*const {0}QObject)",
+    {2}_layout_about_to_be_changed: fn(*mut {0}QObject),
+    {2}_layout_changed: fn(*mut {0}QObject),
+    {2}_data_changed: fn(*mut {0}QObject, usize, usize),
+    {2}_begin_reset_model: fn(*mut {0}QObject),
+    {2}_end_reset_model: fn(*mut {0}QObject),
+    {2}_begin_insert_rows: fn(*mut {0}QObject,{1} usize, usize),
+    {2}_end_insert_rows: fn(*mut {0}QObject),
+    {2}_begin_move_rows: fn(*mut {0}QObject,{1} usize, usize,{3} usize),
+    {2}_end_move_rows: fn(*mut {0}QObject),
+    {2}_begin_remove_rows: fn(*mut {0}QObject,{1} usize, usize),
+    {2}_end_remove_rows: fn(*mut {0}QObject)",
             o.name,
             index_decl,
             snake_case(name),
@@ -294,7 +294,6 @@ fn write_rust_interface_object(r: &mut Vec<u8>, o: &Object, conf: &Config) -> Re
         "
 pub struct {}QObject {{}}
 
-#[derive(Clone)]
 pub struct {0}Emitter {{
     qobject: Arc<AtomicPtr<{0}QObject>>,",
         o.name
@@ -305,17 +304,17 @@ pub struct {0}Emitter {{
         }
         writeln!(
             r,
-            "    {}_changed: fn(*const {}QObject),",
+            "    {}_changed: fn(*mut {}QObject),",
             snake_case(name),
             o.name
         )?;
     }
     if o.object_type == ObjectType::List {
-        writeln!(r, "    new_data_ready: fn(*const {}QObject),", o.name)?;
+        writeln!(r, "    new_data_ready: fn(*mut {}QObject),", o.name)?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
-            "    new_data_ready: fn(*const {}QObject, index: COption<usize>),",
+            "    new_data_ready: fn(*mut {}QObject, index: COption<usize>),",
             o.name
         )?;
     }
@@ -326,6 +325,32 @@ pub struct {0}Emitter {{
 unsafe impl Send for {}Emitter {{}}
 
 impl {0}Emitter {{
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> {0}Emitter {{
+        {0}Emitter {{
+            qobject: self.qobject.clone(),", o.name)?;
+    for (name, p) in &o.properties {
+        if p.is_object() {
+            continue;
+        }
+        writeln!(
+            r,
+            "            {}_changed: self.{0}_changed,",
+            snake_case(name),
+        )?;
+    }
+    if o.object_type != ObjectType::Object {
+        writeln!(r, "            new_data_ready: self.new_data_ready,")?;
+    }
+    writeln!(
+        r,
+        "        }}
+    }}
     fn clear(&self) {{
         let n: *const {0}QObject = null();
         self.qobject.store(n as *mut {0}QObject, Ordering::SeqCst);
@@ -339,7 +364,7 @@ impl {0}Emitter {{
         }
         writeln!(
             r,
-            "    pub fn {}_changed(&self) {{
+            "    pub fn {}_changed(&mut self) {{
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {{
             (self.{0}_changed)(ptr);
@@ -352,7 +377,7 @@ impl {0}Emitter {{
     if o.object_type == ObjectType::List {
         writeln!(
             r,
-            "    pub fn new_data_ready(&self) {{
+            "    pub fn new_data_ready(&mut self) {{
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {{
             (self.new_data_ready)(ptr);
@@ -362,7 +387,7 @@ impl {0}Emitter {{
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
-            "    pub fn new_data_ready(&self, item: Option<usize>) {{
+            "    pub fn new_data_ready(&mut self, item: Option<usize>) {{
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {{
             (self.new_data_ready)(ptr, item.into());
@@ -399,52 +424,52 @@ impl {0}Emitter {{
 
 #[derive(Clone)]
 pub struct {0}{1} {{
-    qobject: *const {0}QObject,
-    layout_about_to_be_changed: fn(*const {0}QObject),
-    layout_changed: fn(*const {0}QObject),
-    data_changed: fn(*const {0}QObject, usize, usize),
-    begin_reset_model: fn(*const {0}QObject),
-    end_reset_model: fn(*const {0}QObject),
-    begin_insert_rows: fn(*const {0}QObject,{4} usize, usize),
-    end_insert_rows: fn(*const {0}QObject),
-    begin_move_rows: fn(*const {0}QObject,{4} usize, usize,{7} usize),
-    end_move_rows: fn(*const {0}QObject),
-    begin_remove_rows: fn(*const {0}QObject,{4} usize, usize),
-    end_remove_rows: fn(*const {0}QObject),
+    qobject: *mut {0}QObject,
+    layout_about_to_be_changed: fn(*mut {0}QObject),
+    layout_changed: fn(*mut {0}QObject),
+    data_changed: fn(*mut {0}QObject, usize, usize),
+    begin_reset_model: fn(*mut {0}QObject),
+    end_reset_model: fn(*mut {0}QObject),
+    begin_insert_rows: fn(*mut {0}QObject,{4} usize, usize),
+    end_insert_rows: fn(*mut {0}QObject),
+    begin_move_rows: fn(*mut {0}QObject,{4} usize, usize,{7} usize),
+    end_move_rows: fn(*mut {0}QObject),
+    begin_remove_rows: fn(*mut {0}QObject,{4} usize, usize),
+    end_remove_rows: fn(*mut {0}QObject),
 }}
 
 impl {0}{1} {{
-    pub fn layout_about_to_be_changed(&self) {{
+    pub fn layout_about_to_be_changed(&mut self) {{
         (self.layout_about_to_be_changed)(self.qobject);
     }}
-    pub fn layout_changed(&self) {{
+    pub fn layout_changed(&mut self) {{
         (self.layout_changed)(self.qobject);
     }}
-    pub fn data_changed(&self, first: usize, last: usize) {{
+    pub fn data_changed(&mut self, first: usize, last: usize) {{
         (self.data_changed)(self.qobject, first, last);
     }}
-    pub fn begin_reset_model(&self) {{
+    pub fn begin_reset_model(&mut self) {{
         (self.begin_reset_model)(self.qobject);
     }}
-    pub fn end_reset_model(&self) {{
+    pub fn end_reset_model(&mut self) {{
         (self.end_reset_model)(self.qobject);
     }}
-    pub fn begin_insert_rows(&self,{2} first: usize, last: usize) {{
+    pub fn begin_insert_rows(&mut self,{2} first: usize, last: usize) {{
         (self.begin_insert_rows)(self.qobject,{3} first, last);
     }}
-    pub fn end_insert_rows(&self) {{
+    pub fn end_insert_rows(&mut self) {{
         (self.end_insert_rows)(self.qobject);
     }}
-    pub fn begin_move_rows(&self,{2} first: usize, last: usize,{5} destination: usize) {{
+    pub fn begin_move_rows(&mut self,{2} first: usize, last: usize,{5} destination: usize) {{
         (self.begin_move_rows)(self.qobject,{3} first, last,{6} destination);
     }}
-    pub fn end_move_rows(&self) {{
+    pub fn end_move_rows(&mut self) {{
         (self.end_move_rows)(self.qobject);
     }}
-    pub fn begin_remove_rows(&self,{2} first: usize, last: usize) {{
+    pub fn begin_remove_rows(&mut self,{2} first: usize, last: usize) {{
         (self.begin_remove_rows)(self.qobject,{3} first, last);
     }}
-    pub fn end_remove_rows(&self) {{
+    pub fn end_remove_rows(&mut self) {{
         (self.end_remove_rows)(self.qobject);
     }}",
             o.name, type_, index_decl, index, index_c_decl, dest_decl, dest, dest_c_decl
