@@ -30,11 +30,11 @@ namespace {
     }
     inline void todosActiveCountChanged(Todos* o)
     {
-        emit o->activeCountChanged();
+        Q_EMIT o->activeCountChanged();
     }
     inline void todosCountChanged(Todos* o)
     {
-        emit o->countChanged();
+        Q_EMIT o->countChanged();
     }
 }
 extern "C" {
@@ -99,6 +99,7 @@ void Todos::fetchMore(const QModelIndex &parent)
         todos_fetch_more(m_d);
     }
 }
+void Todos::updatePersistentIndexes() {}
 
 void Todos::sort(int column, Qt::SortOrder order)
 {
@@ -124,7 +125,7 @@ bool Todos::setCompleted(int row, bool value)
     set = todos_set_data_completed(m_d, row, value);
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -142,7 +143,7 @@ bool Todos::setDescription(int row, const QString& value)
     set = todos_set_data_description(m_d, row, value.utf16(), value.length());
     if (set) {
         QModelIndex index = createIndex(row, 0, row);
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
     }
     return set;
 }
@@ -158,6 +159,7 @@ QVariant Todos::data(const QModelIndex &index, int role) const
         case Qt::UserRole + 1:
             return QVariant::fromValue(description(index.row()));
         }
+        break;
     }
     return QVariant();
 }
@@ -216,10 +218,14 @@ bool Todos::setData(const QModelIndex &index, const QVariant &value, int role)
 extern "C" {
     Todos::Private* todos_new(Todos*, void (*)(Todos*), void (*)(Todos*),
         void (*)(const Todos*),
+        void (*)(Todos*),
+        void (*)(Todos*),
         void (*)(Todos*, quintptr, quintptr),
         void (*)(Todos*),
         void (*)(Todos*),
         void (*)(Todos*, int, int),
+        void (*)(Todos*),
+        void (*)(Todos*, int, int, int),
         void (*)(Todos*),
         void (*)(Todos*, int, int),
         void (*)(Todos*));
@@ -234,7 +240,7 @@ extern "C" {
 
 Todos::Todos(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
     initHeaderData();
@@ -246,7 +252,14 @@ Todos::Todos(QObject *parent):
         todosActiveCountChanged,
         todosCountChanged,
         [](const Todos* o) {
-            emit o->newDataReady(QModelIndex());
+            Q_EMIT o->newDataReady(QModelIndex());
+        },
+        [](Todos* o) {
+            Q_EMIT o->layoutAboutToBeChanged();
+        },
+        [](Todos* o) {
+            o->updatePersistentIndexes();
+            Q_EMIT o->layoutChanged();
         },
         [](Todos* o, quintptr first, quintptr last) {
             o->dataChanged(o->createIndex(first, 0, first),
@@ -263,6 +276,12 @@ Todos::Todos(QObject *parent):
         },
         [](Todos* o) {
             o->endInsertRows();
+        },
+        [](Todos* o, int first, int last, int destination) {
+            o->beginMoveRows(QModelIndex(), first, last, QModelIndex(), destination);
+        },
+        [](Todos* o) {
+            o->endMoveRows();
         },
         [](Todos* o, int first, int last) {
             o->beginRemoveRows(QModelIndex(), first, last);

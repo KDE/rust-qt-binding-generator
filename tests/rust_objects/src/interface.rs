@@ -40,7 +40,6 @@ fn to_c_int(n: usize) -> c_int {
 
 pub struct GroupQObject {}
 
-#[derive(Clone)]
 pub struct GroupEmitter {
     qobject: Arc<AtomicPtr<GroupQObject>>,
 }
@@ -48,6 +47,17 @@ pub struct GroupEmitter {
 unsafe impl Send for GroupEmitter {}
 
 impl GroupEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> GroupEmitter {
+        GroupEmitter {
+            qobject: self.qobject.clone(),
+        }
+    }
     fn clear(&self) {
         let n: *const GroupQObject = null();
         self.qobject.store(n as *mut GroupQObject, Ordering::SeqCst);
@@ -67,7 +77,7 @@ pub extern "C" fn group_new(
     group: *mut GroupQObject,
     person: *mut PersonQObject,
     object: *mut InnerObjectQObject,
-    object_description_changed: fn(*const InnerObjectQObject),
+    object_description_changed: fn(*mut InnerObjectQObject),
 ) -> *mut Group {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(object)),
@@ -99,20 +109,31 @@ pub unsafe extern "C" fn group_person_get(ptr: *mut Group) -> *mut Person {
 
 pub struct InnerObjectQObject {}
 
-#[derive(Clone)]
 pub struct InnerObjectEmitter {
     qobject: Arc<AtomicPtr<InnerObjectQObject>>,
-    description_changed: fn(*const InnerObjectQObject),
+    description_changed: fn(*mut InnerObjectQObject),
 }
 
 unsafe impl Send for InnerObjectEmitter {}
 
 impl InnerObjectEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> InnerObjectEmitter {
+        InnerObjectEmitter {
+            qobject: self.qobject.clone(),
+            description_changed: self.description_changed,
+        }
+    }
     fn clear(&self) {
         let n: *const InnerObjectQObject = null();
         self.qobject.store(n as *mut InnerObjectQObject, Ordering::SeqCst);
     }
-    pub fn description_changed(&self) {
+    pub fn description_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.description_changed)(ptr);
@@ -130,7 +151,7 @@ pub trait InnerObjectTrait {
 #[no_mangle]
 pub extern "C" fn inner_object_new(
     inner_object: *mut InnerObjectQObject,
-    inner_object_description_changed: fn(*const InnerObjectQObject),
+    inner_object_description_changed: fn(*mut InnerObjectQObject),
 ) -> *mut InnerObject {
     let inner_object_emit = InnerObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(inner_object)),
@@ -167,7 +188,6 @@ pub unsafe extern "C" fn inner_object_description_set(ptr: *mut InnerObject, v: 
 
 pub struct PersonQObject {}
 
-#[derive(Clone)]
 pub struct PersonEmitter {
     qobject: Arc<AtomicPtr<PersonQObject>>,
 }
@@ -175,6 +195,17 @@ pub struct PersonEmitter {
 unsafe impl Send for PersonEmitter {}
 
 impl PersonEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> PersonEmitter {
+        PersonEmitter {
+            qobject: self.qobject.clone(),
+        }
+    }
     fn clear(&self) {
         let n: *const PersonQObject = null();
         self.qobject.store(n as *mut PersonQObject, Ordering::SeqCst);
@@ -193,7 +224,7 @@ pub trait PersonTrait {
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
     object: *mut InnerObjectQObject,
-    object_description_changed: fn(*const InnerObjectQObject),
+    object_description_changed: fn(*mut InnerObjectQObject),
 ) -> *mut Person {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(object)),

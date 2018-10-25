@@ -91,20 +91,31 @@ fn to_c_int(n: usize) -> c_int {
 
 pub struct PersonsQObject {}
 
-#[derive(Clone)]
 pub struct PersonsEmitter {
     qobject: Arc<AtomicPtr<PersonsQObject>>,
-    new_data_ready: fn(*const PersonsQObject, index: COption<usize>),
+    new_data_ready: fn(*mut PersonsQObject, index: COption<usize>),
 }
 
 unsafe impl Send for PersonsEmitter {}
 
 impl PersonsEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> PersonsEmitter {
+        PersonsEmitter {
+            qobject: self.qobject.clone(),
+            new_data_ready: self.new_data_ready,
+        }
+    }
     fn clear(&self) {
         let n: *const PersonsQObject = null();
         self.qobject.store(n as *mut PersonsQObject, Ordering::SeqCst);
     }
-    pub fn new_data_ready(&self, item: Option<usize>) {
+    pub fn new_data_ready(&mut self, item: Option<usize>) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.new_data_ready)(ptr, item.into());
@@ -114,52 +125,52 @@ impl PersonsEmitter {
 
 #[derive(Clone)]
 pub struct PersonsTree {
-    qobject: *const PersonsQObject,
-    layout_about_to_be_changed: fn(*const PersonsQObject),
-    layout_changed: fn(*const PersonsQObject),
-    data_changed: fn(*const PersonsQObject, usize, usize),
-    begin_reset_model: fn(*const PersonsQObject),
-    end_reset_model: fn(*const PersonsQObject),
-    begin_insert_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
-    end_insert_rows: fn(*const PersonsQObject),
-    begin_move_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
-    end_move_rows: fn(*const PersonsQObject),
-    begin_remove_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
-    end_remove_rows: fn(*const PersonsQObject),
+    qobject: *mut PersonsQObject,
+    layout_about_to_be_changed: fn(*mut PersonsQObject),
+    layout_changed: fn(*mut PersonsQObject),
+    data_changed: fn(*mut PersonsQObject, usize, usize),
+    begin_reset_model: fn(*mut PersonsQObject),
+    end_reset_model: fn(*mut PersonsQObject),
+    begin_insert_rows: fn(*mut PersonsQObject, index: COption<usize>, usize, usize),
+    end_insert_rows: fn(*mut PersonsQObject),
+    begin_move_rows: fn(*mut PersonsQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: fn(*mut PersonsQObject),
+    begin_remove_rows: fn(*mut PersonsQObject, index: COption<usize>, usize, usize),
+    end_remove_rows: fn(*mut PersonsQObject),
 }
 
 impl PersonsTree {
-    pub fn layout_about_to_be_changed(&self) {
+    pub fn layout_about_to_be_changed(&mut self) {
         (self.layout_about_to_be_changed)(self.qobject);
     }
-    pub fn layout_changed(&self) {
+    pub fn layout_changed(&mut self) {
         (self.layout_changed)(self.qobject);
     }
-    pub fn data_changed(&self, first: usize, last: usize) {
+    pub fn data_changed(&mut self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
-    pub fn begin_reset_model(&self) {
+    pub fn begin_reset_model(&mut self) {
         (self.begin_reset_model)(self.qobject);
     }
-    pub fn end_reset_model(&self) {
+    pub fn end_reset_model(&mut self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, index: Option<usize>, first: usize, last: usize) {
+    pub fn begin_insert_rows(&mut self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, index.into(), first, last);
     }
-    pub fn end_insert_rows(&self) {
+    pub fn end_insert_rows(&mut self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_move_rows(&self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
+    pub fn begin_move_rows(&mut self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
         (self.begin_move_rows)(self.qobject, index.into(), first, last, dest.into(), destination);
     }
-    pub fn end_move_rows(&self) {
+    pub fn end_move_rows(&mut self) {
         (self.end_move_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
+    pub fn begin_remove_rows(&mut self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, index.into(), first, last);
     }
-    pub fn end_remove_rows(&self) {
+    pub fn end_remove_rows(&mut self) {
         (self.end_remove_rows)(self.qobject);
     }
 }
@@ -184,18 +195,18 @@ pub trait PersonsTrait {
 #[no_mangle]
 pub extern "C" fn persons_new(
     persons: *mut PersonsQObject,
-    persons_new_data_ready: fn(*const PersonsQObject, index: COption<usize>),
-    persons_layout_about_to_be_changed: fn(*const PersonsQObject),
-    persons_layout_changed: fn(*const PersonsQObject),
-    persons_data_changed: fn(*const PersonsQObject, usize, usize),
-    persons_begin_reset_model: fn(*const PersonsQObject),
-    persons_end_reset_model: fn(*const PersonsQObject),
-    persons_begin_insert_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
-    persons_end_insert_rows: fn(*const PersonsQObject),
-    persons_begin_move_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    persons_end_move_rows: fn(*const PersonsQObject),
-    persons_begin_remove_rows: fn(*const PersonsQObject, index: COption<usize>, usize, usize),
-    persons_end_remove_rows: fn(*const PersonsQObject),
+    persons_new_data_ready: fn(*mut PersonsQObject, index: COption<usize>),
+    persons_layout_about_to_be_changed: fn(*mut PersonsQObject),
+    persons_layout_changed: fn(*mut PersonsQObject),
+    persons_data_changed: fn(*mut PersonsQObject, usize, usize),
+    persons_begin_reset_model: fn(*mut PersonsQObject),
+    persons_end_reset_model: fn(*mut PersonsQObject),
+    persons_begin_insert_rows: fn(*mut PersonsQObject, index: COption<usize>, usize, usize),
+    persons_end_insert_rows: fn(*mut PersonsQObject),
+    persons_begin_move_rows: fn(*mut PersonsQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    persons_end_move_rows: fn(*mut PersonsQObject),
+    persons_begin_remove_rows: fn(*mut PersonsQObject, index: COption<usize>, usize, usize),
+    persons_end_remove_rows: fn(*mut PersonsQObject),
 ) -> *mut Persons {
     let persons_emit = PersonsEmitter {
         qobject: Arc::new(AtomicPtr::new(persons)),

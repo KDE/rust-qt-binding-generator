@@ -94,7 +94,6 @@ fn to_c_int(n: usize) -> c_int {
 
 pub struct DemoQObject {}
 
-#[derive(Clone)]
 pub struct DemoEmitter {
     qobject: Arc<AtomicPtr<DemoQObject>>,
 }
@@ -102,6 +101,17 @@ pub struct DemoEmitter {
 unsafe impl Send for DemoEmitter {}
 
 impl DemoEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> DemoEmitter {
+        DemoEmitter {
+            qobject: self.qobject.clone(),
+        }
+    }
     fn clear(&self) {
         let n: *const DemoQObject = null();
         self.qobject.store(n as *mut DemoQObject, Ordering::SeqCst);
@@ -132,62 +142,62 @@ pub trait DemoTrait {
 pub extern "C" fn demo_new(
     demo: *mut DemoQObject,
     fibonacci: *mut FibonacciQObject,
-    fibonacci_input_changed: fn(*const FibonacciQObject),
-    fibonacci_result_changed: fn(*const FibonacciQObject),
+    fibonacci_input_changed: fn(*mut FibonacciQObject),
+    fibonacci_result_changed: fn(*mut FibonacciQObject),
     fibonacci_list: *mut FibonacciListQObject,
-    fibonacci_list_new_data_ready: fn(*const FibonacciListQObject),
-    fibonacci_list_layout_about_to_be_changed: fn(*const FibonacciListQObject),
-    fibonacci_list_layout_changed: fn(*const FibonacciListQObject),
-    fibonacci_list_data_changed: fn(*const FibonacciListQObject, usize, usize),
-    fibonacci_list_begin_reset_model: fn(*const FibonacciListQObject),
-    fibonacci_list_end_reset_model: fn(*const FibonacciListQObject),
-    fibonacci_list_begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
-    fibonacci_list_end_insert_rows: fn(*const FibonacciListQObject),
-    fibonacci_list_begin_move_rows: fn(*const FibonacciListQObject, usize, usize, usize),
-    fibonacci_list_end_move_rows: fn(*const FibonacciListQObject),
-    fibonacci_list_begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
-    fibonacci_list_end_remove_rows: fn(*const FibonacciListQObject),
+    fibonacci_list_new_data_ready: fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_about_to_be_changed: fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_changed: fn(*mut FibonacciListQObject),
+    fibonacci_list_data_changed: fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_begin_reset_model: fn(*mut FibonacciListQObject),
+    fibonacci_list_end_reset_model: fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_insert_rows: fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_insert_rows: fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_move_rows: fn(*mut FibonacciListQObject, usize, usize, usize),
+    fibonacci_list_end_move_rows: fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_remove_rows: fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_remove_rows: fn(*mut FibonacciListQObject),
     file_system_tree: *mut FileSystemTreeQObject,
-    file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
-    file_system_tree_layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_layout_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
-    file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
-    file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_insert_rows: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_move_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    file_system_tree_end_move_rows: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
+    file_system_tree_path_changed: fn(*mut FileSystemTreeQObject),
+    file_system_tree_new_data_ready: fn(*mut FileSystemTreeQObject, index: COption<usize>),
+    file_system_tree_layout_about_to_be_changed: fn(*mut FileSystemTreeQObject),
+    file_system_tree_layout_changed: fn(*mut FileSystemTreeQObject),
+    file_system_tree_data_changed: fn(*mut FileSystemTreeQObject, usize, usize),
+    file_system_tree_begin_reset_model: fn(*mut FileSystemTreeQObject),
+    file_system_tree_end_reset_model: fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_insert_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_insert_rows: fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_move_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    file_system_tree_end_move_rows: fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_remove_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_remove_rows: fn(*mut FileSystemTreeQObject),
     processes: *mut ProcessesQObject,
-    processes_active_changed: fn(*const ProcessesQObject),
-    processes_new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
-    processes_layout_about_to_be_changed: fn(*const ProcessesQObject),
-    processes_layout_changed: fn(*const ProcessesQObject),
-    processes_data_changed: fn(*const ProcessesQObject, usize, usize),
-    processes_begin_reset_model: fn(*const ProcessesQObject),
-    processes_end_reset_model: fn(*const ProcessesQObject),
-    processes_begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_insert_rows: fn(*const ProcessesQObject),
-    processes_begin_move_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    processes_end_move_rows: fn(*const ProcessesQObject),
-    processes_begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_remove_rows: fn(*const ProcessesQObject),
+    processes_active_changed: fn(*mut ProcessesQObject),
+    processes_new_data_ready: fn(*mut ProcessesQObject, index: COption<usize>),
+    processes_layout_about_to_be_changed: fn(*mut ProcessesQObject),
+    processes_layout_changed: fn(*mut ProcessesQObject),
+    processes_data_changed: fn(*mut ProcessesQObject, usize, usize),
+    processes_begin_reset_model: fn(*mut ProcessesQObject),
+    processes_end_reset_model: fn(*mut ProcessesQObject),
+    processes_begin_insert_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_insert_rows: fn(*mut ProcessesQObject),
+    processes_begin_move_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    processes_end_move_rows: fn(*mut ProcessesQObject),
+    processes_begin_remove_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_remove_rows: fn(*mut ProcessesQObject),
     time_series: *mut TimeSeriesQObject,
-    time_series_new_data_ready: fn(*const TimeSeriesQObject),
-    time_series_layout_about_to_be_changed: fn(*const TimeSeriesQObject),
-    time_series_layout_changed: fn(*const TimeSeriesQObject),
-    time_series_data_changed: fn(*const TimeSeriesQObject, usize, usize),
-    time_series_begin_reset_model: fn(*const TimeSeriesQObject),
-    time_series_end_reset_model: fn(*const TimeSeriesQObject),
-    time_series_begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
-    time_series_end_insert_rows: fn(*const TimeSeriesQObject),
-    time_series_begin_move_rows: fn(*const TimeSeriesQObject, usize, usize, usize),
-    time_series_end_move_rows: fn(*const TimeSeriesQObject),
-    time_series_begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
-    time_series_end_remove_rows: fn(*const TimeSeriesQObject),
+    time_series_new_data_ready: fn(*mut TimeSeriesQObject),
+    time_series_layout_about_to_be_changed: fn(*mut TimeSeriesQObject),
+    time_series_layout_changed: fn(*mut TimeSeriesQObject),
+    time_series_data_changed: fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_begin_reset_model: fn(*mut TimeSeriesQObject),
+    time_series_end_reset_model: fn(*mut TimeSeriesQObject),
+    time_series_begin_insert_rows: fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_insert_rows: fn(*mut TimeSeriesQObject),
+    time_series_begin_move_rows: fn(*mut TimeSeriesQObject, usize, usize, usize),
+    time_series_end_move_rows: fn(*mut TimeSeriesQObject),
+    time_series_begin_remove_rows: fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_remove_rows: fn(*mut TimeSeriesQObject),
 ) -> *mut Demo {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(AtomicPtr::new(fibonacci)),
@@ -317,27 +327,39 @@ pub unsafe extern "C" fn demo_time_series_get(ptr: *mut Demo) -> *mut TimeSeries
 
 pub struct FibonacciQObject {}
 
-#[derive(Clone)]
 pub struct FibonacciEmitter {
     qobject: Arc<AtomicPtr<FibonacciQObject>>,
-    input_changed: fn(*const FibonacciQObject),
-    result_changed: fn(*const FibonacciQObject),
+    input_changed: fn(*mut FibonacciQObject),
+    result_changed: fn(*mut FibonacciQObject),
 }
 
 unsafe impl Send for FibonacciEmitter {}
 
 impl FibonacciEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> FibonacciEmitter {
+        FibonacciEmitter {
+            qobject: self.qobject.clone(),
+            input_changed: self.input_changed,
+            result_changed: self.result_changed,
+        }
+    }
     fn clear(&self) {
         let n: *const FibonacciQObject = null();
         self.qobject.store(n as *mut FibonacciQObject, Ordering::SeqCst);
     }
-    pub fn input_changed(&self) {
+    pub fn input_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.input_changed)(ptr);
         }
     }
-    pub fn result_changed(&self) {
+    pub fn result_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.result_changed)(ptr);
@@ -356,8 +378,8 @@ pub trait FibonacciTrait {
 #[no_mangle]
 pub extern "C" fn fibonacci_new(
     fibonacci: *mut FibonacciQObject,
-    fibonacci_input_changed: fn(*const FibonacciQObject),
-    fibonacci_result_changed: fn(*const FibonacciQObject),
+    fibonacci_input_changed: fn(*mut FibonacciQObject),
+    fibonacci_result_changed: fn(*mut FibonacciQObject),
 ) -> *mut Fibonacci {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(AtomicPtr::new(fibonacci)),
@@ -390,20 +412,31 @@ pub unsafe extern "C" fn fibonacci_result_get(ptr: *const Fibonacci) -> u64 {
 
 pub struct FibonacciListQObject {}
 
-#[derive(Clone)]
 pub struct FibonacciListEmitter {
     qobject: Arc<AtomicPtr<FibonacciListQObject>>,
-    new_data_ready: fn(*const FibonacciListQObject),
+    new_data_ready: fn(*mut FibonacciListQObject),
 }
 
 unsafe impl Send for FibonacciListEmitter {}
 
 impl FibonacciListEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> FibonacciListEmitter {
+        FibonacciListEmitter {
+            qobject: self.qobject.clone(),
+            new_data_ready: self.new_data_ready,
+        }
+    }
     fn clear(&self) {
         let n: *const FibonacciListQObject = null();
         self.qobject.store(n as *mut FibonacciListQObject, Ordering::SeqCst);
     }
-    pub fn new_data_ready(&self) {
+    pub fn new_data_ready(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.new_data_ready)(ptr);
@@ -413,52 +446,52 @@ impl FibonacciListEmitter {
 
 #[derive(Clone)]
 pub struct FibonacciListList {
-    qobject: *const FibonacciListQObject,
-    layout_about_to_be_changed: fn(*const FibonacciListQObject),
-    layout_changed: fn(*const FibonacciListQObject),
-    data_changed: fn(*const FibonacciListQObject, usize, usize),
-    begin_reset_model: fn(*const FibonacciListQObject),
-    end_reset_model: fn(*const FibonacciListQObject),
-    begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
-    end_insert_rows: fn(*const FibonacciListQObject),
-    begin_move_rows: fn(*const FibonacciListQObject, usize, usize, usize),
-    end_move_rows: fn(*const FibonacciListQObject),
-    begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
-    end_remove_rows: fn(*const FibonacciListQObject),
+    qobject: *mut FibonacciListQObject,
+    layout_about_to_be_changed: fn(*mut FibonacciListQObject),
+    layout_changed: fn(*mut FibonacciListQObject),
+    data_changed: fn(*mut FibonacciListQObject, usize, usize),
+    begin_reset_model: fn(*mut FibonacciListQObject),
+    end_reset_model: fn(*mut FibonacciListQObject),
+    begin_insert_rows: fn(*mut FibonacciListQObject, usize, usize),
+    end_insert_rows: fn(*mut FibonacciListQObject),
+    begin_move_rows: fn(*mut FibonacciListQObject, usize, usize, usize),
+    end_move_rows: fn(*mut FibonacciListQObject),
+    begin_remove_rows: fn(*mut FibonacciListQObject, usize, usize),
+    end_remove_rows: fn(*mut FibonacciListQObject),
 }
 
 impl FibonacciListList {
-    pub fn layout_about_to_be_changed(&self) {
+    pub fn layout_about_to_be_changed(&mut self) {
         (self.layout_about_to_be_changed)(self.qobject);
     }
-    pub fn layout_changed(&self) {
+    pub fn layout_changed(&mut self) {
         (self.layout_changed)(self.qobject);
     }
-    pub fn data_changed(&self, first: usize, last: usize) {
+    pub fn data_changed(&mut self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
-    pub fn begin_reset_model(&self) {
+    pub fn begin_reset_model(&mut self) {
         (self.begin_reset_model)(self.qobject);
     }
-    pub fn end_reset_model(&self) {
+    pub fn end_reset_model(&mut self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, first: usize, last: usize) {
+    pub fn begin_insert_rows(&mut self, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
-    pub fn end_insert_rows(&self) {
+    pub fn end_insert_rows(&mut self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+    pub fn begin_move_rows(&mut self, first: usize, last: usize, destination: usize) {
         (self.begin_move_rows)(self.qobject, first, last, destination);
     }
-    pub fn end_move_rows(&self) {
+    pub fn end_move_rows(&mut self) {
         (self.end_move_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, first: usize, last: usize) {
+    pub fn begin_remove_rows(&mut self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
     }
-    pub fn end_remove_rows(&self) {
+    pub fn end_remove_rows(&mut self) {
         (self.end_remove_rows)(self.qobject);
     }
 }
@@ -481,18 +514,18 @@ pub trait FibonacciListTrait {
 #[no_mangle]
 pub extern "C" fn fibonacci_list_new(
     fibonacci_list: *mut FibonacciListQObject,
-    fibonacci_list_new_data_ready: fn(*const FibonacciListQObject),
-    fibonacci_list_layout_about_to_be_changed: fn(*const FibonacciListQObject),
-    fibonacci_list_layout_changed: fn(*const FibonacciListQObject),
-    fibonacci_list_data_changed: fn(*const FibonacciListQObject, usize, usize),
-    fibonacci_list_begin_reset_model: fn(*const FibonacciListQObject),
-    fibonacci_list_end_reset_model: fn(*const FibonacciListQObject),
-    fibonacci_list_begin_insert_rows: fn(*const FibonacciListQObject, usize, usize),
-    fibonacci_list_end_insert_rows: fn(*const FibonacciListQObject),
-    fibonacci_list_begin_move_rows: fn(*const FibonacciListQObject, usize, usize, usize),
-    fibonacci_list_end_move_rows: fn(*const FibonacciListQObject),
-    fibonacci_list_begin_remove_rows: fn(*const FibonacciListQObject, usize, usize),
-    fibonacci_list_end_remove_rows: fn(*const FibonacciListQObject),
+    fibonacci_list_new_data_ready: fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_about_to_be_changed: fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_changed: fn(*mut FibonacciListQObject),
+    fibonacci_list_data_changed: fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_begin_reset_model: fn(*mut FibonacciListQObject),
+    fibonacci_list_end_reset_model: fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_insert_rows: fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_insert_rows: fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_move_rows: fn(*mut FibonacciListQObject, usize, usize, usize),
+    fibonacci_list_end_move_rows: fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_remove_rows: fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_remove_rows: fn(*mut FibonacciListQObject),
 ) -> *mut FibonacciList {
     let fibonacci_list_emit = FibonacciListEmitter {
         qobject: Arc::new(AtomicPtr::new(fibonacci_list)),
@@ -564,27 +597,39 @@ pub unsafe extern "C" fn fibonacci_list_data_row(ptr: *const FibonacciList, row:
 
 pub struct FileSystemTreeQObject {}
 
-#[derive(Clone)]
 pub struct FileSystemTreeEmitter {
     qobject: Arc<AtomicPtr<FileSystemTreeQObject>>,
-    path_changed: fn(*const FileSystemTreeQObject),
-    new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
+    path_changed: fn(*mut FileSystemTreeQObject),
+    new_data_ready: fn(*mut FileSystemTreeQObject, index: COption<usize>),
 }
 
 unsafe impl Send for FileSystemTreeEmitter {}
 
 impl FileSystemTreeEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> FileSystemTreeEmitter {
+        FileSystemTreeEmitter {
+            qobject: self.qobject.clone(),
+            path_changed: self.path_changed,
+            new_data_ready: self.new_data_ready,
+        }
+    }
     fn clear(&self) {
         let n: *const FileSystemTreeQObject = null();
         self.qobject.store(n as *mut FileSystemTreeQObject, Ordering::SeqCst);
     }
-    pub fn path_changed(&self) {
+    pub fn path_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.path_changed)(ptr);
         }
     }
-    pub fn new_data_ready(&self, item: Option<usize>) {
+    pub fn new_data_ready(&mut self, item: Option<usize>) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.new_data_ready)(ptr, item.into());
@@ -594,52 +639,52 @@ impl FileSystemTreeEmitter {
 
 #[derive(Clone)]
 pub struct FileSystemTreeTree {
-    qobject: *const FileSystemTreeQObject,
-    layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
-    layout_changed: fn(*const FileSystemTreeQObject),
-    data_changed: fn(*const FileSystemTreeQObject, usize, usize),
-    begin_reset_model: fn(*const FileSystemTreeQObject),
-    end_reset_model: fn(*const FileSystemTreeQObject),
-    begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    end_insert_rows: fn(*const FileSystemTreeQObject),
-    begin_move_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
-    end_move_rows: fn(*const FileSystemTreeQObject),
-    begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    end_remove_rows: fn(*const FileSystemTreeQObject),
+    qobject: *mut FileSystemTreeQObject,
+    layout_about_to_be_changed: fn(*mut FileSystemTreeQObject),
+    layout_changed: fn(*mut FileSystemTreeQObject),
+    data_changed: fn(*mut FileSystemTreeQObject, usize, usize),
+    begin_reset_model: fn(*mut FileSystemTreeQObject),
+    end_reset_model: fn(*mut FileSystemTreeQObject),
+    begin_insert_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    end_insert_rows: fn(*mut FileSystemTreeQObject),
+    begin_move_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: fn(*mut FileSystemTreeQObject),
+    begin_remove_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    end_remove_rows: fn(*mut FileSystemTreeQObject),
 }
 
 impl FileSystemTreeTree {
-    pub fn layout_about_to_be_changed(&self) {
+    pub fn layout_about_to_be_changed(&mut self) {
         (self.layout_about_to_be_changed)(self.qobject);
     }
-    pub fn layout_changed(&self) {
+    pub fn layout_changed(&mut self) {
         (self.layout_changed)(self.qobject);
     }
-    pub fn data_changed(&self, first: usize, last: usize) {
+    pub fn data_changed(&mut self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
-    pub fn begin_reset_model(&self) {
+    pub fn begin_reset_model(&mut self) {
         (self.begin_reset_model)(self.qobject);
     }
-    pub fn end_reset_model(&self) {
+    pub fn end_reset_model(&mut self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, index: Option<usize>, first: usize, last: usize) {
+    pub fn begin_insert_rows(&mut self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, index.into(), first, last);
     }
-    pub fn end_insert_rows(&self) {
+    pub fn end_insert_rows(&mut self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_move_rows(&self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
+    pub fn begin_move_rows(&mut self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
         (self.begin_move_rows)(self.qobject, index.into(), first, last, dest.into(), destination);
     }
-    pub fn end_move_rows(&self) {
+    pub fn end_move_rows(&mut self) {
         (self.end_move_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
+    pub fn begin_remove_rows(&mut self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, index.into(), first, last);
     }
-    pub fn end_remove_rows(&self) {
+    pub fn end_remove_rows(&mut self) {
         (self.end_remove_rows)(self.qobject);
     }
 }
@@ -670,19 +715,19 @@ pub trait FileSystemTreeTrait {
 #[no_mangle]
 pub extern "C" fn file_system_tree_new(
     file_system_tree: *mut FileSystemTreeQObject,
-    file_system_tree_path_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_new_data_ready: fn(*const FileSystemTreeQObject, index: COption<usize>),
-    file_system_tree_layout_about_to_be_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_layout_changed: fn(*const FileSystemTreeQObject),
-    file_system_tree_data_changed: fn(*const FileSystemTreeQObject, usize, usize),
-    file_system_tree_begin_reset_model: fn(*const FileSystemTreeQObject),
-    file_system_tree_end_reset_model: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_insert_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_insert_rows: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_move_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    file_system_tree_end_move_rows: fn(*const FileSystemTreeQObject),
-    file_system_tree_begin_remove_rows: fn(*const FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_remove_rows: fn(*const FileSystemTreeQObject),
+    file_system_tree_path_changed: fn(*mut FileSystemTreeQObject),
+    file_system_tree_new_data_ready: fn(*mut FileSystemTreeQObject, index: COption<usize>),
+    file_system_tree_layout_about_to_be_changed: fn(*mut FileSystemTreeQObject),
+    file_system_tree_layout_changed: fn(*mut FileSystemTreeQObject),
+    file_system_tree_data_changed: fn(*mut FileSystemTreeQObject, usize, usize),
+    file_system_tree_begin_reset_model: fn(*mut FileSystemTreeQObject),
+    file_system_tree_end_reset_model: fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_insert_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_insert_rows: fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_move_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    file_system_tree_end_move_rows: fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_remove_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_remove_rows: fn(*mut FileSystemTreeQObject),
 ) -> *mut FileSystemTree {
     let file_system_tree_emit = FileSystemTreeEmitter {
         qobject: Arc::new(AtomicPtr::new(file_system_tree)),
@@ -859,27 +904,39 @@ pub unsafe extern "C" fn file_system_tree_data_file_type(ptr: *const FileSystemT
 
 pub struct ProcessesQObject {}
 
-#[derive(Clone)]
 pub struct ProcessesEmitter {
     qobject: Arc<AtomicPtr<ProcessesQObject>>,
-    active_changed: fn(*const ProcessesQObject),
-    new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
+    active_changed: fn(*mut ProcessesQObject),
+    new_data_ready: fn(*mut ProcessesQObject, index: COption<usize>),
 }
 
 unsafe impl Send for ProcessesEmitter {}
 
 impl ProcessesEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> ProcessesEmitter {
+        ProcessesEmitter {
+            qobject: self.qobject.clone(),
+            active_changed: self.active_changed,
+            new_data_ready: self.new_data_ready,
+        }
+    }
     fn clear(&self) {
         let n: *const ProcessesQObject = null();
         self.qobject.store(n as *mut ProcessesQObject, Ordering::SeqCst);
     }
-    pub fn active_changed(&self) {
+    pub fn active_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.active_changed)(ptr);
         }
     }
-    pub fn new_data_ready(&self, item: Option<usize>) {
+    pub fn new_data_ready(&mut self, item: Option<usize>) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.new_data_ready)(ptr, item.into());
@@ -889,52 +946,52 @@ impl ProcessesEmitter {
 
 #[derive(Clone)]
 pub struct ProcessesTree {
-    qobject: *const ProcessesQObject,
-    layout_about_to_be_changed: fn(*const ProcessesQObject),
-    layout_changed: fn(*const ProcessesQObject),
-    data_changed: fn(*const ProcessesQObject, usize, usize),
-    begin_reset_model: fn(*const ProcessesQObject),
-    end_reset_model: fn(*const ProcessesQObject),
-    begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
-    end_insert_rows: fn(*const ProcessesQObject),
-    begin_move_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
-    end_move_rows: fn(*const ProcessesQObject),
-    begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
-    end_remove_rows: fn(*const ProcessesQObject),
+    qobject: *mut ProcessesQObject,
+    layout_about_to_be_changed: fn(*mut ProcessesQObject),
+    layout_changed: fn(*mut ProcessesQObject),
+    data_changed: fn(*mut ProcessesQObject, usize, usize),
+    begin_reset_model: fn(*mut ProcessesQObject),
+    end_reset_model: fn(*mut ProcessesQObject),
+    begin_insert_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    end_insert_rows: fn(*mut ProcessesQObject),
+    begin_move_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: fn(*mut ProcessesQObject),
+    begin_remove_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    end_remove_rows: fn(*mut ProcessesQObject),
 }
 
 impl ProcessesTree {
-    pub fn layout_about_to_be_changed(&self) {
+    pub fn layout_about_to_be_changed(&mut self) {
         (self.layout_about_to_be_changed)(self.qobject);
     }
-    pub fn layout_changed(&self) {
+    pub fn layout_changed(&mut self) {
         (self.layout_changed)(self.qobject);
     }
-    pub fn data_changed(&self, first: usize, last: usize) {
+    pub fn data_changed(&mut self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
-    pub fn begin_reset_model(&self) {
+    pub fn begin_reset_model(&mut self) {
         (self.begin_reset_model)(self.qobject);
     }
-    pub fn end_reset_model(&self) {
+    pub fn end_reset_model(&mut self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, index: Option<usize>, first: usize, last: usize) {
+    pub fn begin_insert_rows(&mut self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, index.into(), first, last);
     }
-    pub fn end_insert_rows(&self) {
+    pub fn end_insert_rows(&mut self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_move_rows(&self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
+    pub fn begin_move_rows(&mut self, index: Option<usize>, first: usize, last: usize, dest: Option<usize>, destination: usize) {
         (self.begin_move_rows)(self.qobject, index.into(), first, last, dest.into(), destination);
     }
-    pub fn end_move_rows(&self) {
+    pub fn end_move_rows(&mut self) {
         (self.end_move_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, index: Option<usize>, first: usize, last: usize) {
+    pub fn begin_remove_rows(&mut self, index: Option<usize>, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, index.into(), first, last);
     }
-    pub fn end_remove_rows(&self) {
+    pub fn end_remove_rows(&mut self) {
         (self.end_remove_rows)(self.qobject);
     }
 }
@@ -966,19 +1023,19 @@ pub trait ProcessesTrait {
 #[no_mangle]
 pub extern "C" fn processes_new(
     processes: *mut ProcessesQObject,
-    processes_active_changed: fn(*const ProcessesQObject),
-    processes_new_data_ready: fn(*const ProcessesQObject, index: COption<usize>),
-    processes_layout_about_to_be_changed: fn(*const ProcessesQObject),
-    processes_layout_changed: fn(*const ProcessesQObject),
-    processes_data_changed: fn(*const ProcessesQObject, usize, usize),
-    processes_begin_reset_model: fn(*const ProcessesQObject),
-    processes_end_reset_model: fn(*const ProcessesQObject),
-    processes_begin_insert_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_insert_rows: fn(*const ProcessesQObject),
-    processes_begin_move_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    processes_end_move_rows: fn(*const ProcessesQObject),
-    processes_begin_remove_rows: fn(*const ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_remove_rows: fn(*const ProcessesQObject),
+    processes_active_changed: fn(*mut ProcessesQObject),
+    processes_new_data_ready: fn(*mut ProcessesQObject, index: COption<usize>),
+    processes_layout_about_to_be_changed: fn(*mut ProcessesQObject),
+    processes_layout_changed: fn(*mut ProcessesQObject),
+    processes_data_changed: fn(*mut ProcessesQObject, usize, usize),
+    processes_begin_reset_model: fn(*mut ProcessesQObject),
+    processes_end_reset_model: fn(*mut ProcessesQObject),
+    processes_begin_insert_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_insert_rows: fn(*mut ProcessesQObject),
+    processes_begin_move_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    processes_end_move_rows: fn(*mut ProcessesQObject),
+    processes_begin_remove_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_remove_rows: fn(*mut ProcessesQObject),
 ) -> *mut Processes {
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(AtomicPtr::new(processes)),
@@ -1135,20 +1192,31 @@ pub unsafe extern "C" fn processes_data_uid(ptr: *const Processes, index: usize)
 
 pub struct TimeSeriesQObject {}
 
-#[derive(Clone)]
 pub struct TimeSeriesEmitter {
     qobject: Arc<AtomicPtr<TimeSeriesQObject>>,
-    new_data_ready: fn(*const TimeSeriesQObject),
+    new_data_ready: fn(*mut TimeSeriesQObject),
 }
 
 unsafe impl Send for TimeSeriesEmitter {}
 
 impl TimeSeriesEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> TimeSeriesEmitter {
+        TimeSeriesEmitter {
+            qobject: self.qobject.clone(),
+            new_data_ready: self.new_data_ready,
+        }
+    }
     fn clear(&self) {
         let n: *const TimeSeriesQObject = null();
         self.qobject.store(n as *mut TimeSeriesQObject, Ordering::SeqCst);
     }
-    pub fn new_data_ready(&self) {
+    pub fn new_data_ready(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.new_data_ready)(ptr);
@@ -1158,52 +1226,52 @@ impl TimeSeriesEmitter {
 
 #[derive(Clone)]
 pub struct TimeSeriesList {
-    qobject: *const TimeSeriesQObject,
-    layout_about_to_be_changed: fn(*const TimeSeriesQObject),
-    layout_changed: fn(*const TimeSeriesQObject),
-    data_changed: fn(*const TimeSeriesQObject, usize, usize),
-    begin_reset_model: fn(*const TimeSeriesQObject),
-    end_reset_model: fn(*const TimeSeriesQObject),
-    begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
-    end_insert_rows: fn(*const TimeSeriesQObject),
-    begin_move_rows: fn(*const TimeSeriesQObject, usize, usize, usize),
-    end_move_rows: fn(*const TimeSeriesQObject),
-    begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
-    end_remove_rows: fn(*const TimeSeriesQObject),
+    qobject: *mut TimeSeriesQObject,
+    layout_about_to_be_changed: fn(*mut TimeSeriesQObject),
+    layout_changed: fn(*mut TimeSeriesQObject),
+    data_changed: fn(*mut TimeSeriesQObject, usize, usize),
+    begin_reset_model: fn(*mut TimeSeriesQObject),
+    end_reset_model: fn(*mut TimeSeriesQObject),
+    begin_insert_rows: fn(*mut TimeSeriesQObject, usize, usize),
+    end_insert_rows: fn(*mut TimeSeriesQObject),
+    begin_move_rows: fn(*mut TimeSeriesQObject, usize, usize, usize),
+    end_move_rows: fn(*mut TimeSeriesQObject),
+    begin_remove_rows: fn(*mut TimeSeriesQObject, usize, usize),
+    end_remove_rows: fn(*mut TimeSeriesQObject),
 }
 
 impl TimeSeriesList {
-    pub fn layout_about_to_be_changed(&self) {
+    pub fn layout_about_to_be_changed(&mut self) {
         (self.layout_about_to_be_changed)(self.qobject);
     }
-    pub fn layout_changed(&self) {
+    pub fn layout_changed(&mut self) {
         (self.layout_changed)(self.qobject);
     }
-    pub fn data_changed(&self, first: usize, last: usize) {
+    pub fn data_changed(&mut self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
-    pub fn begin_reset_model(&self) {
+    pub fn begin_reset_model(&mut self) {
         (self.begin_reset_model)(self.qobject);
     }
-    pub fn end_reset_model(&self) {
+    pub fn end_reset_model(&mut self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, first: usize, last: usize) {
+    pub fn begin_insert_rows(&mut self, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
-    pub fn end_insert_rows(&self) {
+    pub fn end_insert_rows(&mut self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+    pub fn begin_move_rows(&mut self, first: usize, last: usize, destination: usize) {
         (self.begin_move_rows)(self.qobject, first, last, destination);
     }
-    pub fn end_move_rows(&self) {
+    pub fn end_move_rows(&mut self) {
         (self.end_move_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, first: usize, last: usize) {
+    pub fn begin_remove_rows(&mut self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
     }
-    pub fn end_remove_rows(&self) {
+    pub fn end_remove_rows(&mut self) {
         (self.end_remove_rows)(self.qobject);
     }
 }
@@ -1230,18 +1298,18 @@ pub trait TimeSeriesTrait {
 #[no_mangle]
 pub extern "C" fn time_series_new(
     time_series: *mut TimeSeriesQObject,
-    time_series_new_data_ready: fn(*const TimeSeriesQObject),
-    time_series_layout_about_to_be_changed: fn(*const TimeSeriesQObject),
-    time_series_layout_changed: fn(*const TimeSeriesQObject),
-    time_series_data_changed: fn(*const TimeSeriesQObject, usize, usize),
-    time_series_begin_reset_model: fn(*const TimeSeriesQObject),
-    time_series_end_reset_model: fn(*const TimeSeriesQObject),
-    time_series_begin_insert_rows: fn(*const TimeSeriesQObject, usize, usize),
-    time_series_end_insert_rows: fn(*const TimeSeriesQObject),
-    time_series_begin_move_rows: fn(*const TimeSeriesQObject, usize, usize, usize),
-    time_series_end_move_rows: fn(*const TimeSeriesQObject),
-    time_series_begin_remove_rows: fn(*const TimeSeriesQObject, usize, usize),
-    time_series_end_remove_rows: fn(*const TimeSeriesQObject),
+    time_series_new_data_ready: fn(*mut TimeSeriesQObject),
+    time_series_layout_about_to_be_changed: fn(*mut TimeSeriesQObject),
+    time_series_layout_changed: fn(*mut TimeSeriesQObject),
+    time_series_data_changed: fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_begin_reset_model: fn(*mut TimeSeriesQObject),
+    time_series_end_reset_model: fn(*mut TimeSeriesQObject),
+    time_series_begin_insert_rows: fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_insert_rows: fn(*mut TimeSeriesQObject),
+    time_series_begin_move_rows: fn(*mut TimeSeriesQObject, usize, usize, usize),
+    time_series_end_move_rows: fn(*mut TimeSeriesQObject),
+    time_series_begin_remove_rows: fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_remove_rows: fn(*mut TimeSeriesQObject),
 ) -> *mut TimeSeries {
     let time_series_emit = TimeSeriesEmitter {
         qobject: Arc::new(AtomicPtr::new(time_series)),

@@ -23,9 +23,8 @@ use std::path::PathBuf;
 use std::ffi::OsString;
 use std::default::Default;
 use std::thread;
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::marker::Sync;
-use std::collections::HashMap;
 
 pub struct DirEntry {
     name: OsString,
@@ -34,15 +33,13 @@ pub struct DirEntry {
     icon: Vec<u8>,
 }
 
-type Incoming<T> = Arc<Mutex<HashMap<usize, Vec<T>>>>;
-
 impl Item for DirEntry {
     fn new(name: &str) -> DirEntry {
         DirEntry {
             name: OsString::from(name),
             metadata: metadata(name).ok(),
             path: None,
-            icon: Vec::new()
+            icon: Vec::new(),
         }
     }
     fn can_fetch_more(&self) -> bool {
@@ -66,10 +63,19 @@ impl Item for DirEntry {
     fn icon(&self) -> &[u8] {
         &self.icon
     }
-    fn retrieve(id: usize, parents: Vec<&DirEntry>, q: Incoming<Self>, emit: FileSystemTreeEmitter) {
-        let mut v = Vec::new();
+    fn retrieve(id: usize, parents: Vec<&Self>, outgoing: &Sender<(usize, PathBuf)>) {
         let path: PathBuf = parents.into_iter().map(|e| &e.name).collect();
-        thread::spawn(move || {
+        if let Err(e) = outgoing.send((id, path)) {
+            eprintln!("{}", e);
+        }
+    }
+    fn read_files(
+        incoming: Receiver<(usize, PathBuf)>,
+        outgoing: Sender<(usize, Vec<Self>)>,
+        mut emit: FileSystemTreeEmitter,
+    ) {
+        thread::spawn(move || while let Ok((id, path)) = incoming.recv() {
+            let mut v = Vec::new();
             if let Ok(it) = read_dir(&path) {
                 for i in it.filter_map(|v| v.ok()) {
                     let de = DirEntry {
@@ -82,11 +88,11 @@ impl Item for DirEntry {
                 }
             }
             v.sort_by(|a, b| a.name.cmp(&b.name));
-            let mut map = q.lock().unwrap();
-            if !map.contains_key(&id) {
-                map.insert(id, v);
-                emit.new_data_ready(Some(id));
-            }
+            if let Ok(()) = outgoing.send((id, v)) {
+                    emit.new_data_ready(Some(id));
+                } else {
+                    return;
+                }
         });
     }
 }
@@ -105,7 +111,12 @@ impl Default for DirEntry {
 pub trait Item: Default {
     fn new(name: &str) -> Self;
     fn can_fetch_more(&self) -> bool;
-    fn retrieve(id: usize, parents: Vec<&Self>, q: Incoming<Self>, emit: FileSystemTreeEmitter);
+    fn retrieve(id: usize, parents: Vec<&Self>, outgoing: &Sender<(usize, PathBuf)>);
+    fn read_files(
+        incoming: Receiver<(usize, PathBuf)>,
+        outgoing: Sender<(usize, Vec<Self>)>,
+        emit: FileSystemTreeEmitter,
+    );
     fn file_name(&self) -> String;
     fn file_path(&self) -> Option<String>;
     fn file_permissions(&self) -> i32;
@@ -128,7 +139,8 @@ pub struct RGeneralItemModel<T: Item> {
     model: FileSystemTreeTree,
     entries: Vec<Entry<T>>,
     path: Option<String>,
-    incoming: Incoming<T>,
+    outgoing: Sender<(usize, PathBuf)>,
+    incoming: Receiver<(usize, Vec<T>)>,
 }
 
 impl<T: Item> RGeneralItemModel<T>
@@ -152,43 +164,37 @@ where
     fn get(&self, index: usize) -> &Entry<T> {
         &self.entries[index]
     }
-    fn retrieve(&mut self, index: usize) {
+    fn retrieve(&self, index: usize) {
         let parents = self.get_parents(index);
-        let incoming = self.incoming.clone();
-        T::retrieve(index, parents, incoming, self.emit.clone());
+        T::retrieve(index, parents, &self.outgoing);
     }
     fn process_incoming(&mut self) {
-        if let Ok(ref mut incoming) = self.incoming.try_lock() {
-            for (id, entries) in incoming.drain() {
-                if self.entries[id].children.is_some() {
-                    continue;
-                }
-                let mut new_entries = Vec::new();
-                let mut children = Vec::new();
-                {
-                    for (r, d) in entries.into_iter().enumerate() {
-                        let e = Entry {
-                            parent: Some(id),
-                            row: r,
-                            children: None,
-                            data: d,
-                        };
-                        children.push(self.entries.len() + r);
-                        new_entries.push(e);
-                    }
-                    if !new_entries.is_empty() {
-                        self.model.begin_insert_rows(
-                            Some(id),
-                            0,
-                            new_entries.len() - 1,
-                        );
-                    }
-                }
+        while let Ok((id, entries)) = self.incoming.try_recv() {
+            if self.entries[id].children.is_some() {
+                continue;
+            }
+            let mut new_entries = Vec::new();
+            let mut children = Vec::new();
+            for (r, d) in entries.into_iter().enumerate() {
+                new_entries.push(Entry {
+                    parent: Some(id),
+                    row: r,
+                    children: None,
+                    data: d,
+                });
+                children.push(self.entries.len() + r);
+            }
+            if new_entries.is_empty() {
                 self.entries[id].children = Some(children);
-                if !new_entries.is_empty() {
-                    self.entries.append(&mut new_entries);
-                    self.model.end_insert_rows();
-                }
+            } else {
+                self.model.begin_insert_rows(
+                    Some(id),
+                    0,
+                    new_entries.len() - 1,
+                );
+                self.entries[id].children = Some(children);
+                self.entries.append(&mut new_entries);
+                self.model.end_insert_rows();
             }
         }
     }
@@ -207,13 +213,17 @@ impl<T: Item> FileSystemTreeTrait for RGeneralItemModel<T>
 where
     T: Sync + Send,
 {
-    fn new(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self {
-        let mut tree = RGeneralItemModel {
+    fn new(mut emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self {
+        let (outgoing, thread_incoming) = channel();
+        let (thread_outgoing, incoming) = channel::<(usize, Vec<T>)>();
+        T::read_files(thread_incoming, thread_outgoing, emit.clone());
+        let mut tree: RGeneralItemModel<T> = RGeneralItemModel {
             emit,
             model,
             entries: Vec::new(),
             path: None,
-            incoming: Arc::new(Mutex::new(HashMap::new())),
+            outgoing,
+            incoming,
         };
         tree.reset();
         tree
@@ -222,7 +232,7 @@ where
         &self.emit
     }
     fn path(&self) -> Option<&str> {
-        self.path.as_ref().map(|s|&s[..])
+        self.path.as_ref().map(|s| &s[..])
     }
     fn set_path(&mut self, value: Option<String>) {
         if self.path != value {
@@ -232,21 +242,15 @@ where
         }
     }
     fn can_fetch_more(&self, index: Option<usize>) -> bool {
-        if let Some(index) = index {
-            let entry = self.get(index);
-            entry.children.is_none() && entry.data.can_fetch_more()
-        } else {
-            false
-        }
+        let entry = self.get(index.unwrap_or(0));
+        entry.children.is_none() && entry.data.can_fetch_more()
     }
     fn fetch_more(&mut self, index: Option<usize>) {
         self.process_incoming();
         if !self.can_fetch_more(index) {
             return;
         }
-        if let Some(index) = index {
-            self.retrieve(index);
-        }
+        self.retrieve(index.unwrap_or(0));
     }
     fn row_count(&self, index: Option<usize>) -> usize {
         if self.entries.is_empty() {
@@ -257,10 +261,7 @@ where
             if let Some(ref children) = entry.children {
                 children.len()
             } else {
-                // model does lazy loading, signal that data may be available
-                if self.can_fetch_more(index) {
-                    self.emit.new_data_ready(index);
-                }
+                self.retrieve(i);
                 0
             }
         } else {

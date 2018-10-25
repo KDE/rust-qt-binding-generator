@@ -94,20 +94,31 @@ fn to_c_int(n: usize) -> c_int {
 
 pub struct ListQObject {}
 
-#[derive(Clone)]
 pub struct ListEmitter {
     qobject: Arc<AtomicPtr<ListQObject>>,
-    new_data_ready: fn(*const ListQObject),
+    new_data_ready: fn(*mut ListQObject),
 }
 
 unsafe impl Send for ListEmitter {}
 
 impl ListEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> ListEmitter {
+        ListEmitter {
+            qobject: self.qobject.clone(),
+            new_data_ready: self.new_data_ready,
+        }
+    }
     fn clear(&self) {
         let n: *const ListQObject = null();
         self.qobject.store(n as *mut ListQObject, Ordering::SeqCst);
     }
-    pub fn new_data_ready(&self) {
+    pub fn new_data_ready(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.new_data_ready)(ptr);
@@ -117,52 +128,52 @@ impl ListEmitter {
 
 #[derive(Clone)]
 pub struct ListList {
-    qobject: *const ListQObject,
-    layout_about_to_be_changed: fn(*const ListQObject),
-    layout_changed: fn(*const ListQObject),
-    data_changed: fn(*const ListQObject, usize, usize),
-    begin_reset_model: fn(*const ListQObject),
-    end_reset_model: fn(*const ListQObject),
-    begin_insert_rows: fn(*const ListQObject, usize, usize),
-    end_insert_rows: fn(*const ListQObject),
-    begin_move_rows: fn(*const ListQObject, usize, usize, usize),
-    end_move_rows: fn(*const ListQObject),
-    begin_remove_rows: fn(*const ListQObject, usize, usize),
-    end_remove_rows: fn(*const ListQObject),
+    qobject: *mut ListQObject,
+    layout_about_to_be_changed: fn(*mut ListQObject),
+    layout_changed: fn(*mut ListQObject),
+    data_changed: fn(*mut ListQObject, usize, usize),
+    begin_reset_model: fn(*mut ListQObject),
+    end_reset_model: fn(*mut ListQObject),
+    begin_insert_rows: fn(*mut ListQObject, usize, usize),
+    end_insert_rows: fn(*mut ListQObject),
+    begin_move_rows: fn(*mut ListQObject, usize, usize, usize),
+    end_move_rows: fn(*mut ListQObject),
+    begin_remove_rows: fn(*mut ListQObject, usize, usize),
+    end_remove_rows: fn(*mut ListQObject),
 }
 
 impl ListList {
-    pub fn layout_about_to_be_changed(&self) {
+    pub fn layout_about_to_be_changed(&mut self) {
         (self.layout_about_to_be_changed)(self.qobject);
     }
-    pub fn layout_changed(&self) {
+    pub fn layout_changed(&mut self) {
         (self.layout_changed)(self.qobject);
     }
-    pub fn data_changed(&self, first: usize, last: usize) {
+    pub fn data_changed(&mut self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
-    pub fn begin_reset_model(&self) {
+    pub fn begin_reset_model(&mut self) {
         (self.begin_reset_model)(self.qobject);
     }
-    pub fn end_reset_model(&self) {
+    pub fn end_reset_model(&mut self) {
         (self.end_reset_model)(self.qobject);
     }
-    pub fn begin_insert_rows(&self, first: usize, last: usize) {
+    pub fn begin_insert_rows(&mut self, first: usize, last: usize) {
         (self.begin_insert_rows)(self.qobject, first, last);
     }
-    pub fn end_insert_rows(&self) {
+    pub fn end_insert_rows(&mut self) {
         (self.end_insert_rows)(self.qobject);
     }
-    pub fn begin_move_rows(&self, first: usize, last: usize, destination: usize) {
+    pub fn begin_move_rows(&mut self, first: usize, last: usize, destination: usize) {
         (self.begin_move_rows)(self.qobject, first, last, destination);
     }
-    pub fn end_move_rows(&self) {
+    pub fn end_move_rows(&mut self) {
         (self.end_move_rows)(self.qobject);
     }
-    pub fn begin_remove_rows(&self, first: usize, last: usize) {
+    pub fn begin_remove_rows(&mut self, first: usize, last: usize) {
         (self.begin_remove_rows)(self.qobject, first, last);
     }
-    pub fn end_remove_rows(&self) {
+    pub fn end_remove_rows(&mut self) {
         (self.end_remove_rows)(self.qobject);
     }
 }
@@ -215,18 +226,18 @@ pub trait ListTrait {
 #[no_mangle]
 pub extern "C" fn list_new(
     list: *mut ListQObject,
-    list_new_data_ready: fn(*const ListQObject),
-    list_layout_about_to_be_changed: fn(*const ListQObject),
-    list_layout_changed: fn(*const ListQObject),
-    list_data_changed: fn(*const ListQObject, usize, usize),
-    list_begin_reset_model: fn(*const ListQObject),
-    list_end_reset_model: fn(*const ListQObject),
-    list_begin_insert_rows: fn(*const ListQObject, usize, usize),
-    list_end_insert_rows: fn(*const ListQObject),
-    list_begin_move_rows: fn(*const ListQObject, usize, usize, usize),
-    list_end_move_rows: fn(*const ListQObject),
-    list_begin_remove_rows: fn(*const ListQObject, usize, usize),
-    list_end_remove_rows: fn(*const ListQObject),
+    list_new_data_ready: fn(*mut ListQObject),
+    list_layout_about_to_be_changed: fn(*mut ListQObject),
+    list_layout_changed: fn(*mut ListQObject),
+    list_data_changed: fn(*mut ListQObject, usize, usize),
+    list_begin_reset_model: fn(*mut ListQObject),
+    list_end_reset_model: fn(*mut ListQObject),
+    list_begin_insert_rows: fn(*mut ListQObject, usize, usize),
+    list_end_insert_rows: fn(*mut ListQObject),
+    list_begin_move_rows: fn(*mut ListQObject, usize, usize, usize),
+    list_end_move_rows: fn(*mut ListQObject),
+    list_begin_remove_rows: fn(*mut ListQObject, usize, usize),
+    list_end_remove_rows: fn(*mut ListQObject),
 ) -> *mut List {
     let list_emit = ListEmitter {
         qobject: Arc::new(AtomicPtr::new(list)),

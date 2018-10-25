@@ -9,7 +9,7 @@ namespace {
     }
     inline void simpleMessageChanged(Simple* o)
     {
-        emit o->messageChanged();
+        Q_EMIT o->messageChanged();
     }
 }
 extern "C" {
@@ -21,7 +21,7 @@ extern "C" {
 
 Simple::Simple(bool /*owned*/, QObject *parent):
     QObject(parent),
-    m_d(0),
+    m_d(nullptr),
     m_ownsPrivate(false)
 {
 }

@@ -80,139 +80,167 @@ fn to_c_int(n: usize) -> c_int {
 
 pub struct ObjectQObject {}
 
-#[derive(Clone)]
 pub struct ObjectEmitter {
     qobject: Arc<AtomicPtr<ObjectQObject>>,
-    boolean_changed: fn(*const ObjectQObject),
-    bytearray_changed: fn(*const ObjectQObject),
-    f32_changed: fn(*const ObjectQObject),
-    f64_changed: fn(*const ObjectQObject),
-    i16_changed: fn(*const ObjectQObject),
-    i32_changed: fn(*const ObjectQObject),
-    i64_changed: fn(*const ObjectQObject),
-    i8_changed: fn(*const ObjectQObject),
-    optional_boolean_changed: fn(*const ObjectQObject),
-    optional_bytearray_changed: fn(*const ObjectQObject),
-    optional_string_changed: fn(*const ObjectQObject),
-    optional_u64_changed: fn(*const ObjectQObject),
-    string_changed: fn(*const ObjectQObject),
-    string_by_function_changed: fn(*const ObjectQObject),
-    u16_changed: fn(*const ObjectQObject),
-    u32_changed: fn(*const ObjectQObject),
-    u64_changed: fn(*const ObjectQObject),
-    u8_changed: fn(*const ObjectQObject),
+    boolean_changed: fn(*mut ObjectQObject),
+    bytearray_changed: fn(*mut ObjectQObject),
+    f32_changed: fn(*mut ObjectQObject),
+    f64_changed: fn(*mut ObjectQObject),
+    i16_changed: fn(*mut ObjectQObject),
+    i32_changed: fn(*mut ObjectQObject),
+    i64_changed: fn(*mut ObjectQObject),
+    i8_changed: fn(*mut ObjectQObject),
+    optional_boolean_changed: fn(*mut ObjectQObject),
+    optional_bytearray_changed: fn(*mut ObjectQObject),
+    optional_string_changed: fn(*mut ObjectQObject),
+    optional_u64_changed: fn(*mut ObjectQObject),
+    string_changed: fn(*mut ObjectQObject),
+    string_by_function_changed: fn(*mut ObjectQObject),
+    u16_changed: fn(*mut ObjectQObject),
+    u32_changed: fn(*mut ObjectQObject),
+    u64_changed: fn(*mut ObjectQObject),
+    u8_changed: fn(*mut ObjectQObject),
 }
 
 unsafe impl Send for ObjectEmitter {}
 
 impl ObjectEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> ObjectEmitter {
+        ObjectEmitter {
+            qobject: self.qobject.clone(),
+            boolean_changed: self.boolean_changed,
+            bytearray_changed: self.bytearray_changed,
+            f32_changed: self.f32_changed,
+            f64_changed: self.f64_changed,
+            i16_changed: self.i16_changed,
+            i32_changed: self.i32_changed,
+            i64_changed: self.i64_changed,
+            i8_changed: self.i8_changed,
+            optional_boolean_changed: self.optional_boolean_changed,
+            optional_bytearray_changed: self.optional_bytearray_changed,
+            optional_string_changed: self.optional_string_changed,
+            optional_u64_changed: self.optional_u64_changed,
+            string_changed: self.string_changed,
+            string_by_function_changed: self.string_by_function_changed,
+            u16_changed: self.u16_changed,
+            u32_changed: self.u32_changed,
+            u64_changed: self.u64_changed,
+            u8_changed: self.u8_changed,
+        }
+    }
     fn clear(&self) {
         let n: *const ObjectQObject = null();
         self.qobject.store(n as *mut ObjectQObject, Ordering::SeqCst);
     }
-    pub fn boolean_changed(&self) {
+    pub fn boolean_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.boolean_changed)(ptr);
         }
     }
-    pub fn bytearray_changed(&self) {
+    pub fn bytearray_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.bytearray_changed)(ptr);
         }
     }
-    pub fn f32_changed(&self) {
+    pub fn f32_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.f32_changed)(ptr);
         }
     }
-    pub fn f64_changed(&self) {
+    pub fn f64_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.f64_changed)(ptr);
         }
     }
-    pub fn i16_changed(&self) {
+    pub fn i16_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.i16_changed)(ptr);
         }
     }
-    pub fn i32_changed(&self) {
+    pub fn i32_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.i32_changed)(ptr);
         }
     }
-    pub fn i64_changed(&self) {
+    pub fn i64_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.i64_changed)(ptr);
         }
     }
-    pub fn i8_changed(&self) {
+    pub fn i8_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.i8_changed)(ptr);
         }
     }
-    pub fn optional_boolean_changed(&self) {
+    pub fn optional_boolean_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.optional_boolean_changed)(ptr);
         }
     }
-    pub fn optional_bytearray_changed(&self) {
+    pub fn optional_bytearray_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.optional_bytearray_changed)(ptr);
         }
     }
-    pub fn optional_string_changed(&self) {
+    pub fn optional_string_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.optional_string_changed)(ptr);
         }
     }
-    pub fn optional_u64_changed(&self) {
+    pub fn optional_u64_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.optional_u64_changed)(ptr);
         }
     }
-    pub fn string_changed(&self) {
+    pub fn string_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.string_changed)(ptr);
         }
     }
-    pub fn string_by_function_changed(&self) {
+    pub fn string_by_function_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.string_by_function_changed)(ptr);
         }
     }
-    pub fn u16_changed(&self) {
+    pub fn u16_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.u16_changed)(ptr);
         }
     }
-    pub fn u32_changed(&self) {
+    pub fn u32_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.u32_changed)(ptr);
         }
     }
-    pub fn u64_changed(&self) {
+    pub fn u64_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.u64_changed)(ptr);
         }
     }
-    pub fn u8_changed(&self) {
+    pub fn u8_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.u8_changed)(ptr);
@@ -263,24 +291,24 @@ pub trait ObjectTrait {
 #[no_mangle]
 pub extern "C" fn object_new(
     object: *mut ObjectQObject,
-    object_boolean_changed: fn(*const ObjectQObject),
-    object_bytearray_changed: fn(*const ObjectQObject),
-    object_f32_changed: fn(*const ObjectQObject),
-    object_f64_changed: fn(*const ObjectQObject),
-    object_i16_changed: fn(*const ObjectQObject),
-    object_i32_changed: fn(*const ObjectQObject),
-    object_i64_changed: fn(*const ObjectQObject),
-    object_i8_changed: fn(*const ObjectQObject),
-    object_optional_boolean_changed: fn(*const ObjectQObject),
-    object_optional_bytearray_changed: fn(*const ObjectQObject),
-    object_optional_string_changed: fn(*const ObjectQObject),
-    object_optional_u64_changed: fn(*const ObjectQObject),
-    object_string_changed: fn(*const ObjectQObject),
-    object_string_by_function_changed: fn(*const ObjectQObject),
-    object_u16_changed: fn(*const ObjectQObject),
-    object_u32_changed: fn(*const ObjectQObject),
-    object_u64_changed: fn(*const ObjectQObject),
-    object_u8_changed: fn(*const ObjectQObject),
+    object_boolean_changed: fn(*mut ObjectQObject),
+    object_bytearray_changed: fn(*mut ObjectQObject),
+    object_f32_changed: fn(*mut ObjectQObject),
+    object_f64_changed: fn(*mut ObjectQObject),
+    object_i16_changed: fn(*mut ObjectQObject),
+    object_i32_changed: fn(*mut ObjectQObject),
+    object_i64_changed: fn(*mut ObjectQObject),
+    object_i8_changed: fn(*mut ObjectQObject),
+    object_optional_boolean_changed: fn(*mut ObjectQObject),
+    object_optional_bytearray_changed: fn(*mut ObjectQObject),
+    object_optional_string_changed: fn(*mut ObjectQObject),
+    object_optional_u64_changed: fn(*mut ObjectQObject),
+    object_string_changed: fn(*mut ObjectQObject),
+    object_string_by_function_changed: fn(*mut ObjectQObject),
+    object_u16_changed: fn(*mut ObjectQObject),
+    object_u32_changed: fn(*mut ObjectQObject),
+    object_u64_changed: fn(*mut ObjectQObject),
+    object_u8_changed: fn(*mut ObjectQObject),
 ) -> *mut Object {
     let object_emit = ObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(object)),

@@ -40,20 +40,31 @@ fn to_c_int(n: usize) -> c_int {
 
 pub struct PersonQObject {}
 
-#[derive(Clone)]
 pub struct PersonEmitter {
     qobject: Arc<AtomicPtr<PersonQObject>>,
-    user_name_changed: fn(*const PersonQObject),
+    user_name_changed: fn(*mut PersonQObject),
 }
 
 unsafe impl Send for PersonEmitter {}
 
 impl PersonEmitter {
+    /// Clone the emitter
+    ///
+    /// The emitter can only be cloned when it is mutable. The emitter calls
+    /// into C++ code which may call into Rust again. If emmitting is possible
+    /// from immutable structures, that might lead to access to a mutable
+    /// reference. That is undefined behaviour and forbidden.
+    pub fn clone(&mut self) -> PersonEmitter {
+        PersonEmitter {
+            qobject: self.qobject.clone(),
+            user_name_changed: self.user_name_changed,
+        }
+    }
     fn clear(&self) {
         let n: *const PersonQObject = null();
         self.qobject.store(n as *mut PersonQObject, Ordering::SeqCst);
     }
-    pub fn user_name_changed(&self) {
+    pub fn user_name_changed(&mut self) {
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {
             (self.user_name_changed)(ptr);
@@ -71,7 +82,7 @@ pub trait PersonTrait {
 #[no_mangle]
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
-    person_user_name_changed: fn(*const PersonQObject),
+    person_user_name_changed: fn(*mut PersonQObject),
 ) -> *mut Person {
     let person_emit = PersonEmitter {
         qobject: Arc::new(AtomicPtr::new(person)),

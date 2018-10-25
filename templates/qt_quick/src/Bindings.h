@@ -2,8 +2,8 @@
 #ifndef BINDINGS_H
 #define BINDINGS_H
 
-#include <QObject>
-#include <QAbstractItemModel>
+#include <QtCore/QObject>
+#include <QtCore/QAbstractItemModel>
 
 class Simple;
 
@@ -22,7 +22,7 @@ public:
     ~Simple();
     QString message() const;
     void setMessage(const QString& v);
-signals:
+Q_SIGNALS:
     void messageChanged();
 };
 #endif // BINDINGS_H

@@ -62,7 +62,7 @@ impl FibonacciTrait for Fibonacci {
     fn set_input(&mut self, value: u32) {
         self.input = value;
         self.emit.input_changed();
-        let emit = self.emit.clone();
+        let mut emit = self.emit.clone();
         let result = self.result.clone();
         result.swap(0, Ordering::SeqCst);
         emit.result_changed();

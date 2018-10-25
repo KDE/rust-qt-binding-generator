@@ -2,8 +2,8 @@
 #ifndef BINDINGS_H
 #define BINDINGS_H
 
-#include <QObject>
-#include <QAbstractItemModel>
+#include <QtCore/QObject>
+#include <QtCore/QAbstractItemModel>
 
 class Todos;
 
@@ -50,13 +50,14 @@ public:
     Q_INVOKABLE QString description(int row) const;
     Q_INVOKABLE bool setDescription(int row, const QString& value);
 
-signals:
+Q_SIGNALS:
     // new data is ready to be made available to the model with fetchMore()
     void newDataReady(const QModelIndex &parent) const;
 private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
-signals:
+    void updatePersistentIndexes();
+Q_SIGNALS:
     void activeCountChanged();
     void countChanged();
 };
