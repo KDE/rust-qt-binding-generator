@@ -89,8 +89,12 @@ fn handle_tasks(processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
     let pids: Vec<pid_t> = processes.keys().cloned().collect();
     for pid in pids {
         if let Some(parent) = processes[&pid].process.parent {
-            let p = processes.get_mut(&parent).unwrap();
-            p.tasks.push(pid);
+            if let Some(p) = processes.get_mut(&parent) {
+                p.tasks.push(pid);
+            } else {
+                println!("no parent for {}", pid);
+                top.push(pid);
+            }
         } else {
             top.push(pid);
         }
@@ -334,8 +338,8 @@ impl ProcessesTrait for Processes {
         update_thread(emit, p.incoming.clone(), p.active, rx);
         p
     }
-    fn emit(&self) -> &ProcessesEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut ProcessesEmitter {
+        &mut self.emit
     }
     fn row_count(&self, index: Option<usize>) -> usize {
         if let Some(index) = index {

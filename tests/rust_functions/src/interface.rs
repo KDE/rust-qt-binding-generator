@@ -77,7 +77,7 @@ impl PersonEmitter {
 
 pub trait PersonTrait {
     fn new(emit: PersonEmitter) -> Self;
-    fn emit(&self) -> &PersonEmitter;
+    fn emit(&mut self) -> &mut PersonEmitter;
     fn user_name(&self) -> &str;
     fn set_user_name(&mut self, value: String);
     fn append(&mut self, suffix: String, amount: u32) -> ();

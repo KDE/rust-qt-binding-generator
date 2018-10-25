@@ -125,7 +125,7 @@ pub trait DemoTrait {
         file_system_tree: FileSystemTree,
         processes: Processes,
         time_series: TimeSeries) -> Self;
-    fn emit(&self) -> &DemoEmitter;
+    fn emit(&mut self) -> &mut DemoEmitter;
     fn fibonacci(&self) -> &Fibonacci;
     fn fibonacci_mut(&mut self) -> &mut Fibonacci;
     fn fibonacci_list(&self) -> &FibonacciList;
@@ -369,7 +369,7 @@ impl FibonacciEmitter {
 
 pub trait FibonacciTrait {
     fn new(emit: FibonacciEmitter) -> Self;
-    fn emit(&self) -> &FibonacciEmitter;
+    fn emit(&mut self) -> &mut FibonacciEmitter;
     fn input(&self) -> u32;
     fn set_input(&mut self, value: u32);
     fn result(&self) -> u64;
@@ -498,7 +498,7 @@ impl FibonacciListList {
 
 pub trait FibonacciListTrait {
     fn new(emit: FibonacciListEmitter, model: FibonacciListList) -> Self;
-    fn emit(&self) -> &FibonacciListEmitter;
+    fn emit(&mut self) -> &mut FibonacciListEmitter;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, _row: usize, _count: usize) -> bool { false }
     fn remove_rows(&mut self, _row: usize, _count: usize) -> bool { false }
@@ -691,7 +691,7 @@ impl FileSystemTreeTree {
 
 pub trait FileSystemTreeTrait {
     fn new(emit: FileSystemTreeEmitter, model: FileSystemTreeTree) -> Self;
-    fn emit(&self) -> &FileSystemTreeEmitter;
+    fn emit(&mut self) -> &mut FileSystemTreeEmitter;
     fn path(&self) -> Option<&str>;
     fn set_path(&mut self, value: Option<String>);
     fn row_count(&self, Option<usize>) -> usize;
@@ -998,7 +998,7 @@ impl ProcessesTree {
 
 pub trait ProcessesTrait {
     fn new(emit: ProcessesEmitter, model: ProcessesTree) -> Self;
-    fn emit(&self) -> &ProcessesEmitter;
+    fn emit(&mut self) -> &mut ProcessesEmitter;
     fn active(&self) -> bool;
     fn set_active(&mut self, value: bool);
     fn row_count(&self, Option<usize>) -> usize;
@@ -1278,7 +1278,7 @@ impl TimeSeriesList {
 
 pub trait TimeSeriesTrait {
     fn new(emit: TimeSeriesEmitter, model: TimeSeriesList) -> Self;
-    fn emit(&self) -> &TimeSeriesEmitter;
+    fn emit(&mut self) -> &mut TimeSeriesEmitter;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, _row: usize, _count: usize) -> bool { false }
     fn remove_rows(&mut self, _row: usize, _count: usize) -> bool { false }

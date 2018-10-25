@@ -15,8 +15,8 @@ impl GroupTrait for Group {
             person: person,
         }
     }
-    fn emit(&self) -> &GroupEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut GroupEmitter {
+        &mut self.emit
     }
     fn person(&self) -> &Person {
         &self.person
@@ -38,8 +38,8 @@ impl InnerObjectTrait for InnerObject {
             description: String::new(),
         }
     }
-    fn emit(&self) -> &InnerObjectEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut InnerObjectEmitter {
+        &mut self.emit
     }
     fn description(&self) -> &str {
         &self.description
@@ -62,8 +62,8 @@ impl PersonTrait for Person {
             object: object,
         }
     }
-    fn emit(&self) -> &PersonEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut PersonEmitter {
+        &mut self.emit
     }
     fn object(&self) -> &InnerObject {
         &self.object

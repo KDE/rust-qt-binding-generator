@@ -32,8 +32,8 @@ impl TodosTrait for Todos {
             active_count: 0,
         }
     }
-    fn emit(&self) -> &TodosEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut TodosEmitter {
+        &mut self.emit
     }
     fn active_count(&self) -> u64 {
         self.active_count as u64

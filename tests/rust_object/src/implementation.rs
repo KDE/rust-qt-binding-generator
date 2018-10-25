@@ -15,8 +15,8 @@ impl PersonTrait for Person {
             user_name: String::new(),
         }
     }
-    fn emit(&self) -> &PersonEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut PersonEmitter {
+        &mut self.emit
     }
     fn user_name(&self) -> &str {
         &self.user_name

@@ -250,7 +250,7 @@ impl ObjectEmitter {
 
 pub trait ObjectTrait {
     fn new(emit: ObjectEmitter) -> Self;
-    fn emit(&self) -> &ObjectEmitter;
+    fn emit(&mut self) -> &mut ObjectEmitter;
     fn boolean(&self) -> bool;
     fn set_boolean(&mut self, value: bool);
     fn bytearray(&self) -> &[u8];

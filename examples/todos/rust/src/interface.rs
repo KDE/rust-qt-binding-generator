@@ -193,7 +193,7 @@ impl TodosList {
 
 pub trait TodosTrait {
     fn new(emit: TodosEmitter, model: TodosList) -> Self;
-    fn emit(&self) -> &TodosEmitter;
+    fn emit(&mut self) -> &mut TodosEmitter;
     fn active_count(&self) -> u64;
     fn count(&self) -> u64;
     fn add(&mut self, description: String) -> ();

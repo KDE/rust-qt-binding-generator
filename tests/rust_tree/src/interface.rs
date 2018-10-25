@@ -177,7 +177,7 @@ impl PersonsTree {
 
 pub trait PersonsTrait {
     fn new(emit: PersonsEmitter, model: PersonsTree) -> Self;
-    fn emit(&self) -> &PersonsEmitter;
+    fn emit(&mut self) -> &mut PersonsEmitter;
     fn row_count(&self, Option<usize>) -> usize;
     fn can_fetch_more(&self, Option<usize>) -> bool {
         false

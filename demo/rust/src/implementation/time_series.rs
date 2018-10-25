@@ -46,8 +46,8 @@ impl TimeSeriesTrait for TimeSeries {
         }
         series
     }
-    fn emit(&self) -> &TimeSeriesEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut TimeSeriesEmitter {
+        &mut self.emit
     }
     fn row_count(&self) -> usize {
         self.list.len() as usize

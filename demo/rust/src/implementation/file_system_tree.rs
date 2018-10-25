@@ -228,8 +228,8 @@ where
         tree.reset();
         tree
     }
-    fn emit(&self) -> &FileSystemTreeEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut FileSystemTreeEmitter {
+        &mut self.emit
     }
     fn path(&self) -> Option<&str> {
         self.path.as_ref().map(|s| &s[..])

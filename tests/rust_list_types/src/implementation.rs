@@ -37,8 +37,8 @@ impl ListTrait for List {
             list: vec![ListItem::default(); 10],
         }
     }
-    fn emit(&self) -> &ListEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut ListEmitter {
+        &mut self.emit
     }
     fn row_count(&self) -> usize {
         self.list.len()

@@ -74,7 +74,7 @@ impl SimpleEmitter {
 
 pub trait SimpleTrait {
     fn new(emit: SimpleEmitter) -> Self;
-    fn emit(&self) -> &SimpleEmitter;
+    fn emit(&mut self) -> &mut SimpleEmitter;
     fn message(&self) -> &str;
     fn set_message(&mut self, value: String);
 }

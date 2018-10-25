@@ -177,7 +177,7 @@ impl NoRoleList {
 
 pub trait NoRoleTrait {
     fn new(emit: NoRoleEmitter, model: NoRoleList) -> Self;
-    fn emit(&self) -> &NoRoleEmitter;
+    fn emit(&mut self) -> &mut NoRoleEmitter;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, _row: usize, _count: usize) -> bool { false }
     fn remove_rows(&mut self, _row: usize, _count: usize) -> bool { false }
@@ -389,7 +389,7 @@ impl PersonsList {
 
 pub trait PersonsTrait {
     fn new(emit: PersonsEmitter, model: PersonsList) -> Self;
-    fn emit(&self) -> &PersonsEmitter;
+    fn emit(&mut self) -> &mut PersonsEmitter;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, _row: usize, _count: usize) -> bool { false }
     fn remove_rows(&mut self, _row: usize, _count: usize) -> bool { false }

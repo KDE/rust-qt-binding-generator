@@ -53,8 +53,8 @@ impl FibonacciTrait for Fibonacci {
             result: Arc::new(AtomicUsize::new(0)),
         }
     }
-    fn emit(&self) -> &FibonacciEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut FibonacciEmitter {
+        &mut self.emit
     }
     fn input(&self) -> u32 {
         self.input
@@ -87,8 +87,8 @@ impl FibonacciListTrait for FibonacciList {
             emit,
         }
     }
-    fn emit(&self) -> &FibonacciListEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut FibonacciListEmitter {
+        &mut self.emit
     }
     fn row_count(&self) -> usize {
         93

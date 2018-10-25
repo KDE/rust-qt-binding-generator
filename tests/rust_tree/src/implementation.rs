@@ -22,8 +22,8 @@ impl PersonsTrait for Persons {
             list: vec![PersonsItem::default(); 10],
         }
     }
-    fn emit(&self) -> &PersonsEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut PersonsEmitter {
+        &mut self.emit
     }
     fn row_count(&self, index: Option<usize>) -> usize {
         self.list.len()

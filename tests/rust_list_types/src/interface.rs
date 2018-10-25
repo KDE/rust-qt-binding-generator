@@ -180,7 +180,7 @@ impl ListList {
 
 pub trait ListTrait {
     fn new(emit: ListEmitter, model: ListList) -> Self;
-    fn emit(&self) -> &ListEmitter;
+    fn emit(&mut self) -> &mut ListEmitter;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, _row: usize, _count: usize) -> bool { false }
     fn remove_rows(&mut self, _row: usize, _count: usize) -> bool { false }

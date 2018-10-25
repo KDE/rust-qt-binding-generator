@@ -49,8 +49,8 @@ impl ObjectTrait for Object {
             string_by_function: String::new()
         }
     }
-    fn emit(&self) -> &ObjectEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut ObjectEmitter {
+        &mut self.emit
     }
     fn boolean(&self) -> bool {
         self.boolean

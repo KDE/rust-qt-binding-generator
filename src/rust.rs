@@ -492,7 +492,7 @@ pub trait {}Trait {{
     writeln!(
         r,
         ") -> Self;
-    fn emit(&self) -> &{}Emitter;",
+    fn emit(&mut self) -> &mut {}Emitter;",
         o.name
     )?;
     for (name, p) in &o.properties {
@@ -1347,7 +1347,7 @@ fn write_rust_implementation_object(r: &mut Vec<u8>, o: &Object) -> Result<()> {
         r,
         "        }}
     }}
-    fn emit(&self) -> &{}Emitter {{
+    fn emit(&mut self) -> &mut {}Emitter {{
         &self.emit
     }}",
         o.name

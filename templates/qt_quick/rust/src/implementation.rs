@@ -12,8 +12,8 @@ impl SimpleTrait for Simple {
             message: String::new(),
         }
     }
-    fn emit(&self) -> &SimpleEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut SimpleEmitter {
+        &mut self.emit
     }
     fn message(&self) -> &str {
         "Hello World!" 

@@ -67,7 +67,7 @@ impl GroupEmitter {
 pub trait GroupTrait {
     fn new(emit: GroupEmitter,
         person: Person) -> Self;
-    fn emit(&self) -> &GroupEmitter;
+    fn emit(&mut self) -> &mut GroupEmitter;
     fn person(&self) -> &Person;
     fn person_mut(&mut self) -> &mut Person;
 }
@@ -143,7 +143,7 @@ impl InnerObjectEmitter {
 
 pub trait InnerObjectTrait {
     fn new(emit: InnerObjectEmitter) -> Self;
-    fn emit(&self) -> &InnerObjectEmitter;
+    fn emit(&mut self) -> &mut InnerObjectEmitter;
     fn description(&self) -> &str;
     fn set_description(&mut self, value: String);
 }
@@ -215,7 +215,7 @@ impl PersonEmitter {
 pub trait PersonTrait {
     fn new(emit: PersonEmitter,
         object: InnerObject) -> Self;
-    fn emit(&self) -> &PersonEmitter;
+    fn emit(&mut self) -> &mut PersonEmitter;
     fn object(&self) -> &InnerObject;
     fn object_mut(&mut self) -> &mut InnerObject;
 }

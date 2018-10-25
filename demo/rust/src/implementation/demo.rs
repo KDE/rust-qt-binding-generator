@@ -44,8 +44,8 @@ impl DemoTrait for Demo {
             time_series
         }
     }
-    fn emit(&self) -> &DemoEmitter {
-        &self.emit
+    fn emit(&mut self) -> &mut DemoEmitter {
+        &mut self.emit
     }
     fn fibonacci(&self) -> &Fibonacci {
         &self.fibonacci
