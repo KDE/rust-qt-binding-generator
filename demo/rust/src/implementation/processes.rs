@@ -91,7 +91,6 @@ fn handle_tasks(processes: &mut HashMap<pid_t, ProcessItem>) -> Vec<pid_t> {
             if let Some(p) = processes.get_mut(&parent) {
                 p.tasks.push(pid);
             } else {
-                println!("no parent for {}", pid);
                 top.push(pid);
             }
         } else {
@@ -354,7 +353,12 @@ impl ProcessesTrait for Processes {
         }
     }
     fn parent(&self, index: usize) -> Option<usize> {
-        self.get(index).process.parent.map(|pid| pid as usize)
+        let pid = index as pid_t;
+        if self.p.top.contains(&pid) {
+            None
+        } else {
+            self.get(index).process.parent.map(|pid| pid as usize)
+        }
     }
     fn can_fetch_more(&self, index: Option<usize>) -> bool {
         if index.is_some() || !self.active {
