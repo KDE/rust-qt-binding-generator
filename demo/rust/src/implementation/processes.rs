@@ -41,7 +41,6 @@ struct ProcessTree {
 enum ChangeState {
     Active,
     Inactive,
-    Quit
 }
 
 pub struct Processes {
@@ -147,8 +146,7 @@ fn update_thread(
             };
             match status_channel.recv_timeout(timeout) {
                 Err(RecvTimeoutError::Timeout) => {},
-                Err(RecvTimeoutError::Disconnected)
-                | Ok(ChangeState::Quit) => { return; },
+                Err(RecvTimeoutError::Disconnected) => { return; },
                 Ok(ChangeState::Active) => { active = true; },
                 Ok(ChangeState::Inactive) => { active = false; },
             }
@@ -436,11 +434,5 @@ impl ProcessesTrait for Processes {
                 self.channel.send(ChangeState::Inactive)
             }.expect("Process thread died.");
         }
-    }
-}
-
-impl Drop for Processes {
-    fn drop(&mut self) {
-        self.channel.send(ChangeState::Quit).expect("Process thread died.");
     }
 }
