@@ -1,0 +1,19 @@
+{
+    "cppFile": "Bindings.cpp",
+    "rust": {
+        "dir": "",
+        "interfaceModule": "interface",
+        "implementationModule": "implementation"
+    },
+    "objects": {
+        "Simple": {
+            "type": "Object",
+            "properties": {
+                "message": {
+                    "type": "QString",
+                    "write": true
+                }
+            }
+        }
+    }
+}

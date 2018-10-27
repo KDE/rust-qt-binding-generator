@@ -1,0 +1,11 @@
+[package]
+name = "qt_quick_cargo"
+version = "0.1.0"
+build = "build.rs"
+links = "qt_quick_cargo"
+
+[dependencies]
+libc = "*"
+
+[build-dependencies]
+rust_qt_binding_generator = { path = "../.." }
