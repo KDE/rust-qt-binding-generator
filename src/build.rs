@@ -238,13 +238,31 @@ impl Build {
             // normally cc::Build outputs this information
             println!("cargo:rustc-link-lib=static={}", lib_name);
             println!("cargo:rustc-link-search=native={}", self.out_dir.display());
-            println!("cargo:rustc-link-lib=stdc++");
+            print_cpp_link_stdlib();
         }
         println!("cargo:rustc-link-search={}", self.qt_library_path.display());
         println!("cargo:rustc-link-lib=Qt5Core");
         println!("cargo:rustc-link-lib=Qt5Network");
         println!("cargo:rustc-link-lib=Qt5Gui");
         println!("cargo:rustc-link-lib=Qt5Qml");
+    }
+}
+
+// Print the c++ library that cargo should link against
+// This is used when calling 'cargo build' when no actual recompile is needed.
+fn print_cpp_link_stdlib() {
+    let target = ::std::env::var("TARGET").unwrap();
+    let stdlib = if target.contains("msvc") {
+        None
+    } else if target.contains("apple")
+        || target.contains("freebsd")
+        || target.contains("openbsd") {
+        Some("c++")
+    } else {
+        Some("stdc++")
+    };
+    if let Some(stdlib) = stdlib {
+        println!("cargo:rustc-link-lib={}", stdlib);
     }
 }
 
