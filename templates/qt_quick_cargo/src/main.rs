@@ -5,16 +5,15 @@ pub mod interface {
     include!(concat!(env!("OUT_DIR"), "/src/interface.rs"));
 }
 
-use std::os::raw::c_char;
 extern {
-    fn main_cpp(app: *const c_char);
+    fn main_cpp(app: *const ::std::os::raw::c_char);
 }
 
 fn main() {
     use std::ffi::CString;
-    let mut args = ::std::env::args();
-    let app = CString::new(args.next().unwrap()).unwrap();
+    let app_name = ::std::env::args().next().unwrap();
+    let app_name = CString::new(app_name).unwrap();
     unsafe {
-        main_cpp(app.as_ptr());
+        main_cpp(app_name.as_ptr());
     }
 }
