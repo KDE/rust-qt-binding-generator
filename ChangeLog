@@ -1,0 +1,8 @@
+0.2.0 (2018-10-29)
+ - Fix building with Cargo on Windows with MSVC (bug 400393)
+ - Change generated API to avoid concurrent mutable and immutable references
+ via callbacks into C++
+0.1.0 (2018-10-10)
+ - Port to Rust
+ - Publish as crate
+ - Add tools to build 
