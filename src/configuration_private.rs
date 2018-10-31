@@ -37,7 +37,7 @@ pub trait SimpleTypePrivate {
     fn c_set_type(&self) -> &str;
     fn rust_type(&self) -> &str;
     fn rust_type_init(&self) -> &str;
-    fn is_complex(self) -> bool;
+    fn is_complex(&self) -> bool;
 }
 
 pub trait ItemPropertyPrivate {

@@ -1,3 +1,5 @@
+//! `cpp` is the module that generates the cpp code for the bindings
+
 use configuration::*;
 use configuration_private::*;
 use std::io::{Result, Write};
@@ -5,10 +7,9 @@ use util::{snake_case, write_if_different};
 
 fn property_type(p: &ItemProperty) -> String {
     if p.optional && !p.item_property_type.is_complex() {
-        "QVariant".into()
-    } else {
-        p.type_name().to_string()
+        return "QVariant".into();
     }
+    p.type_name().to_string()
 }
 
 fn upper_initial(name: &str) -> String {
@@ -210,12 +211,9 @@ public:
 }
 
 fn is_column_write(o: &Object, col: usize) -> bool {
-    for ip in o.item_properties.values() {
-        if ip.write && (col == 0 || (ip.roles.len() > col && !ip.roles[col].is_empty())) {
-            return true;
-        }
-    }
-    false
+    o.item_properties
+        .values()
+        .any(|ip|ip.write && (col == 0 || (ip.roles.len() > col && !ip.roles[col].is_empty())))
 }
 
 fn write_function_c_decl(

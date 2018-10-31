@@ -229,36 +229,14 @@ impl SimpleTypePrivate for SimpleType {
         match self {
             SimpleType::QString => "const QString&",
             SimpleType::QByteArray => "const QByteArray&",
-            SimpleType::Bool => "bool",
-            SimpleType::Float => "float",
-            SimpleType::Double => "double",
-            SimpleType::Void => "void",
-            SimpleType::Qint8 => "qint8",
-            SimpleType::Qint16 => "qint16",
-            SimpleType::Qint32 => "qint32",
-            SimpleType::Qint64 => "qint64",
-            SimpleType::QUint8 => "quint8",
-            SimpleType::QUint16 => "quint16",
-            SimpleType::QUint32 => "quint32",
-            SimpleType::QUint64 => "quint64",
+            _ => self.name(),
         }
     }
     fn c_set_type(&self) -> &str {
         match self {
             SimpleType::QString => "qstring_t",
             SimpleType::QByteArray => "qbytearray_t",
-            SimpleType::Bool => "bool",
-            SimpleType::Float => "float",
-            SimpleType::Double => "double",
-            SimpleType::Void => "void",
-            SimpleType::Qint8 => "qint8",
-            SimpleType::Qint16 => "qint16",
-            SimpleType::Qint32 => "qint32",
-            SimpleType::Qint64 => "qint64",
-            SimpleType::QUint8 => "quint8",
-            SimpleType::QUint16 => "quint16",
-            SimpleType::QUint32 => "quint32",
-            SimpleType::QUint64 => "quint64",
+            _ => self.name(),
         }
     }
     fn rust_type(&self) -> &str {
@@ -284,21 +262,13 @@ impl SimpleTypePrivate for SimpleType {
             SimpleType::QString => "String::new()",
             SimpleType::QByteArray => "Vec::new()",
             SimpleType::Bool => "false",
-            SimpleType::Float => "0.0",
-            SimpleType::Double => "0.0",
+            SimpleType::Float | SimpleType::Double => "0.0",
             SimpleType::Void => "()",
-            SimpleType::Qint8 => "0",
-            SimpleType::Qint16 => "0",
-            SimpleType::Qint32 => "0",
-            SimpleType::Qint64 => "0",
-            SimpleType::QUint8 => "0",
-            SimpleType::QUint16 => "0",
-            SimpleType::QUint32 => "0",
-            SimpleType::QUint64 => "0",
+            _ => "0",
         }
     }
-    fn is_complex(self) -> bool {
-        self == SimpleType::QString || self == SimpleType::QByteArray
+    fn is_complex(&self) -> bool {
+        self == &SimpleType::QString || self == &SimpleType::QByteArray
     }
 }
 
@@ -310,17 +280,15 @@ pub enum Type {
 
 impl TypePrivate for Type {
     fn is_object(&self) -> bool {
-        if let Type::Object(_) = self {
-            true
-        } else {
-            false
+        match self {
+            Type::Object(_) => true,
+            _ => false,
         }
     }
     fn is_complex(&self) -> bool {
-        if let Type::Simple(simple) = self {
-            simple.is_complex()
-        } else {
-            false
+        match self {
+            Type::Simple(simple) => simple.is_complex(),
+            _ => false,
         }
     }
     fn name(&self) -> &str {
@@ -381,9 +349,9 @@ impl ItemPropertyPrivate for ItemProperty {
         self.item_property_type.is_complex()
     }
     fn cpp_set_type(&self) -> String {
-        let mut t = self.item_property_type.cpp_set_type().to_string();
+        let t = self.item_property_type.cpp_set_type().to_string();
         if self.optional {
-            t = "option_".to_string() + &t;
+            return "option_".to_string() + &t;
         }
         t
     }

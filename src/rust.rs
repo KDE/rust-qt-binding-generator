@@ -1,3 +1,5 @@
+//! `rust` is the module that generates the rust code for the binding
+
 use configuration::*;
 use configuration_private::*;
 use std::io::{Result, Write};
