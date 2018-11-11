@@ -38,7 +38,11 @@ feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAG
 ### build commands ###
 
 SET(RUST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rust")
-SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/librust.a")
+if (MSVC)
+  SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/rust.lib")
+else()
+  SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/librust.a")
+endif()
 
 # generate c++ and rust code from bindings.json
 add_custom_command(

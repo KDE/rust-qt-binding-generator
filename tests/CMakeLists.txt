@@ -7,6 +7,11 @@ add_custom_target("clean-rust")
 function(rust_test NAME DIRECTORY)
     set(SRC "${CMAKE_CURRENT_SOURCE_DIR}")
     set(DIR "${SRC}/${DIRECTORY}")
+    if (MSVC)
+      SET(RUST_LIB "${DIR}/${RUST_TARGET_DIR}/rust.lib")
+    else()
+      SET(RUST_LIB "${DIR}/${RUST_TARGET_DIR}/librust.a")
+    endif()
 
     set_property(SOURCE "${SRC}/${NAME}_rust.h" PROPERTY SKIP_AUTOGEN OFF)
     add_custom_command(
@@ -18,7 +23,7 @@ function(rust_test NAME DIRECTORY)
         DEPENDS rust_qt_binding_generator
     )
     add_custom_command(
-        OUTPUT "${DIR}/${RUST_TARGET_DIR}/librust.a"
+        OUTPUT "${RUST_LIB}"
         COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
         DEPENDS "${DIR}/src/lib.rs"
                 "${DIR}/src/implementation.rs"
@@ -26,7 +31,7 @@ function(rust_test NAME DIRECTORY)
         WORKING_DIRECTORY "${DIR}"
     )
     add_custom_target("test_${DIRECTORY}"
-        DEPENDS "${DIR}/${RUST_TARGET_DIR}/librust.a")
+        DEPENDS "${RUST_LIB}")
 
     add_executable("${NAME}" "${NAME}.cpp" "${NAME}_rust.cpp" "${NAME}_rust.h")
     set_target_properties("${NAME}" PROPERTIES
@@ -37,7 +42,7 @@ function(rust_test NAME DIRECTORY)
     target_link_libraries("${NAME}"
         Qt5::Core
         Qt5::Test
-        "${DIR}/${RUST_TARGET_DIR}/librust.a"
+        "${RUST_LIB}"
         Threads::Threads ${DL_LIBRARY}
     )
 

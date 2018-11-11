@@ -10,9 +10,16 @@ add_custom_command(
   DEPENDS rust_qt_binding_generator bindings.json
 )
 
+SET(RUST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rust")
+if (MSVC)
+  SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/rust.lib")
+else()
+  SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/librust.a")
+endif()
+
 # compile the rust code into a static library
 add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a"
+   OUTPUT "${RUST_LIB}"
   COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
   DEPENDS rust/src/lib.rs
           rust/src/implementation/mod.rs
@@ -22,9 +29,9 @@ add_custom_command(
           rust/src/interface.rs
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rust"
 )
-add_custom_target(rust_target DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
+add_custom_target(rust_target DEPENDS "${RUST_LIB}")
 
-list(APPEND DemoLibs "${CMAKE_CURRENT_SOURCE_DIR}/rust/${RUST_TARGET_DIR}/librust.a")
+list(APPEND DemoLibs "${RUST_LIB}")
 list(APPEND DemoLibs Qt5::Widgets Qt5::Svg Threads::Threads ${DL_LIBRARY})
 if (Qt5Quick_FOUND)
     list(APPEND DemoLibs Qt5::Quick)
