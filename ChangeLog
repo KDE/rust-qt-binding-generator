@@ -1,3 +1,5 @@
+0.2.2 (2018-12-10)
+ - Fix build with rust <= 1.30
 0.2.1 (2018-12-10)
  - Fix generated code for use with Rust edition 2018 (Owen Nelson, bug 401913)
  - Fix building with MSVC (bug 400716)
