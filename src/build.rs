@@ -153,6 +153,7 @@ pub struct Build {
     qrc: Vec<PathBuf>,
     h: Vec<PathBuf>,
     cpp: Vec<PathBuf>,
+    target: String,
 }
 
 impl Build {
@@ -175,12 +176,16 @@ impl Build {
     /// }
     /// ```
     pub fn new<P: AsRef<Path>>(out_dir: P) -> Build {
+        let target = ::std::env::var("TARGET").unwrap();
         let qt_include_path = qmake_query("QT_INSTALL_HEADERS");
         let mut build = cc::Build::new();
         build.cpp(true).include(out_dir.as_ref()).include(
             qt_include_path
                 .trim(),
         );
+        if target.contains("apple") {
+            build.flag("-std=c++11");
+        }
         Build {
             qt_library_path: qmake_query("QT_INSTALL_LIBS").trim().into(),
             out_dir: out_dir.as_ref().to_path_buf(),
@@ -189,6 +194,7 @@ impl Build {
             qrc: Vec::new(),
             h: Vec::new(),
             cpp: Vec::new(),
+            target,
         }
     }
     /// Add a bindings file to be processed.
@@ -246,20 +252,24 @@ impl Build {
             // normally cc::Build outputs this information
             println!("cargo:rustc-link-lib=static={}", lib_name);
             println!("cargo:rustc-link-search=native={}", self.out_dir.display());
-            print_cpp_link_stdlib();
+            print_cpp_link_stdlib(&self.target);
         }
-        println!("cargo:rustc-link-search={}", self.qt_library_path.display());
-        println!("cargo:rustc-link-lib=Qt5Core");
-        println!("cargo:rustc-link-lib=Qt5Network");
-        println!("cargo:rustc-link-lib=Qt5Gui");
-        println!("cargo:rustc-link-lib=Qt5Qml");
+        let (lib_type, prefix) = if self.target.contains("apple") {
+            ("framework=", "Qt")
+        } else {
+            ("", "Qt5")
+        };
+        println!("cargo:rustc-link-search={}{}", lib_type, self.qt_library_path.display());
+        println!("cargo:rustc-link-lib={}{}Core", lib_type, prefix);
+        println!("cargo:rustc-link-lib={}{}Network", lib_type, prefix);
+        println!("cargo:rustc-link-lib={}{}Gui", lib_type, prefix);
+        println!("cargo:rustc-link-lib={}{}Qml", lib_type, prefix);
     }
 }
 
 // Print the c++ library that cargo should link against
 // This is used when calling 'cargo build' when no actual recompile is needed.
-fn print_cpp_link_stdlib() {
-    let target = ::std::env::var("TARGET").unwrap();
+fn print_cpp_link_stdlib(target: &str) {
     let stdlib = if target.contains("msvc") {
         None
     } else if target.contains("apple")
