@@ -1,3 +1,6 @@
+0.2.1 (2018-12-10)
+ - Fix generated code for use with Rust edition 2018 (Owen Nelson, bug 401913)
+ - Fix building with MSVC (bug 400716)
 0.2.0 (2018-10-29)
  - Fix building with Cargo on Windows with MSVC (bug 400393)
  - Change generated API to avoid concurrent mutable and immutable references
