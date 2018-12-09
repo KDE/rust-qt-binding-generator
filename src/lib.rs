@@ -3,6 +3,7 @@ extern crate regex;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_xml_rs;
+extern crate toml;
 
 pub mod build;
 pub mod configuration;

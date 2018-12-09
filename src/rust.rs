@@ -1264,7 +1264,8 @@ use std::sync::Arc;
 use std::sync::atomic::{{AtomicPtr, Ordering}};
 use std::ptr::null;
 
-use {}::*;",
+use {}{}::*;",
+        get_module_prefix(conf),
         conf.rust.implementation_module
     )?;
 
@@ -1518,8 +1519,9 @@ pub fn write_implementation(conf: &Config) -> Result<()> {
         "#![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
-use {}::*;
+use {}{}::*;
 ",
+        get_module_prefix(conf),
         conf.rust.interface_module
     )?;
 
@@ -1527,4 +1529,17 @@ use {}::*;
         write_rust_implementation_object(&mut r, object)?;
     }
     write_if_different(file, &r)
+}
+
+/// Inspects the rust edition of the target crate to decide how the module
+/// imports should be written.
+///
+/// As of Rust 2018, modules inside the crate should be prefixed with `crate::`.
+/// Prior to the 2018 edition, crate-local modules could be imported without
+/// this prefix.
+fn get_module_prefix(conf: &Config) -> &'static str {
+    match conf.rust_edition {
+        RustEdition::Rust2018 => "crate::",
+        _ => ""
+    }
 }
