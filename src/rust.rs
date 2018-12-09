@@ -563,12 +563,12 @@ pub trait {}Trait {{
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
-            "    fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool {{
+            "    fn row_count(&self, _: Option<usize>) -> usize;
+    fn can_fetch_more(&self, _: Option<usize>) -> bool {{
         false
     }}
-    fn fetch_more(&mut self, Option<usize>) {{}}
-    fn sort(&mut self, u8, SortOrder) {{}}
+    fn fetch_more(&mut self, _: Option<usize>) {{}}
+    fn sort(&mut self, _: u8, _: SortOrder) {{}}
     fn check_row(&self, index: usize, row: usize) -> Option<usize>;
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, index: usize) -> Option<usize>;
@@ -589,7 +589,7 @@ pub trait {}Trait {{
                     if ip.optional {
                         writeln!(
                             r,
-                            "    fn set_{}(&mut self, index: usize, Option<&[u8]>) -> bool;",
+                            "    fn set_{}(&mut self, index: usize, _: Option<&[u8]>) -> bool;",
                             name
                         )?;
                     } else {
