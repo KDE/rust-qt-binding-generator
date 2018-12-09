@@ -64,8 +64,8 @@ pub enum RustEdition {
     Unknown
 }
 
-impl ::std::convert::From<Option<&str>> for RustEdition {
-    fn from(str: Option<&str>) -> RustEdition {
+impl<'a> ::std::convert::From<Option<&'a str>> for RustEdition {
+    fn from(str: Option<&'a str>) -> RustEdition {
         match str {
             None | Some("2015") => RustEdition::Rust2015,
             Some("2018") => RustEdition::Rust2018,
