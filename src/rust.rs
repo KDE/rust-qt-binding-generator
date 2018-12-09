@@ -558,7 +558,7 @@ pub trait {}Trait {{
         false
     }}
     fn fetch_more(&mut self) {{}}
-    fn sort(&mut self, u8, SortOrder) {{}}"
+    fn sort(&mut self, _: u8, _: SortOrder) {{}}"
         )?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
