@@ -1264,7 +1264,8 @@ use std::sync::Arc;
 use std::sync::atomic::{{AtomicPtr, Ordering}};
 use std::ptr::null;
 
-use {}::*;",
+use {}{}::*;",
+        if cfg!(feature = "use-2018-edition") { "crate::" } else { "" },
         conf.rust.implementation_module
     )?;
 
@@ -1518,8 +1519,9 @@ pub fn write_implementation(conf: &Config) -> Result<()> {
         "#![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
-use {}::*;
+use {}{}::*;
 ",
+        if cfg!(feature = "use-2018-edition") { "crate::" } else { "" },
         conf.rust.interface_module
     )?;
 
