@@ -149,7 +149,8 @@ private:"
             "QVariant"
         } else {
             p.type_name()
-        }.to_string();
+        }
+        .to_string();
         if p.is_object() {
             t.push_str("*");
         }
@@ -213,7 +214,7 @@ public:
 fn is_column_write(o: &Object, col: usize) -> bool {
     o.item_properties
         .values()
-        .any(|ip|ip.write && (col == 0 || (ip.roles.len() > col && !ip.roles[col].is_empty())))
+        .any(|ip| ip.write && (col == 0 || (ip.roles.len() > col && !ip.roles[col].is_empty())))
 }
 
 fn write_function_c_decl(

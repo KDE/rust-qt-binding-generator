@@ -1,11 +1,11 @@
 use configuration_private::*;
 use serde_json;
-use toml;
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use toml;
 
 mod json {
     use super::Rust;
@@ -61,7 +61,7 @@ mod json {
 pub enum RustEdition {
     Rust2015,
     Rust2018,
-    Unknown
+    Unknown,
 }
 
 impl<'a> ::std::convert::From<Option<&'a str>> for RustEdition {
@@ -471,7 +471,10 @@ fn post_process(config_file: &Path, json: json::Config) -> Result<Config, Box<Er
         buf.pop();
         buf.push("Cargo.toml");
         let manifest: toml::Value = fs::read_to_string(&buf)?.parse()?;
-        manifest["package"].get("edition").and_then(|val| val.as_str()).into()
+        manifest["package"]
+            .get("edition")
+            .and_then(|val| val.as_str())
+            .into()
     };
 
     Ok(Config {

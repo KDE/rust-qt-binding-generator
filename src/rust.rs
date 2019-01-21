@@ -335,7 +335,9 @@ impl {0}Emitter {{
     /// reference. That is undefined behaviour and forbidden.
     pub fn clone(&mut self) -> {0}Emitter {{
         {0}Emitter {{
-            qobject: self.qobject.clone(),", o.name)?;
+            qobject: self.qobject.clone(),",
+        o.name
+    )?;
     for (name, p) in &o.properties {
         if p.is_object() {
             continue;
@@ -1540,6 +1542,6 @@ use {}{}::*;
 fn get_module_prefix(conf: &Config) -> &'static str {
     match conf.rust_edition {
         RustEdition::Rust2018 => "crate::",
-        _ => ""
+        _ => "",
     }
 }

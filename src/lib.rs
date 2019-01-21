@@ -12,14 +12,12 @@ mod cpp;
 mod rust;
 mod util;
 
+use configuration::Config;
 use std::error::Error;
 use std::path::Path;
-use configuration::Config;
 
 /// Read a file with bindings.
-pub fn read_bindings_file<P: AsRef<Path>>(
-    config_file: P,
-) -> Result<Config, Box<Error>> {
+pub fn read_bindings_file<P: AsRef<Path>>(config_file: P) -> Result<Config, Box<Error>> {
     configuration::parse(config_file)
 }
 
