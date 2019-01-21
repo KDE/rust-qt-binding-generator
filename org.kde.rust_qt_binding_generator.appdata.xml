@@ -11,6 +11,7 @@
   <name xml:lang="es">Generador de vínculos de Rust para Qt</name>
   <name xml:lang="fi">Rustin Qt-sidosgeneraattori</name>
   <name xml:lang="gl">Xerador de adaptadores para Qt de Rust</name>
+  <name xml:lang="id">Rust Qt Binding Generator</name>
   <name xml:lang="nl">Rust Qt Binding Generator</name>
   <name xml:lang="pl">Generator powiązań Qt Rust</name>
   <name xml:lang="pt">Gerador de Interfaces Qt para Rust</name>
@@ -27,6 +28,7 @@
   <summary xml:lang="es">Generar vínculos para usar código Rust en Qt y QML</summary>
   <summary xml:lang="fi">Luo sidokset Rust-koodisi käyttämiseksi Qt:ssa ja QML:ssä</summary>
   <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML</summary>
+  <summary xml:lang="id">Menghasilkan jilid menggunakan kode Rust di Qt dan QML</summary>
   <summary xml:lang="nl">Genereert bindings om Rust-code in Qt en QML te gebruiken</summary>
   <summary xml:lang="pl">Utwórz powiązania do używania kodu Rust w Qt oraz QML</summary>
   <summary xml:lang="pt">Gera interfaces para usar o código em Rust com o Qt e o QML</summary>
@@ -44,6 +46,7 @@
     <p xml:lang="es">El generador de vínculos Rust para Qt es un programa de la línea de órdenes para usar código Rust en programas Qt. Genera tipos QObject que permiten el acceso a código en Rust. La implementación de QObject está escrita en un rasgo de Rust.</p>
     <p xml:lang="fi">Rustin Qt-sidosgeneraattori on komentoriviohjelma Rust-koodin käyttämiseksi Qt-ohjelmissa. Se luo QObject-tyypit, joilla on pääsy Rust-koodiin. QObjectin toteutus on kirjoitettu Rustin traitinä.</p>
     <p xml:lang="gl">O xerador de adaptadores para Qt de Rust é un programa da liña de ordes para usar código Rust en programas de Qt. Xera tipos QObject que dan acceso a código Rust. O QObject está feito nun trazo de Rust.</p>
+    <p xml:lang="id">Rust Qt Binding Generator adalah program command-line untuk penggunaan kode Rust di program Qt. Ini menghasilkan tipe QObject yang memberikan akses untuk kode Rust. Implementasi QObject telah ditulis dalam sifat Rust.</p>
     <p xml:lang="nl">Rust Qt Binding Generator is opdrachtregelprogramma voor gebruik van Rust-code in Qt programma's. Het genereert QObject typen die toegang geven tot Rust-code. De implementatie van het QObject is geschreven in een Rust-trait.</p>
     <p xml:lang="pl">Generator powiązań Qt Rust jest programem wiersza poleceń do używania kodu Rust w programach Qt. Tworzy rodzaje QObject, które dają dostęp do kodu Rust. Implementacja QObject została napisana w Rust.</p>
     <p xml:lang="pt">O Gerador de Interfaces Qt para Rust é um programa da linha de comandos para usar código em Rust nos programas em Qt. Ele gera tipos QObject que dão acesso ao código em Rust. A implementação do QObject é feita num 'trait' de Rust.</p>
