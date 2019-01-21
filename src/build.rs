@@ -1,11 +1,11 @@
 extern crate cc;
 
+use super::{generate_bindings, read_bindings_file, Config};
 use regex::Regex;
 use serde_xml_rs::deserialize;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::io::{self, Write};
-use super::{Config, generate_bindings, read_bindings_file};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Deserialize)]
@@ -22,7 +22,8 @@ struct QResource {
 /// Parse the qrc file, panic if it fails.
 fn read_qrc(qrc: &Path) -> RCC {
     let bytes = ::std::fs::read(qrc).expect(&format!("Could not read {}", qrc.display()));
-    let mut rcc: RCC = deserialize(&bytes[..]).expect(&format!("could not parse {}", qrc.display()));
+    let mut rcc: RCC =
+        deserialize(&bytes[..]).expect(&format!("could not parse {}", qrc.display()));
     for qresource in &mut rcc.qresource {
         for file in &mut qresource.file {
             let mut p = qrc.parent().unwrap().to_path_buf();
@@ -50,18 +51,14 @@ fn qrc_to_input_list<'a>(qrc: &'a Path, rcc: &'a RCC) -> Vec<&'a Path> {
 fn run(cmd: &str, command: &mut Command) -> Vec<u8> {
     eprintln!("running: {:?}", command);
     match command.output() {
-        Err(e) => {
-            eprintln!(
-                "Could not run {}. Make sure {} is in your path: {}",
-                cmd,
-                cmd,
-                e
-            )
-        }
+        Err(e) => eprintln!(
+            "Could not run {}. Make sure {} is in your path: {}",
+            cmd, cmd, e
+        ),
         Ok(output) => {
-            io::stderr().write(&output.stderr).expect(
-                "Could not write to stderr.",
-            );
+            io::stderr()
+                .write(&output.stderr)
+                .expect("Could not write to stderr.");
             if output.status.success() {
                 return output.stdout;
             }
@@ -95,17 +92,16 @@ fn parse_qt_version(qt_version: &str) -> Version {
     let re = Regex::new(r"(\d)\.(\d{1,2})(\.(\d{1,2}))").unwrap();
     match re.captures(&qt_version) {
         None => panic!("Cannot parse Qt version number {}", qt_version),
-        Some(cap) => {
-            Version {
-                major: cap[1].parse::<u8>().unwrap(),
-                minor: cap[2].parse::<u8>().unwrap(),
-                patch: cap.get(4)
-                    .map(|m| m.as_str())
-                    .unwrap_or("0")
-                    .parse::<u8>()
-                    .unwrap(),
-            }
-        }
+        Some(cap) => Version {
+            major: cap[1].parse::<u8>().unwrap(),
+            minor: cap[2].parse::<u8>().unwrap(),
+            patch: cap
+                .get(4)
+                .map(|m| m.as_str())
+                .unwrap_or("0")
+                .parse::<u8>()
+                .unwrap(),
+        },
     }
 }
 
@@ -126,18 +122,47 @@ fn parse_qt_version(qt_version: &str) -> Version {
 pub fn require_qt_version(major: u8, minor: u8, patch: u8) {
     let qt_version = qmake_query("QT_VERSION");
     let version = parse_qt_version(&qt_version);
-    if version.major < major ||
-        (version.major == major &&
-             (version.minor < minor || (version.minor == minor && version.patch < patch)))
+    if version.major < major
+        || (version.major == major
+            && (version.minor < minor || (version.minor == minor && version.patch < patch)))
     {
         panic!(
             "Please use a version of Qt >= {}.{}.{}, not {}",
-            major,
-            minor,
-            patch,
-            qt_version
+            major, minor, patch, qt_version
         );
     }
+}
+
+#[derive(Debug)]
+pub enum QtModule {
+    Core,
+    Gui,
+    Multimedia,
+    MultimediaWidgets,
+    Network,
+    Qml,
+    Quick,
+    QuickTest,
+    Sql,
+    Test,
+    Widgets,
+
+    Concurrent,
+    DBus,
+    Help,
+    Location,
+    OpenGL,
+    Positioning,
+    PrintSupport,
+    Svg,
+    WebChannel,
+    WebEngine,
+    WaylandCompositor,
+    X11Extras,
+    Xml,
+    XmlPatterns,
+
+    Charts,
 }
 
 /// A builder for binding generation and compilation of a Qt application.
@@ -153,6 +178,7 @@ pub struct Build {
     qrc: Vec<PathBuf>,
     h: Vec<PathBuf>,
     cpp: Vec<PathBuf>,
+    modules: Vec<QtModule>,
 }
 
 impl Build {
@@ -177,10 +203,10 @@ impl Build {
     pub fn new<P: AsRef<Path>>(out_dir: P) -> Build {
         let qt_include_path = qmake_query("QT_INSTALL_HEADERS");
         let mut build = cc::Build::new();
-        build.cpp(true).include(out_dir.as_ref()).include(
-            qt_include_path
-                .trim(),
-        );
+        build
+            .cpp(true)
+            .include(out_dir.as_ref())
+            .include(qt_include_path.trim());
         Build {
             qt_library_path: qmake_query("QT_INSTALL_LIBS").trim().into(),
             out_dir: out_dir.as_ref().to_path_buf(),
@@ -189,6 +215,7 @@ impl Build {
             qrc: Vec::new(),
             h: Vec::new(),
             cpp: Vec::new(),
+            modules: vec![QtModule::Core],
         }
     }
     /// Add a bindings file to be processed.
@@ -215,6 +242,11 @@ impl Build {
     /// Add a C++ file to be compiled into the program.
     pub fn cpp<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
         self.cpp.push(path.as_ref().to_path_buf());
+        self
+    }
+    /// Add a Qt module to be linked to the executable
+    pub fn module(&mut self, module: QtModule) -> &mut Build {
+        self.modules.push(module);
         self
     }
     /// Compile the static library.
@@ -249,10 +281,9 @@ impl Build {
             print_cpp_link_stdlib();
         }
         println!("cargo:rustc-link-search={}", self.qt_library_path.display());
-        println!("cargo:rustc-link-lib=Qt5Core");
-        println!("cargo:rustc-link-lib=Qt5Network");
-        println!("cargo:rustc-link-lib=Qt5Gui");
-        println!("cargo:rustc-link-lib=Qt5Qml");
+        for module in &self.modules {
+            println!("cargo:rustc-link-lib=Qt5{:?}", module);
+        }
     }
 }
 
@@ -262,9 +293,7 @@ fn print_cpp_link_stdlib() {
     let target = ::std::env::var("TARGET").unwrap();
     let stdlib = if target.contains("msvc") {
         None
-    } else if target.contains("apple")
-        || target.contains("freebsd")
-        || target.contains("openbsd") {
+    } else if target.contains("apple") || target.contains("freebsd") || target.contains("openbsd") {
         Some("c++")
     } else {
         Some("stdc++")
@@ -299,9 +328,10 @@ fn are_outputs_up_to_date(paths: &[&Path], input: SystemTime) -> bool {
 fn get_youngest_mtime(paths: &[&Path]) -> Result<SystemTime, String> {
     let mut max = UNIX_EPOCH;
     for path in paths {
-        let mt = path.metadata().and_then(|m| m.modified()).map_err(|e| {
-            format!("Error reading file {}: {}.", path.display(), e)
-        })?;
+        let mt = path
+            .metadata()
+            .and_then(|m| m.modified())
+            .map_err(|e| format!("Error reading file {}: {}.", path.display(), e))?;
         if mt > max {
             max = mt;
         }
@@ -344,9 +374,8 @@ fn handle_binding(
     h: &mut Vec<PathBuf>,
     cpp: &mut Vec<PathBuf>,
 ) {
-    let mut config = read_bindings_file(&bindings_json).unwrap_or_else(|e| {
-        panic!("Could not parse {}: {}", bindings_json.display(), e)
-    });
+    let mut config = read_bindings_file(&bindings_json)
+        .unwrap_or_else(|e| panic!("Could not parse {}: {}", bindings_json.display(), e));
     let bindings_cpp = out_dir.join(&config.cpp_file);
     let mut bindings_h = bindings_cpp.clone();
     bindings_h.set_extension("h");
@@ -356,8 +385,7 @@ fn handle_binding(
     if should_run(
         &[&bindings_json],
         &[&bindings_h, &bindings_cpp, &interface_rs],
-    )
-    {
+    ) {
         generate_bindings(&config).unwrap();
     }
     h.push(bindings_h);
