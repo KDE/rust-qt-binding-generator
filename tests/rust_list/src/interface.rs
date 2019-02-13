@@ -185,11 +185,11 @@ pub trait NoRoleTrait {
         false
     }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn user_age(&self, index: usize) -> u8;
-    fn set_user_age(&mut self, index: usize, u8) -> bool;
+    fn set_user_age(&mut self, index: usize, _: u8) -> bool;
     fn user_name(&self, index: usize) -> &str;
-    fn set_user_name(&mut self, index: usize, String) -> bool;
+    fn set_user_name(&mut self, index: usize, _: String) -> bool;
 }
 
 #[no_mangle]
@@ -397,9 +397,9 @@ pub trait PersonsTrait {
         false
     }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn user_name(&self, index: usize) -> &str;
-    fn set_user_name(&mut self, index: usize, String) -> bool;
+    fn set_user_name(&mut self, index: usize, _: String) -> bool;
 }
 
 #[no_mangle]

@@ -597,14 +597,14 @@ pub trait {}Trait {{
                     } else {
                         writeln!(
                             r,
-                            "    fn set_{}(&mut self, index: usize, &[u8]) -> bool;",
+                            "    fn set_{}(&mut self, index: usize, _: &[u8]) -> bool;",
                             name
                         )?;
                     }
                 } else {
                     writeln!(
                         r,
-                        "    fn set_{}(&mut self, index: usize, {}) -> bool;",
+                        "    fn set_{}(&mut self, index: usize, _: {}) -> bool;",
                         name,
                         rust_type_(ip)
                     )?;

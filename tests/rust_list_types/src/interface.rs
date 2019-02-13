@@ -188,39 +188,39 @@ pub trait ListTrait {
         false
     }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn boolean(&self, index: usize) -> bool;
-    fn set_boolean(&mut self, index: usize, bool) -> bool;
+    fn set_boolean(&mut self, index: usize, _: bool) -> bool;
     fn bytearray(&self, index: usize) -> &[u8];
-    fn set_bytearray(&mut self, index: usize, &[u8]) -> bool;
+    fn set_bytearray(&mut self, index: usize, _: &[u8]) -> bool;
     fn f32(&self, index: usize) -> f32;
-    fn set_f32(&mut self, index: usize, f32) -> bool;
+    fn set_f32(&mut self, index: usize, _: f32) -> bool;
     fn f64(&self, index: usize) -> f64;
-    fn set_f64(&mut self, index: usize, f64) -> bool;
+    fn set_f64(&mut self, index: usize, _: f64) -> bool;
     fn i16(&self, index: usize) -> i16;
-    fn set_i16(&mut self, index: usize, i16) -> bool;
+    fn set_i16(&mut self, index: usize, _: i16) -> bool;
     fn i32(&self, index: usize) -> i32;
-    fn set_i32(&mut self, index: usize, i32) -> bool;
+    fn set_i32(&mut self, index: usize, _: i32) -> bool;
     fn i64(&self, index: usize) -> i64;
-    fn set_i64(&mut self, index: usize, i64) -> bool;
+    fn set_i64(&mut self, index: usize, _: i64) -> bool;
     fn i8(&self, index: usize) -> i8;
-    fn set_i8(&mut self, index: usize, i8) -> bool;
+    fn set_i8(&mut self, index: usize, _: i8) -> bool;
     fn optional_boolean(&self, index: usize) -> Option<bool>;
-    fn set_optional_boolean(&mut self, index: usize, Option<bool>) -> bool;
+    fn set_optional_boolean(&mut self, index: usize, _: Option<bool>) -> bool;
     fn optional_bytearray(&self, index: usize) -> Option<&[u8]>;
-    fn set_optional_bytearray(&mut self, index: usize, Option<&[u8]>) -> bool;
+    fn set_optional_bytearray(&mut self, index: usize, _: Option<&[u8]>) -> bool;
     fn optional_string(&self, index: usize) -> Option<&str>;
-    fn set_optional_string(&mut self, index: usize, Option<String>) -> bool;
+    fn set_optional_string(&mut self, index: usize, _: Option<String>) -> bool;
     fn string(&self, index: usize) -> &str;
-    fn set_string(&mut self, index: usize, String) -> bool;
+    fn set_string(&mut self, index: usize, _: String) -> bool;
     fn u16(&self, index: usize) -> u16;
-    fn set_u16(&mut self, index: usize, u16) -> bool;
+    fn set_u16(&mut self, index: usize, _: u16) -> bool;
     fn u32(&self, index: usize) -> u32;
-    fn set_u32(&mut self, index: usize, u32) -> bool;
+    fn set_u32(&mut self, index: usize, _: u32) -> bool;
     fn u64(&self, index: usize) -> u64;
-    fn set_u64(&mut self, index: usize, u64) -> bool;
+    fn set_u64(&mut self, index: usize, _: u64) -> bool;
     fn u8(&self, index: usize) -> u8;
-    fn set_u8(&mut self, index: usize, u8) -> bool;
+    fn set_u8(&mut self, index: usize, _: u8) -> bool;
 }
 
 #[no_mangle]

@@ -178,18 +178,18 @@ impl PersonsTree {
 pub trait PersonsTrait {
     fn new(emit: PersonsEmitter, model: PersonsTree) -> Self;
     fn emit(&mut self) -> &mut PersonsEmitter;
-    fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool {
+    fn row_count(&self, _: Option<usize>) -> usize;
+    fn can_fetch_more(&self, _: Option<usize>) -> bool {
         false
     }
-    fn fetch_more(&mut self, Option<usize>) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn fetch_more(&mut self, _: Option<usize>) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn check_row(&self, index: usize, row: usize) -> Option<usize>;
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, index: usize) -> Option<usize>;
     fn row(&self, index: usize) -> usize;
     fn user_name(&self, index: usize) -> &str;
-    fn set_user_name(&mut self, index: usize, String) -> bool;
+    fn set_user_name(&mut self, index: usize, _: String) -> bool;
 }
 
 #[no_mangle]

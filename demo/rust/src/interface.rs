@@ -506,7 +506,7 @@ pub trait FibonacciListTrait {
         false
     }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn fibonacci_number(&self, index: usize) -> u64;
     fn row(&self, index: usize) -> u64;
 }
@@ -694,12 +694,12 @@ pub trait FileSystemTreeTrait {
     fn emit(&mut self) -> &mut FileSystemTreeEmitter;
     fn path(&self) -> Option<&str>;
     fn set_path(&mut self, value: Option<String>);
-    fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool {
+    fn row_count(&self, _: Option<usize>) -> usize;
+    fn can_fetch_more(&self, _: Option<usize>) -> bool {
         false
     }
-    fn fetch_more(&mut self, Option<usize>) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn fetch_more(&mut self, _: Option<usize>) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn check_row(&self, index: usize, row: usize) -> Option<usize>;
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, index: usize) -> Option<usize>;
@@ -1001,12 +1001,12 @@ pub trait ProcessesTrait {
     fn emit(&mut self) -> &mut ProcessesEmitter;
     fn active(&self) -> bool;
     fn set_active(&mut self, value: bool);
-    fn row_count(&self, Option<usize>) -> usize;
-    fn can_fetch_more(&self, Option<usize>) -> bool {
+    fn row_count(&self, _: Option<usize>) -> usize;
+    fn can_fetch_more(&self, _: Option<usize>) -> bool {
         false
     }
-    fn fetch_more(&mut self, Option<usize>) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn fetch_more(&mut self, _: Option<usize>) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn check_row(&self, index: usize, row: usize) -> Option<usize>;
     fn index(&self, item: Option<usize>, row: usize) -> usize;
     fn parent(&self, index: usize) -> Option<usize>;
@@ -1286,7 +1286,7 @@ pub trait TimeSeriesTrait {
         false
     }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn cos(&self, index: usize) -> f32;
     fn set_cos(&mut self, index: usize, f32) -> bool;
     fn sin(&self, index: usize) -> f32;
