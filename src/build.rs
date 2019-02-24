@@ -239,6 +239,11 @@ impl Build {
         self.qrc.push(path.as_ref().to_path_buf());
         self
     }
+    /// Add a C++ header file to be compiled into the program.
+    pub fn h<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
+        self.h.push(path.as_ref().to_path_buf());
+        self
+    }
     /// Add a C++ file to be compiled into the program.
     pub fn cpp<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
         self.cpp.push(path.as_ref().to_path_buf());
