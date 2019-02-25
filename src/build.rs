@@ -3,6 +3,7 @@ extern crate cc;
 use super::{generate_bindings, read_bindings_file, Config};
 use regex::Regex;
 use serde_xml_rs::deserialize;
+use std::env::var;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -73,8 +74,25 @@ fn run(cmd: &str, command: &mut Command) -> Vec<u8> {
 
 /// Query a Qt environment variable via qmake.
 fn qmake_query(var: &str) -> String {
-    String::from_utf8(run("qmake", Command::new("qmake").args(&["-query", var])))
-        .expect("qmake output was not valid UTF-8")
+    let v = String::from_utf8(run("qmake", Command::new("qmake").args(&["-query", var])))
+        .expect("qmake output was not valid UTF-8");
+    v.trim().to_string()
+}
+
+fn qt_include_path() -> PathBuf {
+    let qt_include_path = PathBuf::from(qmake_query("QT_INSTALL_HEADERS"));
+    if qt_include_path.exists() {
+        return qt_include_path;
+    }
+    // NixOS workaround: get value from CMAKE env variable
+    let path = var("CMAKE_INCLUDE_PATH").expect("CMAKE_INCLUDE_PATH is not set");
+    let paths = path.split(':');
+    for path in paths {
+        if path.contains("qtbase") {
+            return path.into();
+        }
+    }
+    panic!("Could not find QT_INSTALL_HEADERS")
 }
 
 struct Version {
@@ -172,6 +190,7 @@ pub enum QtModule {
 /// This struct is meant to be used in a `build.rs` script.
 pub struct Build {
     qt_library_path: PathBuf,
+    qt_include_path: PathBuf,
     out_dir: PathBuf,
     build: cc::Build,
     bindings: Vec<PathBuf>,
@@ -179,6 +198,7 @@ pub struct Build {
     h: Vec<PathBuf>,
     cpp: Vec<PathBuf>,
     modules: Vec<QtModule>,
+    link_libs: Vec<PathBuf>,
 }
 
 impl Build {
@@ -201,14 +221,15 @@ impl Build {
     /// }
     /// ```
     pub fn new<P: AsRef<Path>>(out_dir: P) -> Build {
-        let qt_include_path = qmake_query("QT_INSTALL_HEADERS");
+        let qt_include_path = qt_include_path();
         let mut build = cc::Build::new();
         build
             .cpp(true)
             .include(out_dir.as_ref())
-            .include(qt_include_path.trim());
+            .include(&qt_include_path);
         Build {
-            qt_library_path: qmake_query("QT_INSTALL_LIBS").trim().into(),
+            qt_library_path: qmake_query("QT_INSTALL_LIBS").into(),
+            qt_include_path: PathBuf::from(qt_include_path),
             out_dir: out_dir.as_ref().to_path_buf(),
             build,
             bindings: Vec::new(),
@@ -216,6 +237,7 @@ impl Build {
             h: Vec::new(),
             cpp: Vec::new(),
             modules: vec![QtModule::Core],
+            link_libs: Vec::new(),
         }
     }
     /// Add a bindings file to be processed.
@@ -249,6 +271,32 @@ impl Build {
         self.cpp.push(path.as_ref().to_path_buf());
         self
     }
+    /// Add the path to the paths includes for headers.
+    pub fn include_path<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
+        self.build.include(path);
+        self
+    }
+    /// Link to the specified library.
+    pub fn link_lib<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
+        self.link_libs.push(path.as_ref().to_path_buf());
+        self
+    }
+    fn print_link_libs(&self) {
+        for path in &self.link_libs {
+            if let Some(parent) = path.parent() {
+                println!("cargo:rustc-link-search=native={}", parent.display());
+            }
+            if let Some(name) = path.file_name().and_then(|a| a.to_str()) {
+                // remove 'lib' prefix and '.so...' suffix
+                let name = if let Some(pos) = name.find('.') {
+                    &name[3..pos]
+                } else {
+                    &name[3..]
+                };
+                println!("cargo:rustc-link-lib={}", name);
+            }
+        }
+    }
     /// Add a Qt module to be linked to the executable
     pub fn module(&mut self, module: QtModule) -> &mut Build {
         self.modules.push(module);
@@ -276,6 +324,11 @@ impl Build {
             compile_inputs.push(cpp);
             self.build.file(cpp);
         }
+        // add the Qt module include folders
+        for module in &self.modules {
+            self.build
+                .include(self.qt_include_path.join(&format!("Qt{:?}", module)));
+        }
         let lib = self.out_dir.join(&format!("lib{}.a", lib_name));
         if should_run(&compile_inputs, &[&lib]) {
             self.build.compile(lib_name);
@@ -289,6 +342,7 @@ impl Build {
         for module in &self.modules {
             println!("cargo:rustc-link-lib=Qt5{:?}", module);
         }
+        self.print_link_libs();
     }
 }
 
