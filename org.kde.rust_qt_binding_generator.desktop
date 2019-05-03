@@ -1,0 +1,11 @@
+[Desktop Entry]
+Categories=Qt;KDE;
+Comment=
+Exec=elisa %U
+GenericName=Programming Binding Generator
+Icon=applications-development
+Name=Rust Qt Binding Generator
+StartupNotify=false
+Terminal=true
+Type=Application
+MimeType=text/x-rust
