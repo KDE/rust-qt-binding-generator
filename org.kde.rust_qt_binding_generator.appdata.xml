@@ -20,6 +20,7 @@
   <name xml:lang="sv">Rust Qt-bindningsgenerator</name>
   <name xml:lang="uk">Засіб створення прив'язок Qt до Rust</name>
   <name xml:lang="x-test">xxRust Qt Binding Generatorxx</name>
+  <name xml:lang="zh-TW">Rust Qt Binding 產生器</name>
   <summary>Generate bindings to use Rust code in Qt and QML</summary>
   <summary xml:lang="ca">Genera vincles per usar el codi en Rust a les Qt i el QML</summary>
   <summary xml:lang="ca-valencia">Genera vincles per usar el codi en Rust a les Qt i el QML</summary>
