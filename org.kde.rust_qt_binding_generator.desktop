@@ -15,6 +15,7 @@ GenericName[sk]=Programovací generátor väzieb
 GenericName[sv]=Programmerar bindningsgenerator
 GenericName[uk]=Засіб створення програмних прив'язок
 GenericName[x-test]=xxProgramming Binding Generatorxx
+GenericName[zh_TW]=程式 Binding 產生器
 Icon=applications-development
 Name=Rust Qt Binding Generator
 Name[ca]=Generador de vincles pel Rust a les Qt
