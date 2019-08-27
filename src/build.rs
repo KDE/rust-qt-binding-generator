@@ -22,9 +22,10 @@ struct QResource {
 
 /// Parse the qrc file, panic if it fails.
 fn read_qrc(qrc: &Path) -> RCC {
-    let bytes = ::std::fs::read(qrc).unwrap_or_else(|e| panic!("Could not read {}: {}", qrc.display(), e));
-    let mut rcc: RCC =
-        deserialize(&bytes[..]).unwrap_or_else(|e| panic!("could not parse {}: {}", qrc.display(), e));
+    let bytes =
+        ::std::fs::read(qrc).unwrap_or_else(|e| panic!("Could not read {}: {}", qrc.display(), e));
+    let mut rcc: RCC = deserialize(&bytes[..])
+        .unwrap_or_else(|e| panic!("could not parse {}: {}", qrc.display(), e));
     for qresource in &mut rcc.qresource {
         for file in &mut qresource.file {
             let mut p = qrc.parent().unwrap().to_path_buf();
