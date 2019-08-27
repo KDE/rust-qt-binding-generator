@@ -22,9 +22,9 @@ struct QResource {
 
 /// Parse the qrc file, panic if it fails.
 fn read_qrc(qrc: &Path) -> RCC {
-    let bytes = ::std::fs::read(qrc).expect(&format!("Could not read {}", qrc.display()));
+    let bytes = ::std::fs::read(qrc).unwrap_or_else(|e| panic!("Could not read {}: {}", qrc.display(), e));
     let mut rcc: RCC =
-        deserialize(&bytes[..]).expect(&format!("could not parse {}", qrc.display()));
+        deserialize(&bytes[..]).unwrap_or_else(|e| panic!("could not parse {}: {}", qrc.display(), e));
     for qresource in &mut rcc.qresource {
         for file in &mut qresource.file {
             let mut p = qrc.parent().unwrap().to_path_buf();
@@ -58,7 +58,7 @@ fn run(cmd: &str, command: &mut Command) -> Vec<u8> {
         ),
         Ok(output) => {
             io::stderr()
-                .write(&output.stderr)
+                .write_all(&output.stderr)
                 .expect("Could not write to stderr.");
             if output.status.success() {
                 return output.stdout;
@@ -229,7 +229,7 @@ impl Build {
             .include(&qt_include_path);
         Build {
             qt_library_path: qmake_query("QT_INSTALL_LIBS").into(),
-            qt_include_path: PathBuf::from(qt_include_path),
+            qt_include_path,
             out_dir: out_dir.as_ref().to_path_buf(),
             build,
             bindings: Vec::new(),
