@@ -417,7 +417,7 @@ fn post_process_property(
     a: (&String, &json::Property),
     b: &mut BTreeMap<String, Rc<Object>>,
     c: &BTreeMap<String, json::Object>,
-) -> Result<Property, Box<Error>> {
+) -> Result<Property, Box<dyn Error>> {
     let name = &a.1.property_type;
     let t = match serde_json::from_str::<SimpleType>(&format!("\"{}\"", name)) {
         Err(_) => {
@@ -444,7 +444,7 @@ fn post_process_object(
     a: (&String, &json::Object),
     b: &mut BTreeMap<String, Rc<Object>>,
     c: &BTreeMap<String, json::Object>,
-) -> Result<(), Box<Error>> {
+) -> Result<(), Box<dyn Error>> {
     let mut properties = BTreeMap::default();
     for p in &a.1.properties {
         properties.insert(p.0.clone(), post_process_property(p, b, c)?);
@@ -460,7 +460,7 @@ fn post_process_object(
     Ok(())
 }
 
-fn post_process(config_file: &Path, json: json::Config) -> Result<Config, Box<Error>> {
+fn post_process(config_file: &Path, json: json::Config) -> Result<Config, Box<dyn Error>> {
     let mut objects = BTreeMap::default();
     for object in &json.objects {
         post_process_object(object, &mut objects, &json.objects)?;
@@ -491,7 +491,7 @@ fn post_process(config_file: &Path, json: json::Config) -> Result<Config, Box<Er
     })
 }
 
-pub fn parse<P: AsRef<Path>>(config_file: P) -> Result<Config, Box<Error>> {
+pub fn parse<P: AsRef<Path>>(config_file: P) -> Result<Config, Box<dyn Error>> {
     let contents = fs::read_to_string(config_file.as_ref())?;
     let config: json::Config = serde_json::from_str(&contents)?;
     post_process(config_file.as_ref(), config)

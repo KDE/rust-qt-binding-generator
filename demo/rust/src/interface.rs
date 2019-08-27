@@ -1288,11 +1288,11 @@ pub trait TimeSeriesTrait {
     fn fetch_more(&mut self) {}
     fn sort(&mut self, _: u8, _: SortOrder) {}
     fn cos(&self, index: usize) -> f32;
-    fn set_cos(&mut self, index: usize, f32) -> bool;
+    fn set_cos(&mut self, index: usize, _: f32) -> bool;
     fn sin(&self, index: usize) -> f32;
-    fn set_sin(&mut self, index: usize, f32) -> bool;
+    fn set_sin(&mut self, index: usize, _: f32) -> bool;
     fn time(&self, index: usize) -> f32;
-    fn set_time(&mut self, index: usize, f32) -> bool;
+    fn set_time(&mut self, index: usize, _: f32) -> bool;
 }
 
 #[no_mangle]
