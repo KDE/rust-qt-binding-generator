@@ -282,13 +282,16 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
         }
         write!(r, "{}", a.name)?;
     }
-    writeln!(r, ");")?;
+    write!(r, ")")?;
     if f.return_type.is_complex() {
+        writeln!(r, ";")?;
         writeln!(
             r,
             "    let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);"
         )?;
+    } else {
+        writeln!(r)?;
     }
     writeln!(r, "}}")
 }
@@ -1016,14 +1019,15 @@ pub unsafe extern \"C\" fn {}_data_{}(
 #[no_mangle]
 pub unsafe extern \"C\" fn {}_data_{}(ptr: *const {}{}) -> {} {{
     let o = &*ptr;
-    o.{1}({})
+    o.{1}({}){}
 }}",
                     lcname,
                     snake_case(name),
                     o.name,
                     index_decl,
                     rust_c_type(ip),
-                    index
+                    index,
+                    if ip.optional { ".into()" } else { "" }
                 )?;
             }
             if ip.write {
