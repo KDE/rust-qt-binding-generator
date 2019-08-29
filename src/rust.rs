@@ -245,6 +245,8 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
             ", d: *mut {}, set: fn(*mut {0}, str: *const c_char, len: c_int)) {{",
             f.return_type.name()
         )?;
+    } else if f.return_type == SimpleType::Void {
+        writeln!(r, ") {{")?;
     } else {
         writeln!(r, ") -> {} {{", f.return_type.rust_type())?;
     }
@@ -269,7 +271,11 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
     } else {
         writeln!(r, "    let o = &*ptr;")?;
     }
-    write!(r, "    let r = o.{}(", lc)?;
+    if f.return_type.is_complex() {
+        write!(r, "    let r = o.{}(", lc)?;
+    } else {
+        write!(r, "    o.{}(", lc)?;
+    }
     for (i, a) in f.arguments.iter().enumerate() {
         if i > 0 {
             write!(r, ", ")?;
@@ -283,8 +289,6 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
             "    let s: *const c_char = r.as_ptr() as (*const c_char);
     set(d, s, r.len() as i32);"
         )?;
-    } else {
-        writeln!(r, "    r")?;
     }
     writeln!(r, "}}")
 }
@@ -921,7 +925,7 @@ pub unsafe extern \"C\" fn {1}_check_row(
     index: usize,
     row: c_int,
 ) -> COption<usize> {{
-    (&*ptr).check_row(index.into(), to_usize(row)).into()
+    (&*ptr).check_row(index, to_usize(row)).into()
 }}
 #[no_mangle]
 pub unsafe extern \"C\" fn {1}_index(
@@ -1012,7 +1016,7 @@ pub unsafe extern \"C\" fn {}_data_{}(
 #[no_mangle]
 pub unsafe extern \"C\" fn {}_data_{}(ptr: *const {}{}) -> {} {{
     let o = &*ptr;
-    o.{1}({}).into()
+    o.{1}({})
 }}",
                     lcname,
                     snake_case(name),
