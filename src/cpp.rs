@@ -366,78 +366,7 @@ fn connect(w: &mut Vec<u8>, d: &str, o: &Object, conf: &Config) -> Result<()> {
     Ok(())
 }
 
-fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
-    let lcname = snake_case(&o.name);
-    writeln!(
-        w,
-        "{}::{0}(bool /*owned*/, QObject *parent):
-    {}(parent),",
-        o.name,
-        base_type(o)
-    )?;
-    initialize_members_zero(w, o)?;
-    writeln!(
-        w,
-        "    m_d(nullptr),
-    m_ownsPrivate(false)
-{{"
-    )?;
-    if o.object_type != ObjectType::Object {
-        writeln!(w, "    initHeaderData();")?;
-    }
-    writeln!(
-        w,
-        "}}
-
-{}::{0}(QObject *parent):
-    {}(parent),",
-        o.name,
-        base_type(o)
-    )?;
-    initialize_members_zero(w, o)?;
-    write!(w, "    m_d({}_new(this", lcname)?;
-    constructor_args(w, "", o, conf)?;
-    writeln!(
-        w,
-        ")),
-    m_ownsPrivate(true)
-{{"
-    )?;
-    initialize_members(w, "", o, conf)?;
-    connect(w, "this", o, conf)?;
-    if o.object_type != ObjectType::Object {
-        writeln!(w, "    initHeaderData();")?;
-    }
-    writeln!(
-        w,
-        "}}
-
-{}::~{0}() {{
-    if (m_ownsPrivate) {{
-        {1}_free(m_d);
-    }}
-}}",
-        o.name, lcname
-    )?;
-    if o.object_type != ObjectType::Object {
-        writeln!(w, "void {}::initHeaderData() {{", o.name)?;
-        for col in 0..o.column_count() {
-            for (name, ip) in &o.item_properties {
-                let empty = Vec::new();
-                let roles = ip.roles.get(col).unwrap_or(&empty);
-                if roles.contains(&"display".to_string()) {
-                    writeln!(
-                        w,
-                        "    m_headerData.insert(qMakePair({}, Qt::DisplayRole), QVariant(\"{}\"));",
-                        col,
-                        name
-                    )?;
-                }
-            }
-        }
-        writeln!(w, "}}")?;
-    }
-
+fn write_cpp_object_properties(w: &mut Vec<u8>, o: &Object, lcname: &str) -> Result<()> {
     for (name, p) in &o.properties {
         let base = format!("{}_{}", lcname, snake_case(name));
         if p.is_object() {
@@ -549,6 +478,82 @@ fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
             writeln!(w, "}}")?;
         }
     }
+    Ok(())
+}
+
+fn write_cpp_object(w: &mut Vec<u8>, o: &Object, conf: &Config) -> Result<()> {
+    let lcname = snake_case(&o.name);
+    writeln!(
+        w,
+        "{}::{0}(bool /*owned*/, QObject *parent):
+    {}(parent),",
+        o.name,
+        base_type(o)
+    )?;
+    initialize_members_zero(w, o)?;
+    writeln!(
+        w,
+        "    m_d(nullptr),
+    m_ownsPrivate(false)
+{{"
+    )?;
+    if o.object_type != ObjectType::Object {
+        writeln!(w, "    initHeaderData();")?;
+    }
+    writeln!(
+        w,
+        "}}
+
+{}::{0}(QObject *parent):
+    {}(parent),",
+        o.name,
+        base_type(o)
+    )?;
+    initialize_members_zero(w, o)?;
+    write!(w, "    m_d({}_new(this", lcname)?;
+    constructor_args(w, "", o, conf)?;
+    writeln!(
+        w,
+        ")),
+    m_ownsPrivate(true)
+{{"
+    )?;
+    initialize_members(w, "", o, conf)?;
+    connect(w, "this", o, conf)?;
+    if o.object_type != ObjectType::Object {
+        writeln!(w, "    initHeaderData();")?;
+    }
+    writeln!(
+        w,
+        "}}
+
+{}::~{0}() {{
+    if (m_ownsPrivate) {{
+        {1}_free(m_d);
+    }}
+}}",
+        o.name, lcname
+    )?;
+    if o.object_type != ObjectType::Object {
+        writeln!(w, "void {}::initHeaderData() {{", o.name)?;
+        for col in 0..o.column_count() {
+            for (name, ip) in &o.item_properties {
+                let empty = Vec::new();
+                let roles = ip.roles.get(col).unwrap_or(&empty);
+                if roles.contains(&"display".to_string()) {
+                    writeln!(
+                        w,
+                        "    m_headerData.insert(qMakePair({}, Qt::DisplayRole), QVariant(\"{}\"));",
+                        col,
+                        name
+                    )?;
+                }
+            }
+        }
+        writeln!(w, "}}")?;
+    }
+
+    write_cpp_object_properties(w, o, &lcname)?;
 
     for (name, f) in &o.functions {
         let base = format!("{}_{}", lcname, snake_case(name));
