@@ -267,7 +267,7 @@ pub unsafe extern "C" fn no_role_sort(
 #[no_mangle]
 pub unsafe extern "C" fn no_role_data_user_age(ptr: *const NoRole, row: c_int) -> u8 {
     let o = &*ptr;
-    o.user_age(to_usize(row)).into()
+    o.user_age(to_usize(row))
 }
 
 #[no_mangle]

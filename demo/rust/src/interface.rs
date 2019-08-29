@@ -586,13 +586,13 @@ pub unsafe extern "C" fn fibonacci_list_sort(
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_data_fibonacci_number(ptr: *const FibonacciList, row: c_int) -> u64 {
     let o = &*ptr;
-    o.fibonacci_number(to_usize(row)).into()
+    o.fibonacci_number(to_usize(row))
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn fibonacci_list_data_row(ptr: *const FibonacciList, row: c_int) -> u64 {
     let o = &*ptr;
-    o.row(to_usize(row)).into()
+    o.row(to_usize(row))
 }
 
 pub struct FileSystemTreeQObject {}
@@ -817,7 +817,7 @@ pub unsafe extern "C" fn file_system_tree_check_row(
     index: usize,
     row: c_int,
 ) -> COption<usize> {
-    (&*ptr).check_row(index.into(), to_usize(row)).into()
+    (&*ptr).check_row(index, to_usize(row)).into()
 }
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_index(
@@ -887,7 +887,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_path(
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_data_file_permissions(ptr: *const FileSystemTree, index: usize) -> i32 {
     let o = &*ptr;
-    o.file_permissions(index).into()
+    o.file_permissions(index)
 }
 
 #[no_mangle]
@@ -899,7 +899,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_size(ptr: *const FileSystemT
 #[no_mangle]
 pub unsafe extern "C" fn file_system_tree_data_file_type(ptr: *const FileSystemTree, index: usize) -> i32 {
     let o = &*ptr;
-    o.file_type(index).into()
+    o.file_type(index)
 }
 
 pub struct ProcessesQObject {}
@@ -1107,7 +1107,7 @@ pub unsafe extern "C" fn processes_check_row(
     index: usize,
     row: c_int,
 ) -> COption<usize> {
-    (&*ptr).check_row(index.into(), to_usize(row)).into()
+    (&*ptr).check_row(index, to_usize(row)).into()
 }
 #[no_mangle]
 pub unsafe extern "C" fn processes_index(
@@ -1151,19 +1151,19 @@ pub unsafe extern "C" fn processes_data_cmd(
 #[no_mangle]
 pub unsafe extern "C" fn processes_data_cpu_percentage(ptr: *const Processes, index: usize) -> u8 {
     let o = &*ptr;
-    o.cpu_percentage(index).into()
+    o.cpu_percentage(index)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn processes_data_cpu_usage(ptr: *const Processes, index: usize) -> f32 {
     let o = &*ptr;
-    o.cpu_usage(index).into()
+    o.cpu_usage(index)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn processes_data_memory(ptr: *const Processes, index: usize) -> u64 {
     let o = &*ptr;
-    o.memory(index).into()
+    o.memory(index)
 }
 
 #[no_mangle]
@@ -1181,13 +1181,13 @@ pub unsafe extern "C" fn processes_data_name(
 #[no_mangle]
 pub unsafe extern "C" fn processes_data_pid(ptr: *const Processes, index: usize) -> u32 {
     let o = &*ptr;
-    o.pid(index).into()
+    o.pid(index)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn processes_data_uid(ptr: *const Processes, index: usize) -> u32 {
     let o = &*ptr;
-    o.uid(index).into()
+    o.uid(index)
 }
 
 pub struct TimeSeriesQObject {}
@@ -1370,7 +1370,7 @@ pub unsafe extern "C" fn time_series_sort(
 #[no_mangle]
 pub unsafe extern "C" fn time_series_data_cos(ptr: *const TimeSeries, row: c_int) -> f32 {
     let o = &*ptr;
-    o.cos(to_usize(row)).into()
+    o.cos(to_usize(row))
 }
 
 #[no_mangle]
@@ -1384,7 +1384,7 @@ pub unsafe extern "C" fn time_series_set_data_cos(
 #[no_mangle]
 pub unsafe extern "C" fn time_series_data_sin(ptr: *const TimeSeries, row: c_int) -> f32 {
     let o = &*ptr;
-    o.sin(to_usize(row)).into()
+    o.sin(to_usize(row))
 }
 
 #[no_mangle]
@@ -1398,7 +1398,7 @@ pub unsafe extern "C" fn time_series_set_data_sin(
 #[no_mangle]
 pub unsafe extern "C" fn time_series_data_time(ptr: *const TimeSeries, row: c_int) -> f32 {
     let o = &*ptr;
-    o.time(to_usize(row)).into()
+    o.time(to_usize(row))
 }
 
 #[no_mangle]

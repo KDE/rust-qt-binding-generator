@@ -298,7 +298,7 @@ pub unsafe extern "C" fn list_sort(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_boolean(ptr: *const List, row: c_int) -> bool {
     let o = &*ptr;
-    o.boolean(to_usize(row)).into()
+    o.boolean(to_usize(row))
 }
 
 #[no_mangle]
@@ -334,7 +334,7 @@ pub unsafe extern "C" fn list_set_data_bytearray(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_f32(ptr: *const List, row: c_int) -> f32 {
     let o = &*ptr;
-    o.f32(to_usize(row)).into()
+    o.f32(to_usize(row))
 }
 
 #[no_mangle]
@@ -348,7 +348,7 @@ pub unsafe extern "C" fn list_set_data_f32(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_f64(ptr: *const List, row: c_int) -> f64 {
     let o = &*ptr;
-    o.f64(to_usize(row)).into()
+    o.f64(to_usize(row))
 }
 
 #[no_mangle]
@@ -362,7 +362,7 @@ pub unsafe extern "C" fn list_set_data_f64(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_i16(ptr: *const List, row: c_int) -> i16 {
     let o = &*ptr;
-    o.i16(to_usize(row)).into()
+    o.i16(to_usize(row))
 }
 
 #[no_mangle]
@@ -376,7 +376,7 @@ pub unsafe extern "C" fn list_set_data_i16(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_i32(ptr: *const List, row: c_int) -> i32 {
     let o = &*ptr;
-    o.i32(to_usize(row)).into()
+    o.i32(to_usize(row))
 }
 
 #[no_mangle]
@@ -390,7 +390,7 @@ pub unsafe extern "C" fn list_set_data_i32(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_i64(ptr: *const List, row: c_int) -> i64 {
     let o = &*ptr;
-    o.i64(to_usize(row)).into()
+    o.i64(to_usize(row))
 }
 
 #[no_mangle]
@@ -404,7 +404,7 @@ pub unsafe extern "C" fn list_set_data_i64(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_i8(ptr: *const List, row: c_int) -> i8 {
     let o = &*ptr;
-    o.i8(to_usize(row)).into()
+    o.i8(to_usize(row))
 }
 
 #[no_mangle]
@@ -519,7 +519,7 @@ pub unsafe extern "C" fn list_set_data_string(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_u16(ptr: *const List, row: c_int) -> u16 {
     let o = &*ptr;
-    o.u16(to_usize(row)).into()
+    o.u16(to_usize(row))
 }
 
 #[no_mangle]
@@ -533,7 +533,7 @@ pub unsafe extern "C" fn list_set_data_u16(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_u32(ptr: *const List, row: c_int) -> u32 {
     let o = &*ptr;
-    o.u32(to_usize(row)).into()
+    o.u32(to_usize(row))
 }
 
 #[no_mangle]
@@ -547,7 +547,7 @@ pub unsafe extern "C" fn list_set_data_u32(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_u64(ptr: *const List, row: c_int) -> u64 {
     let o = &*ptr;
-    o.u64(to_usize(row)).into()
+    o.u64(to_usize(row))
 }
 
 #[no_mangle]
@@ -561,7 +561,7 @@ pub unsafe extern "C" fn list_set_data_u64(
 #[no_mangle]
 pub unsafe extern "C" fn list_data_u8(ptr: *const List, row: c_int) -> u8 {
     let o = &*ptr;
-    o.u8(to_usize(row)).into()
+    o.u8(to_usize(row))
 }
 
 #[no_mangle]

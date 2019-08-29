@@ -267,7 +267,7 @@ pub unsafe extern "C" fn persons_check_row(
     index: usize,
     row: c_int,
 ) -> COption<usize> {
-    (&*ptr).check_row(index.into(), to_usize(row)).into()
+    (&*ptr).check_row(index, to_usize(row)).into()
 }
 #[no_mangle]
 pub unsafe extern "C" fn persons_index(

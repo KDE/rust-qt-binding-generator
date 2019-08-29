@@ -127,19 +127,17 @@ pub unsafe extern "C" fn person_user_name_set(ptr: *mut Person, v: *const c_usho
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_append(ptr: *mut Person, suffix_str: *const c_ushort, suffix_len: c_int, amount: u32) -> () {
+pub unsafe extern "C" fn person_append(ptr: *mut Person, suffix_str: *const c_ushort, suffix_len: c_int, amount: u32) {
     let mut suffix = String::new();
     set_string_from_utf16(&mut suffix, suffix_str, suffix_len);
     let o = &mut *ptr;
-    let r = o.append(suffix, amount);
-    r
+    o.append(suffix, amount)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_double_name(ptr: *mut Person) -> () {
+pub unsafe extern "C" fn person_double_name(ptr: *mut Person) {
     let o = &mut *ptr;
-    let r = o.double_name();
-    r
+    o.double_name()
 }
 
 #[no_mangle]
@@ -177,6 +175,5 @@ pub unsafe extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *con
 #[no_mangle]
 pub unsafe extern "C" fn person_vowels_in_name(ptr: *const Person) -> u8 {
     let o = &*ptr;
-    let r = o.vowels_in_name();
-    r
+    o.vowels_in_name()
 }
