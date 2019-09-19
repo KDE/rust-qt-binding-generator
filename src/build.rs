@@ -285,7 +285,9 @@ impl Build {
     fn print_link_libs(&self) {
         for path in &self.link_libs {
             if let Some(parent) = path.parent() {
-                println!("cargo:rustc-link-search=native={}", parent.display());
+                if parent.exists() {
+                    println!("cargo:rustc-link-search=native={}", parent.display());
+                }
             }
             if let Some(name) = path.file_name().and_then(|a| a.to_str()) {
                 // remove 'lib' prefix and '.so...' suffix
