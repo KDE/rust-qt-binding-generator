@@ -1,0 +1,11 @@
+[package]
+name = "qt_widgets_cargo"
+version = "0.1.0"
+build = "build.rs"
+links = "qt_widgets_cargo"
+
+[dependencies]
+libc = "*"
+
+[build-dependencies]
+rust_qt_binding_generator = { path = "../.." }
