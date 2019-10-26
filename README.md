@@ -56,7 +56,7 @@ To combine Qt and Rust, write an interface in a JSON file. From that, the genera
 }
 ```
 
-This file describes an binding with one object, `Greeting`. `Greeting` has one property: `message`. It is a writable property.
+This file describes a binding with one object, `Greeting`. `Greeting` has one property: `message`. It is a writable property.
 
 The Rust Qt Binding Generator will create binding source code from this description:
 
@@ -145,7 +145,7 @@ Rectangle {
 
 ## Demo application
 
-The project comes with a demo application that show a Qt user interface based on Rust. It uses all of the features of Object, List and Tree. Reading the demo code is a good way to get started.
+The project comes with a demo application that shows a Qt user interface based on Rust. It uses all of the features of Object, List and Tree. Reading the demo code is a good way to get started.
 
 <figure>
   <img src="demo/screenshots/demo.png" alt="Qt Widgets UI with Rust logic"/>
