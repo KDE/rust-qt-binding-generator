@@ -207,11 +207,11 @@ pub trait TodosTrait {
         false
     }
     fn fetch_more(&mut self) {}
-    fn sort(&mut self, u8, SortOrder) {}
+    fn sort(&mut self, _: u8, _: SortOrder) {}
     fn completed(&self, index: usize) -> bool;
-    fn set_completed(&mut self, index: usize, bool) -> bool;
+    fn set_completed(&mut self, index: usize, _: bool) -> bool;
     fn description(&self, index: usize) -> &str;
-    fn set_description(&mut self, index: usize, String) -> bool;
+    fn set_description(&mut self, index: usize, _: String) -> bool;
 }
 
 #[no_mangle]
@@ -272,33 +272,29 @@ pub unsafe extern "C" fn todos_count_get(ptr: *const Todos) -> u64 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn todos_add(ptr: *mut Todos, description_str: *const c_ushort, description_len: c_int) -> () {
+pub unsafe extern "C" fn todos_add(ptr: *mut Todos, description_str: *const c_ushort, description_len: c_int) {
     let mut description = String::new();
     set_string_from_utf16(&mut description, description_str, description_len);
     let o = &mut *ptr;
-    let r = o.add(description);
-    r
+    o.add(description)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn todos_clear_completed(ptr: *mut Todos) -> () {
+pub unsafe extern "C" fn todos_clear_completed(ptr: *mut Todos) {
     let o = &mut *ptr;
-    let r = o.clear_completed();
-    r
+    o.clear_completed()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn todos_remove(ptr: *mut Todos, index: u64) -> bool {
     let o = &mut *ptr;
-    let r = o.remove(index);
-    r
+    o.remove(index)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn todos_set_all(ptr: *mut Todos, completed: bool) -> () {
+pub unsafe extern "C" fn todos_set_all(ptr: *mut Todos, completed: bool) {
     let o = &mut *ptr;
-    let r = o.set_all(completed);
-    r
+    o.set_all(completed)
 }
 
 #[no_mangle]
@@ -333,7 +329,7 @@ pub unsafe extern "C" fn todos_sort(
 #[no_mangle]
 pub unsafe extern "C" fn todos_data_completed(ptr: *const Todos, row: c_int) -> bool {
     let o = &*ptr;
-    o.completed(to_usize(row)).into()
+    o.completed(to_usize(row))
 }
 
 #[no_mangle]
