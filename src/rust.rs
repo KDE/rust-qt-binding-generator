@@ -1529,6 +1529,7 @@ pub fn write_implementation(conf: &Config) -> Result<()> {
         "#![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
+#![allow(unused_unit)]
 use {}{}::*;
 ",
         get_module_prefix(conf),
