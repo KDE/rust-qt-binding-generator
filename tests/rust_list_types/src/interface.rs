@@ -317,7 +317,7 @@ pub unsafe extern "C" fn list_data_bytearray(
 ) {
     let o = &*ptr;
     let data = o.bytearray(to_usize(row));
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 
@@ -443,7 +443,7 @@ pub unsafe extern "C" fn list_data_optional_bytearray(
     let o = &*ptr;
     let data = o.optional_bytearray(to_usize(row));
     if let Some(data) = data {
-        let s: *const c_char = data.as_ptr() as (*const c_char);
+        let s: *const c_char = data.as_ptr() as *const c_char;
         set(d, s, to_c_int(data.len()));
     }
 }
@@ -472,7 +472,7 @@ pub unsafe extern "C" fn list_data_optional_string(
     let o = &*ptr;
     let data = o.optional_string(to_usize(row));
     if let Some(data) = data {
-        let s: *const c_char = data.as_ptr() as (*const c_char);
+        let s: *const c_char = data.as_ptr() as *const c_char;
         set(d, s, to_c_int(data.len()));
     }
 }
@@ -501,7 +501,7 @@ pub unsafe extern "C" fn list_data_string(
 ) {
     let o = &*ptr;
     let data = o.string(to_usize(row));
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 

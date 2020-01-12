@@ -105,7 +105,7 @@ pub unsafe extern "C" fn simple_message_get(
 ) {
     let o = &*ptr;
     let v = o.message();
-    let s: *const c_char = v.as_ptr() as (*const c_char);
+    let s: *const c_char = v.as_ptr() as *const c_char;
     set(p, s, to_c_int(v.len()));
 }
 

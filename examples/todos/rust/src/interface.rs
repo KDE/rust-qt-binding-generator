@@ -348,7 +348,7 @@ pub unsafe extern "C" fn todos_data_description(
 ) {
     let o = &*ptr;
     let data = o.description(to_usize(row));
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 

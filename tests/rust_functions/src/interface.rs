@@ -114,7 +114,7 @@ pub unsafe extern "C" fn person_user_name_get(
 ) {
     let o = &*ptr;
     let v = o.user_name();
-    let s: *const c_char = v.as_ptr() as (*const c_char);
+    let s: *const c_char = v.as_ptr() as *const c_char;
     set(p, s, to_c_int(v.len()));
 }
 
@@ -146,7 +146,7 @@ pub unsafe extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ush
     set_string_from_utf16(&mut name, name_str, name_len);
     let o = &*ptr;
     let r = o.greet(name);
-    let s: *const c_char = r.as_ptr() as (*const c_char);
+    let s: *const c_char = r.as_ptr() as *const c_char;
     set(d, s, r.len() as i32);
 }
 
@@ -158,7 +158,7 @@ pub unsafe extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_u
     set_string_from_utf16(&mut suffix, suffix_str, suffix_len);
     let o = &*ptr;
     let r = o.quote(prefix, suffix);
-    let s: *const c_char = r.as_ptr() as (*const c_char);
+    let s: *const c_char = r.as_ptr() as *const c_char;
     set(d, s, r.len() as i32);
 }
 
@@ -168,7 +168,7 @@ pub unsafe extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *con
     let suffix = { slice::from_raw_parts(suffix_str as *const u8, to_usize(suffix_len)) };
     let o = &*ptr;
     let r = o.quote_bytes(prefix, suffix);
-    let s: *const c_char = r.as_ptr() as (*const c_char);
+    let s: *const c_char = r.as_ptr() as *const c_char;
     set(d, s, r.len() as i32);
 }
 

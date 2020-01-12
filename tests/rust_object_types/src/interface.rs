@@ -358,7 +358,7 @@ pub unsafe extern "C" fn object_bytearray_get(
 ) {
     let o = &*ptr;
     let v = o.bytearray();
-    let s: *const c_char = v.as_ptr() as (*const c_char);
+    let s: *const c_char = v.as_ptr() as *const c_char;
     set(p, s, to_c_int(v.len()));
 }
 
@@ -457,7 +457,7 @@ pub unsafe extern "C" fn object_optional_bytearray_get(
     let o = &*ptr;
     let v = o.optional_bytearray();
     if let Some(v) = v {
-        let s: *const c_char = v.as_ptr() as (*const c_char);
+        let s: *const c_char = v.as_ptr() as *const c_char;
         set(p, s, to_c_int(v.len()));
     }
 }
@@ -484,7 +484,7 @@ pub unsafe extern "C" fn object_optional_string_get(
     let o = &*ptr;
     let v = o.optional_string();
     if let Some(v) = v {
-        let s: *const c_char = v.as_ptr() as (*const c_char);
+        let s: *const c_char = v.as_ptr() as *const c_char;
         set(p, s, to_c_int(v.len()));
     }
 }
@@ -530,7 +530,7 @@ pub unsafe extern "C" fn object_string_get(
 ) {
     let o = &*ptr;
     let v = o.string();
-    let s: *const c_char = v.as_ptr() as (*const c_char);
+    let s: *const c_char = v.as_ptr() as *const c_char;
     set(p, s, to_c_int(v.len()));
 }
 
@@ -550,7 +550,7 @@ pub unsafe extern "C" fn object_string_by_function_get(
 ) {
     let o = &*ptr;
     o.string_by_function(|v| {
-        let s: *const c_char = v.as_ptr() as (*const c_char);
+        let s: *const c_char = v.as_ptr() as *const c_char;
         set(p, s, to_c_int(v.len()));
     });
 }

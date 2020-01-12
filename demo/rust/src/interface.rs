@@ -766,7 +766,7 @@ pub unsafe extern "C" fn file_system_tree_path_get(
     let o = &*ptr;
     let v = o.path();
     if let Some(v) = v {
-        let s: *const c_char = v.as_ptr() as (*const c_char);
+        let s: *const c_char = v.as_ptr() as *const c_char;
         set(p, s, to_c_int(v.len()));
     }
 }
@@ -854,7 +854,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_icon(
 ) {
     let o = &*ptr;
     let data = o.file_icon(index);
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 
@@ -866,7 +866,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_name(
 ) {
     let o = &*ptr;
     let data = o.file_name(index);
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 
@@ -879,7 +879,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_path(
     let o = &*ptr;
     let data = o.file_path(index);
     if let Some(data) = data {
-        let s: *const c_char = data.as_ptr() as (*const c_char);
+        let s: *const c_char = data.as_ptr() as *const c_char;
         set(d, s, to_c_int(data.len()));
     }
 }
@@ -1144,7 +1144,7 @@ pub unsafe extern "C" fn processes_data_cmd(
 ) {
     let o = &*ptr;
     let data = o.cmd(index);
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 
@@ -1174,7 +1174,7 @@ pub unsafe extern "C" fn processes_data_name(
 ) {
     let o = &*ptr;
     let data = o.name(index);
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 

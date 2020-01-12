@@ -304,7 +304,7 @@ pub unsafe extern "C" fn persons_data_user_name(
 ) {
     let o = &*ptr;
     let data = o.user_name(index);
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }
 
