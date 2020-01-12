@@ -3,7 +3,7 @@ name = "rust_objects"
 version = "1.0.0"
 
 [dependencies]
-libc = "*"
+libc = "0.2"
 
 [lib]
 name = "rust"

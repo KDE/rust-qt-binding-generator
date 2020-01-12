@@ -5,7 +5,7 @@ build = "build.rs"
 links = "qt_widgets_cargo"
 
 [dependencies]
-libc = "*"
+libc = "0.2"
 
 [build-dependencies]
 rust_qt_binding_generator = { path = "../.." }

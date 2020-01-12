@@ -3,7 +3,7 @@ name = "rust"
 version = "0.1.0"
 
 [dependencies]
-libc = "*"
+libc = "0.2"
 sysinfo = "0.4.1"
 
 [lib]
