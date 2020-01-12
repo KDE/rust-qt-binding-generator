@@ -1,3 +1,10 @@
+0.3.5 (2020-01-12)
+ - Add project template with .ui file.
+ - Update dependencies.
+ - Omit parentheses from generated 'as (*const c_char) statements.
+ - Do not warn about unused units.
+ - Fix undefined reference when linking with Cargo.
+ - Bugfix: write .into() for Option<> return types.
 0.3.4 (2019-02-25)
  - Allow explicit adding of include directories and libraries to link
 0.3.3 (2019-02-24)
