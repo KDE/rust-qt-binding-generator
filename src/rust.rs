@@ -287,7 +287,7 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
         writeln!(r, ";")?;
         writeln!(
             r,
-            "    let s: *const c_char = r.as_ptr() as (*const c_char);
+            "    let s: *const c_char = r.as_ptr() as *const c_char;
     set(d, s, r.len() as i32);"
         )?;
     } else {
@@ -670,7 +670,7 @@ pub unsafe extern \"C\" fn {}_get(
 ) {{
     let o = &*ptr;
     o.{}(|v| {{
-        let s: *const c_char = v.as_ptr() as (*const c_char);
+        let s: *const c_char = v.as_ptr() as *const c_char;
         set(p, s, to_c_int(v.len()));
     }});
 }}",
@@ -691,7 +691,7 @@ pub unsafe extern \"C\" fn {}_get(
 ) {{
     let o = &*ptr;
     let v = o.{}();
-    let s: *const c_char = v.as_ptr() as (*const c_char);
+    let s: *const c_char = v.as_ptr() as *const c_char;
     set(p, s, to_c_int(v.len()));
 }}",
                     base,
@@ -743,7 +743,7 @@ pub unsafe extern \"C\" fn {}_get(
     let o = &*ptr;
     let v = o.{}();
     if let Some(v) = v {{
-        let s: *const c_char = v.as_ptr() as (*const c_char);
+        let s: *const c_char = v.as_ptr() as *const c_char;
         set(p, s, to_c_int(v.len()));
     }}
 }}",
@@ -978,7 +978,7 @@ pub unsafe extern \"C\" fn {}_data_{}(
 ) {{
     let o = &*ptr;
     let data = o.{1}({});
-    let s: *const c_char = data.as_ptr() as (*const c_char);
+    let s: *const c_char = data.as_ptr() as *const c_char;
     set(d, s, to_c_int(data.len()));
 }}",
                     lcname,
@@ -1001,7 +1001,7 @@ pub unsafe extern \"C\" fn {}_data_{}(
     let o = &*ptr;
     let data = o.{1}({});
     if let Some(data) = data {{
-        let s: *const c_char = data.as_ptr() as (*const c_char);
+        let s: *const c_char = data.as_ptr() as *const c_char;
         set(d, s, to_c_int(data.len()));
     }}
 }}",
