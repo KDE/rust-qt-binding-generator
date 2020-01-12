@@ -1,8 +1,8 @@
 extern crate cc;
 
+use serde_xml_rs::from_str;
 use super::{generate_bindings, read_bindings_file, Config};
 use regex::Regex;
-use serde_xml_rs::deserialize;
 use std::env::var;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -22,9 +22,9 @@ struct QResource {
 
 /// Parse the qrc file, panic if it fails.
 fn read_qrc(qrc: &Path) -> RCC {
-    let bytes =
-        ::std::fs::read(qrc).unwrap_or_else(|e| panic!("Could not read {}: {}", qrc.display(), e));
-    let mut rcc: RCC = deserialize(&bytes[..])
+    let xml =
+        std::fs::read_to_string(qrc).unwrap_or_else(|e| panic!("Could not read as {} as UTF-8: {}", qrc.display(), e));
+    let mut rcc: RCC = from_str(&xml)
         .unwrap_or_else(|e| panic!("could not parse {}: {}", qrc.display(), e));
     for qresource in &mut rcc.qresource {
         for file in &mut qresource.file {
