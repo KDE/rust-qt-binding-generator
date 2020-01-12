@@ -1,7 +1,7 @@
 [Desktop Entry]
 Categories=Qt;KDE;
 Comment=
-Exec=elisa %U
+Exec=rust_qt_binding_generatorelisa %U
 GenericName=Programming Binding Generator
 GenericName[ca]=Generador de vincles de programació
 GenericName[ca@valencia]=Generador de vincles de programació
