@@ -35,7 +35,7 @@
   <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML</summary>
   <summary xml:lang="id">Menghasilkan jilid menggunakan kode Rust di Qt dan QML</summary>
   <summary xml:lang="it">Genera i binding per usare codice Rust in Qt e QML</summary>
-  <summary xml:lang="ko">Rust 코드를 Qt 및 QML에서 사용하기 위한 바인딩 생성</summary>
+  <summary xml:lang="ko">Rust 코드를 Qt 및 QML에서 사용하는 바인딩 생성</summary>
   <summary xml:lang="nl">Genereert bindings om Rust-code in Qt en QML te gebruiken</summary>
   <summary xml:lang="pl">Utwórz powiązania do używania kodu Rust w Qt oraz QML</summary>
   <summary xml:lang="pt">Gera interfaces para usar o código em Rust com o Qt e o QML</summary>
