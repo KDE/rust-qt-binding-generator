@@ -96,7 +96,7 @@ pub struct ListQObject {}
 
 pub struct ListEmitter {
     qobject: Arc<AtomicPtr<ListQObject>>,
-    new_data_ready: fn(*mut ListQObject),
+    new_data_ready: extern fn(*mut ListQObject),
 }
 
 unsafe impl Send for ListEmitter {}
@@ -129,17 +129,17 @@ impl ListEmitter {
 #[derive(Clone)]
 pub struct ListList {
     qobject: *mut ListQObject,
-    layout_about_to_be_changed: fn(*mut ListQObject),
-    layout_changed: fn(*mut ListQObject),
-    data_changed: fn(*mut ListQObject, usize, usize),
-    begin_reset_model: fn(*mut ListQObject),
-    end_reset_model: fn(*mut ListQObject),
-    begin_insert_rows: fn(*mut ListQObject, usize, usize),
-    end_insert_rows: fn(*mut ListQObject),
-    begin_move_rows: fn(*mut ListQObject, usize, usize, usize),
-    end_move_rows: fn(*mut ListQObject),
-    begin_remove_rows: fn(*mut ListQObject, usize, usize),
-    end_remove_rows: fn(*mut ListQObject),
+    layout_about_to_be_changed: extern fn(*mut ListQObject),
+    layout_changed: extern fn(*mut ListQObject),
+    data_changed: extern fn(*mut ListQObject, usize, usize),
+    begin_reset_model: extern fn(*mut ListQObject),
+    end_reset_model: extern fn(*mut ListQObject),
+    begin_insert_rows: extern fn(*mut ListQObject, usize, usize),
+    end_insert_rows: extern fn(*mut ListQObject),
+    begin_move_rows: extern fn(*mut ListQObject, usize, usize, usize),
+    end_move_rows: extern fn(*mut ListQObject),
+    begin_remove_rows: extern fn(*mut ListQObject, usize, usize),
+    end_remove_rows: extern fn(*mut ListQObject),
 }
 
 impl ListList {
@@ -226,18 +226,18 @@ pub trait ListTrait {
 #[no_mangle]
 pub extern "C" fn list_new(
     list: *mut ListQObject,
-    list_new_data_ready: fn(*mut ListQObject),
-    list_layout_about_to_be_changed: fn(*mut ListQObject),
-    list_layout_changed: fn(*mut ListQObject),
-    list_data_changed: fn(*mut ListQObject, usize, usize),
-    list_begin_reset_model: fn(*mut ListQObject),
-    list_end_reset_model: fn(*mut ListQObject),
-    list_begin_insert_rows: fn(*mut ListQObject, usize, usize),
-    list_end_insert_rows: fn(*mut ListQObject),
-    list_begin_move_rows: fn(*mut ListQObject, usize, usize, usize),
-    list_end_move_rows: fn(*mut ListQObject),
-    list_begin_remove_rows: fn(*mut ListQObject, usize, usize),
-    list_end_remove_rows: fn(*mut ListQObject),
+    list_new_data_ready: extern fn(*mut ListQObject),
+    list_layout_about_to_be_changed: extern fn(*mut ListQObject),
+    list_layout_changed: extern fn(*mut ListQObject),
+    list_data_changed: extern fn(*mut ListQObject, usize, usize),
+    list_begin_reset_model: extern fn(*mut ListQObject),
+    list_end_reset_model: extern fn(*mut ListQObject),
+    list_begin_insert_rows: extern fn(*mut ListQObject, usize, usize),
+    list_end_insert_rows: extern fn(*mut ListQObject),
+    list_begin_move_rows: extern fn(*mut ListQObject, usize, usize, usize),
+    list_end_move_rows: extern fn(*mut ListQObject),
+    list_begin_remove_rows: extern fn(*mut ListQObject, usize, usize),
+    list_end_remove_rows: extern fn(*mut ListQObject),
 ) -> *mut List {
     let list_emit = ListEmitter {
         qobject: Arc::new(AtomicPtr::new(list)),
@@ -313,7 +313,7 @@ pub unsafe extern "C" fn list_set_data_boolean(
 pub unsafe extern "C" fn list_data_bytearray(
     ptr: *const List, row: c_int,
     d: *mut QByteArray,
-    set: fn(*mut QByteArray, *const c_char, len: c_int),
+    set: extern fn(*mut QByteArray, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.bytearray(to_usize(row));
@@ -438,7 +438,7 @@ pub unsafe extern "C" fn list_set_data_optional_boolean_none(ptr: *mut List, row
 pub unsafe extern "C" fn list_data_optional_bytearray(
     ptr: *const List, row: c_int,
     d: *mut QByteArray,
-    set: fn(*mut QByteArray, *const c_char, len: c_int),
+    set: extern fn(*mut QByteArray, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.optional_bytearray(to_usize(row));
@@ -467,7 +467,7 @@ pub unsafe extern "C" fn list_set_data_optional_bytearray_none(ptr: *mut List, r
 pub unsafe extern "C" fn list_data_optional_string(
     ptr: *const List, row: c_int,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.optional_string(to_usize(row));
@@ -497,7 +497,7 @@ pub unsafe extern "C" fn list_set_data_optional_string_none(ptr: *mut List, row:
 pub unsafe extern "C" fn list_data_string(
     ptr: *const List, row: c_int,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.string(to_usize(row));

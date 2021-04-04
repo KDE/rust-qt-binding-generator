@@ -93,7 +93,7 @@ pub struct NoRoleQObject {}
 
 pub struct NoRoleEmitter {
     qobject: Arc<AtomicPtr<NoRoleQObject>>,
-    new_data_ready: fn(*mut NoRoleQObject),
+    new_data_ready: extern fn(*mut NoRoleQObject),
 }
 
 unsafe impl Send for NoRoleEmitter {}
@@ -126,17 +126,17 @@ impl NoRoleEmitter {
 #[derive(Clone)]
 pub struct NoRoleList {
     qobject: *mut NoRoleQObject,
-    layout_about_to_be_changed: fn(*mut NoRoleQObject),
-    layout_changed: fn(*mut NoRoleQObject),
-    data_changed: fn(*mut NoRoleQObject, usize, usize),
-    begin_reset_model: fn(*mut NoRoleQObject),
-    end_reset_model: fn(*mut NoRoleQObject),
-    begin_insert_rows: fn(*mut NoRoleQObject, usize, usize),
-    end_insert_rows: fn(*mut NoRoleQObject),
-    begin_move_rows: fn(*mut NoRoleQObject, usize, usize, usize),
-    end_move_rows: fn(*mut NoRoleQObject),
-    begin_remove_rows: fn(*mut NoRoleQObject, usize, usize),
-    end_remove_rows: fn(*mut NoRoleQObject),
+    layout_about_to_be_changed: extern fn(*mut NoRoleQObject),
+    layout_changed: extern fn(*mut NoRoleQObject),
+    data_changed: extern fn(*mut NoRoleQObject, usize, usize),
+    begin_reset_model: extern fn(*mut NoRoleQObject),
+    end_reset_model: extern fn(*mut NoRoleQObject),
+    begin_insert_rows: extern fn(*mut NoRoleQObject, usize, usize),
+    end_insert_rows: extern fn(*mut NoRoleQObject),
+    begin_move_rows: extern fn(*mut NoRoleQObject, usize, usize, usize),
+    end_move_rows: extern fn(*mut NoRoleQObject),
+    begin_remove_rows: extern fn(*mut NoRoleQObject, usize, usize),
+    end_remove_rows: extern fn(*mut NoRoleQObject),
 }
 
 impl NoRoleList {
@@ -195,18 +195,18 @@ pub trait NoRoleTrait {
 #[no_mangle]
 pub extern "C" fn no_role_new(
     no_role: *mut NoRoleQObject,
-    no_role_new_data_ready: fn(*mut NoRoleQObject),
-    no_role_layout_about_to_be_changed: fn(*mut NoRoleQObject),
-    no_role_layout_changed: fn(*mut NoRoleQObject),
-    no_role_data_changed: fn(*mut NoRoleQObject, usize, usize),
-    no_role_begin_reset_model: fn(*mut NoRoleQObject),
-    no_role_end_reset_model: fn(*mut NoRoleQObject),
-    no_role_begin_insert_rows: fn(*mut NoRoleQObject, usize, usize),
-    no_role_end_insert_rows: fn(*mut NoRoleQObject),
-    no_role_begin_move_rows: fn(*mut NoRoleQObject, usize, usize, usize),
-    no_role_end_move_rows: fn(*mut NoRoleQObject),
-    no_role_begin_remove_rows: fn(*mut NoRoleQObject, usize, usize),
-    no_role_end_remove_rows: fn(*mut NoRoleQObject),
+    no_role_new_data_ready: extern fn(*mut NoRoleQObject),
+    no_role_layout_about_to_be_changed: extern fn(*mut NoRoleQObject),
+    no_role_layout_changed: extern fn(*mut NoRoleQObject),
+    no_role_data_changed: extern fn(*mut NoRoleQObject, usize, usize),
+    no_role_begin_reset_model: extern fn(*mut NoRoleQObject),
+    no_role_end_reset_model: extern fn(*mut NoRoleQObject),
+    no_role_begin_insert_rows: extern fn(*mut NoRoleQObject, usize, usize),
+    no_role_end_insert_rows: extern fn(*mut NoRoleQObject),
+    no_role_begin_move_rows: extern fn(*mut NoRoleQObject, usize, usize, usize),
+    no_role_end_move_rows: extern fn(*mut NoRoleQObject),
+    no_role_begin_remove_rows: extern fn(*mut NoRoleQObject, usize, usize),
+    no_role_end_remove_rows: extern fn(*mut NoRoleQObject),
 ) -> *mut NoRole {
     let no_role_emit = NoRoleEmitter {
         qobject: Arc::new(AtomicPtr::new(no_role)),
@@ -282,7 +282,7 @@ pub unsafe extern "C" fn no_role_set_data_user_age(
 pub unsafe extern "C" fn no_role_data_user_name(
     ptr: *const NoRole, row: c_int,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.user_name(to_usize(row));
@@ -305,7 +305,7 @@ pub struct PersonsQObject {}
 
 pub struct PersonsEmitter {
     qobject: Arc<AtomicPtr<PersonsQObject>>,
-    new_data_ready: fn(*mut PersonsQObject),
+    new_data_ready: extern fn(*mut PersonsQObject),
 }
 
 unsafe impl Send for PersonsEmitter {}
@@ -338,17 +338,17 @@ impl PersonsEmitter {
 #[derive(Clone)]
 pub struct PersonsList {
     qobject: *mut PersonsQObject,
-    layout_about_to_be_changed: fn(*mut PersonsQObject),
-    layout_changed: fn(*mut PersonsQObject),
-    data_changed: fn(*mut PersonsQObject, usize, usize),
-    begin_reset_model: fn(*mut PersonsQObject),
-    end_reset_model: fn(*mut PersonsQObject),
-    begin_insert_rows: fn(*mut PersonsQObject, usize, usize),
-    end_insert_rows: fn(*mut PersonsQObject),
-    begin_move_rows: fn(*mut PersonsQObject, usize, usize, usize),
-    end_move_rows: fn(*mut PersonsQObject),
-    begin_remove_rows: fn(*mut PersonsQObject, usize, usize),
-    end_remove_rows: fn(*mut PersonsQObject),
+    layout_about_to_be_changed: extern fn(*mut PersonsQObject),
+    layout_changed: extern fn(*mut PersonsQObject),
+    data_changed: extern fn(*mut PersonsQObject, usize, usize),
+    begin_reset_model: extern fn(*mut PersonsQObject),
+    end_reset_model: extern fn(*mut PersonsQObject),
+    begin_insert_rows: extern fn(*mut PersonsQObject, usize, usize),
+    end_insert_rows: extern fn(*mut PersonsQObject),
+    begin_move_rows: extern fn(*mut PersonsQObject, usize, usize, usize),
+    end_move_rows: extern fn(*mut PersonsQObject),
+    begin_remove_rows: extern fn(*mut PersonsQObject, usize, usize),
+    end_remove_rows: extern fn(*mut PersonsQObject),
 }
 
 impl PersonsList {
@@ -405,18 +405,18 @@ pub trait PersonsTrait {
 #[no_mangle]
 pub extern "C" fn persons_new(
     persons: *mut PersonsQObject,
-    persons_new_data_ready: fn(*mut PersonsQObject),
-    persons_layout_about_to_be_changed: fn(*mut PersonsQObject),
-    persons_layout_changed: fn(*mut PersonsQObject),
-    persons_data_changed: fn(*mut PersonsQObject, usize, usize),
-    persons_begin_reset_model: fn(*mut PersonsQObject),
-    persons_end_reset_model: fn(*mut PersonsQObject),
-    persons_begin_insert_rows: fn(*mut PersonsQObject, usize, usize),
-    persons_end_insert_rows: fn(*mut PersonsQObject),
-    persons_begin_move_rows: fn(*mut PersonsQObject, usize, usize, usize),
-    persons_end_move_rows: fn(*mut PersonsQObject),
-    persons_begin_remove_rows: fn(*mut PersonsQObject, usize, usize),
-    persons_end_remove_rows: fn(*mut PersonsQObject),
+    persons_new_data_ready: extern fn(*mut PersonsQObject),
+    persons_layout_about_to_be_changed: extern fn(*mut PersonsQObject),
+    persons_layout_changed: extern fn(*mut PersonsQObject),
+    persons_data_changed: extern fn(*mut PersonsQObject, usize, usize),
+    persons_begin_reset_model: extern fn(*mut PersonsQObject),
+    persons_end_reset_model: extern fn(*mut PersonsQObject),
+    persons_begin_insert_rows: extern fn(*mut PersonsQObject, usize, usize),
+    persons_end_insert_rows: extern fn(*mut PersonsQObject),
+    persons_begin_move_rows: extern fn(*mut PersonsQObject, usize, usize, usize),
+    persons_end_move_rows: extern fn(*mut PersonsQObject),
+    persons_begin_remove_rows: extern fn(*mut PersonsQObject, usize, usize),
+    persons_end_remove_rows: extern fn(*mut PersonsQObject),
 ) -> *mut Persons {
     let persons_emit = PersonsEmitter {
         qobject: Arc::new(AtomicPtr::new(persons)),
@@ -478,7 +478,7 @@ pub unsafe extern "C" fn persons_sort(
 pub unsafe extern "C" fn persons_data_user_name(
     ptr: *const Persons, row: c_int,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.user_name(to_usize(row));

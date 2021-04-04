@@ -76,7 +76,7 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
         } else {
             write!(
                 r,
-                ",\n    {}_{}_changed: fn(*mut {}QObject)",
+                ",\n    {}_{}_changed: extern fn(*mut {}QObject)",
                 snake_case(name),
                 snake_case(p_name),
                 o.name
@@ -86,14 +86,14 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
     if o.object_type == ObjectType::List {
         write!(
             r,
-            ",\n    {}_new_data_ready: fn(*mut {}QObject)",
+            ",\n    {}_new_data_ready: extern fn(*mut {}QObject)",
             snake_case(name),
             o.name
         )?;
     } else if o.object_type == ObjectType::Tree {
         write!(
             r,
-            ",\n    {}_new_data_ready: fn(*mut {}QObject, index: COption<usize>)",
+            ",\n    {}_new_data_ready: extern fn(*mut {}QObject, index: COption<usize>)",
             snake_case(name),
             o.name
         )?;
@@ -112,17 +112,17 @@ fn r_constructor_args_decl(r: &mut Vec<u8>, name: &str, o: &Object, conf: &Confi
         write!(
             r,
             ",
-    {2}_layout_about_to_be_changed: fn(*mut {0}QObject),
-    {2}_layout_changed: fn(*mut {0}QObject),
-    {2}_data_changed: fn(*mut {0}QObject, usize, usize),
-    {2}_begin_reset_model: fn(*mut {0}QObject),
-    {2}_end_reset_model: fn(*mut {0}QObject),
-    {2}_begin_insert_rows: fn(*mut {0}QObject,{1} usize, usize),
-    {2}_end_insert_rows: fn(*mut {0}QObject),
-    {2}_begin_move_rows: fn(*mut {0}QObject,{1} usize, usize,{3} usize),
-    {2}_end_move_rows: fn(*mut {0}QObject),
-    {2}_begin_remove_rows: fn(*mut {0}QObject,{1} usize, usize),
-    {2}_end_remove_rows: fn(*mut {0}QObject)",
+    {2}_layout_about_to_be_changed: extern fn(*mut {0}QObject),
+    {2}_layout_changed: extern fn(*mut {0}QObject),
+    {2}_data_changed: extern fn(*mut {0}QObject, usize, usize),
+    {2}_begin_reset_model: extern fn(*mut {0}QObject),
+    {2}_end_reset_model: extern fn(*mut {0}QObject),
+    {2}_begin_insert_rows: extern fn(*mut {0}QObject,{1} usize, usize),
+    {2}_end_insert_rows: extern fn(*mut {0}QObject),
+    {2}_begin_move_rows: extern fn(*mut {0}QObject,{1} usize, usize,{3} usize),
+    {2}_end_move_rows: extern fn(*mut {0}QObject),
+    {2}_begin_remove_rows: extern fn(*mut {0}QObject,{1} usize, usize),
+    {2}_end_remove_rows: extern fn(*mut {0}QObject)",
             o.name,
             index_decl,
             snake_case(name),
@@ -242,7 +242,7 @@ pub unsafe extern \"C\" fn {}_{}(ptr: *{} {}",
     if f.return_type.is_complex() {
         writeln!(
             r,
-            ", d: *mut {}, set: fn(*mut {0}, str: *const c_char, len: c_int)) {{",
+            ", d: *mut {}, set: extern fn(*mut {0}, str: *const c_char, len: c_int)) {{",
             f.return_type.name()
         )?;
     } else if f.return_type == SimpleType::Void {
@@ -313,17 +313,17 @@ pub struct {0}Emitter {{
         }
         writeln!(
             r,
-            "    {}_changed: fn(*mut {}QObject),",
+            "    {}_changed: extern fn(*mut {}QObject),",
             snake_case(name),
             o.name
         )?;
     }
     if o.object_type == ObjectType::List {
-        writeln!(r, "    new_data_ready: fn(*mut {}QObject),", o.name)?;
+        writeln!(r, "    new_data_ready: extern fn(*mut {}QObject),", o.name)?;
     } else if o.object_type == ObjectType::Tree {
         writeln!(
             r,
-            "    new_data_ready: fn(*mut {}QObject, index: COption<usize>),",
+            "    new_data_ready: extern fn(*mut {}QObject, index: COption<usize>),",
             o.name
         )?;
     }
@@ -436,17 +436,17 @@ impl {0}Emitter {{
 #[derive(Clone)]
 pub struct {0}{1} {{
     qobject: *mut {0}QObject,
-    layout_about_to_be_changed: fn(*mut {0}QObject),
-    layout_changed: fn(*mut {0}QObject),
-    data_changed: fn(*mut {0}QObject, usize, usize),
-    begin_reset_model: fn(*mut {0}QObject),
-    end_reset_model: fn(*mut {0}QObject),
-    begin_insert_rows: fn(*mut {0}QObject,{4} usize, usize),
-    end_insert_rows: fn(*mut {0}QObject),
-    begin_move_rows: fn(*mut {0}QObject,{4} usize, usize,{7} usize),
-    end_move_rows: fn(*mut {0}QObject),
-    begin_remove_rows: fn(*mut {0}QObject,{4} usize, usize),
-    end_remove_rows: fn(*mut {0}QObject),
+    layout_about_to_be_changed: extern fn(*mut {0}QObject),
+    layout_changed: extern fn(*mut {0}QObject),
+    data_changed: extern fn(*mut {0}QObject, usize, usize),
+    begin_reset_model: extern fn(*mut {0}QObject),
+    end_reset_model: extern fn(*mut {0}QObject),
+    begin_insert_rows: extern fn(*mut {0}QObject,{4} usize, usize),
+    end_insert_rows: extern fn(*mut {0}QObject),
+    begin_move_rows: extern fn(*mut {0}QObject,{4} usize, usize,{7} usize),
+    end_move_rows: extern fn(*mut {0}QObject),
+    begin_remove_rows: extern fn(*mut {0}QObject,{4} usize, usize),
+    end_remove_rows: extern fn(*mut {0}QObject),
 }}
 
 impl {0}{1} {{
@@ -666,7 +666,7 @@ pub unsafe extern \"C\" fn {}_get(ptr: *mut {}) -> *mut {} {{
 pub unsafe extern \"C\" fn {}_get(
     ptr: *const {},
     p: *mut {},
-    set: fn(*mut {2}, *const c_char, c_int),
+    set: extern fn(*mut {2}, *const c_char, c_int),
 ) {{
     let o = &*ptr;
     o.{}(|v| {{
@@ -687,7 +687,7 @@ pub unsafe extern \"C\" fn {}_get(
 pub unsafe extern \"C\" fn {}_get(
     ptr: *const {},
     p: *mut {},
-    set: fn(*mut {2}, *const c_char, c_int),
+    set: extern fn(*mut {2}, *const c_char, c_int),
 ) {{
     let o = &*ptr;
     let v = o.{}();
@@ -738,7 +738,7 @@ pub unsafe extern \"C\" fn {}_set(ptr: *mut {}, v: *const c_char, len: c_int) {{
 pub unsafe extern \"C\" fn {}_get(
     ptr: *const {},
     p: *mut {},
-    set: fn(*mut {2}, *const c_char, c_int),
+    set: extern fn(*mut {2}, *const c_char, c_int),
 ) {{
     let o = &*ptr;
     let v = o.{}();
@@ -974,7 +974,7 @@ pub unsafe extern \"C\" fn {1}_row(ptr: *const {0}, index: usize) -> c_int {{
 pub unsafe extern \"C\" fn {}_data_{}(
     ptr: *const {}{},
     d: *mut {},
-    set: fn(*mut {4}, *const c_char, len: c_int),
+    set: extern fn(*mut {4}, *const c_char, len: c_int),
 ) {{
     let o = &*ptr;
     let data = o.{1}({});
@@ -996,7 +996,7 @@ pub unsafe extern \"C\" fn {}_data_{}(
 pub unsafe extern \"C\" fn {}_data_{}(
     ptr: *const {}{},
     d: *mut {},
-    set: fn(*mut {4}, *const c_char, len: c_int),
+    set: extern fn(*mut {4}, *const c_char, len: c_int),
 ) {{
     let o = &*ptr;
     let data = o.{1}({});

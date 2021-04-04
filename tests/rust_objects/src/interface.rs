@@ -77,7 +77,7 @@ pub extern "C" fn group_new(
     group: *mut GroupQObject,
     person: *mut PersonQObject,
     object: *mut InnerObjectQObject,
-    object_description_changed: fn(*mut InnerObjectQObject),
+    object_description_changed: extern fn(*mut InnerObjectQObject),
 ) -> *mut Group {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(object)),
@@ -111,7 +111,7 @@ pub struct InnerObjectQObject {}
 
 pub struct InnerObjectEmitter {
     qobject: Arc<AtomicPtr<InnerObjectQObject>>,
-    description_changed: fn(*mut InnerObjectQObject),
+    description_changed: extern fn(*mut InnerObjectQObject),
 }
 
 unsafe impl Send for InnerObjectEmitter {}
@@ -151,7 +151,7 @@ pub trait InnerObjectTrait {
 #[no_mangle]
 pub extern "C" fn inner_object_new(
     inner_object: *mut InnerObjectQObject,
-    inner_object_description_changed: fn(*mut InnerObjectQObject),
+    inner_object_description_changed: extern fn(*mut InnerObjectQObject),
 ) -> *mut InnerObject {
     let inner_object_emit = InnerObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(inner_object)),
@@ -170,7 +170,7 @@ pub unsafe extern "C" fn inner_object_free(ptr: *mut InnerObject) {
 pub unsafe extern "C" fn inner_object_description_get(
     ptr: *const InnerObject,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.description();
@@ -224,7 +224,7 @@ pub trait PersonTrait {
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
     object: *mut InnerObjectQObject,
-    object_description_changed: fn(*mut InnerObjectQObject),
+    object_description_changed: extern fn(*mut InnerObjectQObject),
 ) -> *mut Person {
     let object_emit = InnerObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(object)),

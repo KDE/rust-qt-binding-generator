@@ -142,62 +142,62 @@ pub trait DemoTrait {
 pub extern "C" fn demo_new(
     demo: *mut DemoQObject,
     fibonacci: *mut FibonacciQObject,
-    fibonacci_input_changed: fn(*mut FibonacciQObject),
-    fibonacci_result_changed: fn(*mut FibonacciQObject),
+    fibonacci_input_changed: extern fn(*mut FibonacciQObject),
+    fibonacci_result_changed: extern fn(*mut FibonacciQObject),
     fibonacci_list: *mut FibonacciListQObject,
-    fibonacci_list_new_data_ready: fn(*mut FibonacciListQObject),
-    fibonacci_list_layout_about_to_be_changed: fn(*mut FibonacciListQObject),
-    fibonacci_list_layout_changed: fn(*mut FibonacciListQObject),
-    fibonacci_list_data_changed: fn(*mut FibonacciListQObject, usize, usize),
-    fibonacci_list_begin_reset_model: fn(*mut FibonacciListQObject),
-    fibonacci_list_end_reset_model: fn(*mut FibonacciListQObject),
-    fibonacci_list_begin_insert_rows: fn(*mut FibonacciListQObject, usize, usize),
-    fibonacci_list_end_insert_rows: fn(*mut FibonacciListQObject),
-    fibonacci_list_begin_move_rows: fn(*mut FibonacciListQObject, usize, usize, usize),
-    fibonacci_list_end_move_rows: fn(*mut FibonacciListQObject),
-    fibonacci_list_begin_remove_rows: fn(*mut FibonacciListQObject, usize, usize),
-    fibonacci_list_end_remove_rows: fn(*mut FibonacciListQObject),
+    fibonacci_list_new_data_ready: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_about_to_be_changed: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_changed: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_data_changed: extern fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_begin_reset_model: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_end_reset_model: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_insert_rows: extern fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_insert_rows: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_move_rows: extern fn(*mut FibonacciListQObject, usize, usize, usize),
+    fibonacci_list_end_move_rows: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_remove_rows: extern fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_remove_rows: extern fn(*mut FibonacciListQObject),
     file_system_tree: *mut FileSystemTreeQObject,
-    file_system_tree_path_changed: fn(*mut FileSystemTreeQObject),
-    file_system_tree_new_data_ready: fn(*mut FileSystemTreeQObject, index: COption<usize>),
-    file_system_tree_layout_about_to_be_changed: fn(*mut FileSystemTreeQObject),
-    file_system_tree_layout_changed: fn(*mut FileSystemTreeQObject),
-    file_system_tree_data_changed: fn(*mut FileSystemTreeQObject, usize, usize),
-    file_system_tree_begin_reset_model: fn(*mut FileSystemTreeQObject),
-    file_system_tree_end_reset_model: fn(*mut FileSystemTreeQObject),
-    file_system_tree_begin_insert_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_insert_rows: fn(*mut FileSystemTreeQObject),
-    file_system_tree_begin_move_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    file_system_tree_end_move_rows: fn(*mut FileSystemTreeQObject),
-    file_system_tree_begin_remove_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_remove_rows: fn(*mut FileSystemTreeQObject),
+    file_system_tree_path_changed: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_new_data_ready: extern fn(*mut FileSystemTreeQObject, index: COption<usize>),
+    file_system_tree_layout_about_to_be_changed: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_layout_changed: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_data_changed: extern fn(*mut FileSystemTreeQObject, usize, usize),
+    file_system_tree_begin_reset_model: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_end_reset_model: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_insert_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_insert_rows: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_move_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    file_system_tree_end_move_rows: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_remove_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_remove_rows: extern fn(*mut FileSystemTreeQObject),
     processes: *mut ProcessesQObject,
-    processes_active_changed: fn(*mut ProcessesQObject),
-    processes_new_data_ready: fn(*mut ProcessesQObject, index: COption<usize>),
-    processes_layout_about_to_be_changed: fn(*mut ProcessesQObject),
-    processes_layout_changed: fn(*mut ProcessesQObject),
-    processes_data_changed: fn(*mut ProcessesQObject, usize, usize),
-    processes_begin_reset_model: fn(*mut ProcessesQObject),
-    processes_end_reset_model: fn(*mut ProcessesQObject),
-    processes_begin_insert_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_insert_rows: fn(*mut ProcessesQObject),
-    processes_begin_move_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    processes_end_move_rows: fn(*mut ProcessesQObject),
-    processes_begin_remove_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_remove_rows: fn(*mut ProcessesQObject),
+    processes_active_changed: extern fn(*mut ProcessesQObject),
+    processes_new_data_ready: extern fn(*mut ProcessesQObject, index: COption<usize>),
+    processes_layout_about_to_be_changed: extern fn(*mut ProcessesQObject),
+    processes_layout_changed: extern fn(*mut ProcessesQObject),
+    processes_data_changed: extern fn(*mut ProcessesQObject, usize, usize),
+    processes_begin_reset_model: extern fn(*mut ProcessesQObject),
+    processes_end_reset_model: extern fn(*mut ProcessesQObject),
+    processes_begin_insert_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_insert_rows: extern fn(*mut ProcessesQObject),
+    processes_begin_move_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    processes_end_move_rows: extern fn(*mut ProcessesQObject),
+    processes_begin_remove_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_remove_rows: extern fn(*mut ProcessesQObject),
     time_series: *mut TimeSeriesQObject,
-    time_series_new_data_ready: fn(*mut TimeSeriesQObject),
-    time_series_layout_about_to_be_changed: fn(*mut TimeSeriesQObject),
-    time_series_layout_changed: fn(*mut TimeSeriesQObject),
-    time_series_data_changed: fn(*mut TimeSeriesQObject, usize, usize),
-    time_series_begin_reset_model: fn(*mut TimeSeriesQObject),
-    time_series_end_reset_model: fn(*mut TimeSeriesQObject),
-    time_series_begin_insert_rows: fn(*mut TimeSeriesQObject, usize, usize),
-    time_series_end_insert_rows: fn(*mut TimeSeriesQObject),
-    time_series_begin_move_rows: fn(*mut TimeSeriesQObject, usize, usize, usize),
-    time_series_end_move_rows: fn(*mut TimeSeriesQObject),
-    time_series_begin_remove_rows: fn(*mut TimeSeriesQObject, usize, usize),
-    time_series_end_remove_rows: fn(*mut TimeSeriesQObject),
+    time_series_new_data_ready: extern fn(*mut TimeSeriesQObject),
+    time_series_layout_about_to_be_changed: extern fn(*mut TimeSeriesQObject),
+    time_series_layout_changed: extern fn(*mut TimeSeriesQObject),
+    time_series_data_changed: extern fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_begin_reset_model: extern fn(*mut TimeSeriesQObject),
+    time_series_end_reset_model: extern fn(*mut TimeSeriesQObject),
+    time_series_begin_insert_rows: extern fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_insert_rows: extern fn(*mut TimeSeriesQObject),
+    time_series_begin_move_rows: extern fn(*mut TimeSeriesQObject, usize, usize, usize),
+    time_series_end_move_rows: extern fn(*mut TimeSeriesQObject),
+    time_series_begin_remove_rows: extern fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_remove_rows: extern fn(*mut TimeSeriesQObject),
 ) -> *mut Demo {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(AtomicPtr::new(fibonacci)),
@@ -329,8 +329,8 @@ pub struct FibonacciQObject {}
 
 pub struct FibonacciEmitter {
     qobject: Arc<AtomicPtr<FibonacciQObject>>,
-    input_changed: fn(*mut FibonacciQObject),
-    result_changed: fn(*mut FibonacciQObject),
+    input_changed: extern fn(*mut FibonacciQObject),
+    result_changed: extern fn(*mut FibonacciQObject),
 }
 
 unsafe impl Send for FibonacciEmitter {}
@@ -378,8 +378,8 @@ pub trait FibonacciTrait {
 #[no_mangle]
 pub extern "C" fn fibonacci_new(
     fibonacci: *mut FibonacciQObject,
-    fibonacci_input_changed: fn(*mut FibonacciQObject),
-    fibonacci_result_changed: fn(*mut FibonacciQObject),
+    fibonacci_input_changed: extern fn(*mut FibonacciQObject),
+    fibonacci_result_changed: extern fn(*mut FibonacciQObject),
 ) -> *mut Fibonacci {
     let fibonacci_emit = FibonacciEmitter {
         qobject: Arc::new(AtomicPtr::new(fibonacci)),
@@ -414,7 +414,7 @@ pub struct FibonacciListQObject {}
 
 pub struct FibonacciListEmitter {
     qobject: Arc<AtomicPtr<FibonacciListQObject>>,
-    new_data_ready: fn(*mut FibonacciListQObject),
+    new_data_ready: extern fn(*mut FibonacciListQObject),
 }
 
 unsafe impl Send for FibonacciListEmitter {}
@@ -447,17 +447,17 @@ impl FibonacciListEmitter {
 #[derive(Clone)]
 pub struct FibonacciListList {
     qobject: *mut FibonacciListQObject,
-    layout_about_to_be_changed: fn(*mut FibonacciListQObject),
-    layout_changed: fn(*mut FibonacciListQObject),
-    data_changed: fn(*mut FibonacciListQObject, usize, usize),
-    begin_reset_model: fn(*mut FibonacciListQObject),
-    end_reset_model: fn(*mut FibonacciListQObject),
-    begin_insert_rows: fn(*mut FibonacciListQObject, usize, usize),
-    end_insert_rows: fn(*mut FibonacciListQObject),
-    begin_move_rows: fn(*mut FibonacciListQObject, usize, usize, usize),
-    end_move_rows: fn(*mut FibonacciListQObject),
-    begin_remove_rows: fn(*mut FibonacciListQObject, usize, usize),
-    end_remove_rows: fn(*mut FibonacciListQObject),
+    layout_about_to_be_changed: extern fn(*mut FibonacciListQObject),
+    layout_changed: extern fn(*mut FibonacciListQObject),
+    data_changed: extern fn(*mut FibonacciListQObject, usize, usize),
+    begin_reset_model: extern fn(*mut FibonacciListQObject),
+    end_reset_model: extern fn(*mut FibonacciListQObject),
+    begin_insert_rows: extern fn(*mut FibonacciListQObject, usize, usize),
+    end_insert_rows: extern fn(*mut FibonacciListQObject),
+    begin_move_rows: extern fn(*mut FibonacciListQObject, usize, usize, usize),
+    end_move_rows: extern fn(*mut FibonacciListQObject),
+    begin_remove_rows: extern fn(*mut FibonacciListQObject, usize, usize),
+    end_remove_rows: extern fn(*mut FibonacciListQObject),
 }
 
 impl FibonacciListList {
@@ -514,18 +514,18 @@ pub trait FibonacciListTrait {
 #[no_mangle]
 pub extern "C" fn fibonacci_list_new(
     fibonacci_list: *mut FibonacciListQObject,
-    fibonacci_list_new_data_ready: fn(*mut FibonacciListQObject),
-    fibonacci_list_layout_about_to_be_changed: fn(*mut FibonacciListQObject),
-    fibonacci_list_layout_changed: fn(*mut FibonacciListQObject),
-    fibonacci_list_data_changed: fn(*mut FibonacciListQObject, usize, usize),
-    fibonacci_list_begin_reset_model: fn(*mut FibonacciListQObject),
-    fibonacci_list_end_reset_model: fn(*mut FibonacciListQObject),
-    fibonacci_list_begin_insert_rows: fn(*mut FibonacciListQObject, usize, usize),
-    fibonacci_list_end_insert_rows: fn(*mut FibonacciListQObject),
-    fibonacci_list_begin_move_rows: fn(*mut FibonacciListQObject, usize, usize, usize),
-    fibonacci_list_end_move_rows: fn(*mut FibonacciListQObject),
-    fibonacci_list_begin_remove_rows: fn(*mut FibonacciListQObject, usize, usize),
-    fibonacci_list_end_remove_rows: fn(*mut FibonacciListQObject),
+    fibonacci_list_new_data_ready: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_about_to_be_changed: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_layout_changed: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_data_changed: extern fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_begin_reset_model: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_end_reset_model: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_insert_rows: extern fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_insert_rows: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_move_rows: extern fn(*mut FibonacciListQObject, usize, usize, usize),
+    fibonacci_list_end_move_rows: extern fn(*mut FibonacciListQObject),
+    fibonacci_list_begin_remove_rows: extern fn(*mut FibonacciListQObject, usize, usize),
+    fibonacci_list_end_remove_rows: extern fn(*mut FibonacciListQObject),
 ) -> *mut FibonacciList {
     let fibonacci_list_emit = FibonacciListEmitter {
         qobject: Arc::new(AtomicPtr::new(fibonacci_list)),
@@ -599,8 +599,8 @@ pub struct FileSystemTreeQObject {}
 
 pub struct FileSystemTreeEmitter {
     qobject: Arc<AtomicPtr<FileSystemTreeQObject>>,
-    path_changed: fn(*mut FileSystemTreeQObject),
-    new_data_ready: fn(*mut FileSystemTreeQObject, index: COption<usize>),
+    path_changed: extern fn(*mut FileSystemTreeQObject),
+    new_data_ready: extern fn(*mut FileSystemTreeQObject, index: COption<usize>),
 }
 
 unsafe impl Send for FileSystemTreeEmitter {}
@@ -640,17 +640,17 @@ impl FileSystemTreeEmitter {
 #[derive(Clone)]
 pub struct FileSystemTreeTree {
     qobject: *mut FileSystemTreeQObject,
-    layout_about_to_be_changed: fn(*mut FileSystemTreeQObject),
-    layout_changed: fn(*mut FileSystemTreeQObject),
-    data_changed: fn(*mut FileSystemTreeQObject, usize, usize),
-    begin_reset_model: fn(*mut FileSystemTreeQObject),
-    end_reset_model: fn(*mut FileSystemTreeQObject),
-    begin_insert_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    end_insert_rows: fn(*mut FileSystemTreeQObject),
-    begin_move_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
-    end_move_rows: fn(*mut FileSystemTreeQObject),
-    begin_remove_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    end_remove_rows: fn(*mut FileSystemTreeQObject),
+    layout_about_to_be_changed: extern fn(*mut FileSystemTreeQObject),
+    layout_changed: extern fn(*mut FileSystemTreeQObject),
+    data_changed: extern fn(*mut FileSystemTreeQObject, usize, usize),
+    begin_reset_model: extern fn(*mut FileSystemTreeQObject),
+    end_reset_model: extern fn(*mut FileSystemTreeQObject),
+    begin_insert_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    end_insert_rows: extern fn(*mut FileSystemTreeQObject),
+    begin_move_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: extern fn(*mut FileSystemTreeQObject),
+    begin_remove_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    end_remove_rows: extern fn(*mut FileSystemTreeQObject),
 }
 
 impl FileSystemTreeTree {
@@ -715,19 +715,19 @@ pub trait FileSystemTreeTrait {
 #[no_mangle]
 pub extern "C" fn file_system_tree_new(
     file_system_tree: *mut FileSystemTreeQObject,
-    file_system_tree_path_changed: fn(*mut FileSystemTreeQObject),
-    file_system_tree_new_data_ready: fn(*mut FileSystemTreeQObject, index: COption<usize>),
-    file_system_tree_layout_about_to_be_changed: fn(*mut FileSystemTreeQObject),
-    file_system_tree_layout_changed: fn(*mut FileSystemTreeQObject),
-    file_system_tree_data_changed: fn(*mut FileSystemTreeQObject, usize, usize),
-    file_system_tree_begin_reset_model: fn(*mut FileSystemTreeQObject),
-    file_system_tree_end_reset_model: fn(*mut FileSystemTreeQObject),
-    file_system_tree_begin_insert_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_insert_rows: fn(*mut FileSystemTreeQObject),
-    file_system_tree_begin_move_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    file_system_tree_end_move_rows: fn(*mut FileSystemTreeQObject),
-    file_system_tree_begin_remove_rows: fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
-    file_system_tree_end_remove_rows: fn(*mut FileSystemTreeQObject),
+    file_system_tree_path_changed: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_new_data_ready: extern fn(*mut FileSystemTreeQObject, index: COption<usize>),
+    file_system_tree_layout_about_to_be_changed: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_layout_changed: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_data_changed: extern fn(*mut FileSystemTreeQObject, usize, usize),
+    file_system_tree_begin_reset_model: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_end_reset_model: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_insert_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_insert_rows: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_move_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    file_system_tree_end_move_rows: extern fn(*mut FileSystemTreeQObject),
+    file_system_tree_begin_remove_rows: extern fn(*mut FileSystemTreeQObject, index: COption<usize>, usize, usize),
+    file_system_tree_end_remove_rows: extern fn(*mut FileSystemTreeQObject),
 ) -> *mut FileSystemTree {
     let file_system_tree_emit = FileSystemTreeEmitter {
         qobject: Arc::new(AtomicPtr::new(file_system_tree)),
@@ -761,7 +761,7 @@ pub unsafe extern "C" fn file_system_tree_free(ptr: *mut FileSystemTree) {
 pub unsafe extern "C" fn file_system_tree_path_get(
     ptr: *const FileSystemTree,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.path();
@@ -850,7 +850,7 @@ pub unsafe extern "C" fn file_system_tree_row(ptr: *const FileSystemTree, index:
 pub unsafe extern "C" fn file_system_tree_data_file_icon(
     ptr: *const FileSystemTree, index: usize,
     d: *mut QByteArray,
-    set: fn(*mut QByteArray, *const c_char, len: c_int),
+    set: extern fn(*mut QByteArray, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.file_icon(index);
@@ -862,7 +862,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_icon(
 pub unsafe extern "C" fn file_system_tree_data_file_name(
     ptr: *const FileSystemTree, index: usize,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.file_name(index);
@@ -874,7 +874,7 @@ pub unsafe extern "C" fn file_system_tree_data_file_name(
 pub unsafe extern "C" fn file_system_tree_data_file_path(
     ptr: *const FileSystemTree, index: usize,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.file_path(index);
@@ -906,8 +906,8 @@ pub struct ProcessesQObject {}
 
 pub struct ProcessesEmitter {
     qobject: Arc<AtomicPtr<ProcessesQObject>>,
-    active_changed: fn(*mut ProcessesQObject),
-    new_data_ready: fn(*mut ProcessesQObject, index: COption<usize>),
+    active_changed: extern fn(*mut ProcessesQObject),
+    new_data_ready: extern fn(*mut ProcessesQObject, index: COption<usize>),
 }
 
 unsafe impl Send for ProcessesEmitter {}
@@ -947,17 +947,17 @@ impl ProcessesEmitter {
 #[derive(Clone)]
 pub struct ProcessesTree {
     qobject: *mut ProcessesQObject,
-    layout_about_to_be_changed: fn(*mut ProcessesQObject),
-    layout_changed: fn(*mut ProcessesQObject),
-    data_changed: fn(*mut ProcessesQObject, usize, usize),
-    begin_reset_model: fn(*mut ProcessesQObject),
-    end_reset_model: fn(*mut ProcessesQObject),
-    begin_insert_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
-    end_insert_rows: fn(*mut ProcessesQObject),
-    begin_move_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
-    end_move_rows: fn(*mut ProcessesQObject),
-    begin_remove_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
-    end_remove_rows: fn(*mut ProcessesQObject),
+    layout_about_to_be_changed: extern fn(*mut ProcessesQObject),
+    layout_changed: extern fn(*mut ProcessesQObject),
+    data_changed: extern fn(*mut ProcessesQObject, usize, usize),
+    begin_reset_model: extern fn(*mut ProcessesQObject),
+    end_reset_model: extern fn(*mut ProcessesQObject),
+    begin_insert_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    end_insert_rows: extern fn(*mut ProcessesQObject),
+    begin_move_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, dest: COption<usize>, usize),
+    end_move_rows: extern fn(*mut ProcessesQObject),
+    begin_remove_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    end_remove_rows: extern fn(*mut ProcessesQObject),
 }
 
 impl ProcessesTree {
@@ -1023,19 +1023,19 @@ pub trait ProcessesTrait {
 #[no_mangle]
 pub extern "C" fn processes_new(
     processes: *mut ProcessesQObject,
-    processes_active_changed: fn(*mut ProcessesQObject),
-    processes_new_data_ready: fn(*mut ProcessesQObject, index: COption<usize>),
-    processes_layout_about_to_be_changed: fn(*mut ProcessesQObject),
-    processes_layout_changed: fn(*mut ProcessesQObject),
-    processes_data_changed: fn(*mut ProcessesQObject, usize, usize),
-    processes_begin_reset_model: fn(*mut ProcessesQObject),
-    processes_end_reset_model: fn(*mut ProcessesQObject),
-    processes_begin_insert_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_insert_rows: fn(*mut ProcessesQObject),
-    processes_begin_move_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
-    processes_end_move_rows: fn(*mut ProcessesQObject),
-    processes_begin_remove_rows: fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
-    processes_end_remove_rows: fn(*mut ProcessesQObject),
+    processes_active_changed: extern fn(*mut ProcessesQObject),
+    processes_new_data_ready: extern fn(*mut ProcessesQObject, index: COption<usize>),
+    processes_layout_about_to_be_changed: extern fn(*mut ProcessesQObject),
+    processes_layout_changed: extern fn(*mut ProcessesQObject),
+    processes_data_changed: extern fn(*mut ProcessesQObject, usize, usize),
+    processes_begin_reset_model: extern fn(*mut ProcessesQObject),
+    processes_end_reset_model: extern fn(*mut ProcessesQObject),
+    processes_begin_insert_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_insert_rows: extern fn(*mut ProcessesQObject),
+    processes_begin_move_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize, index: COption<usize>, usize),
+    processes_end_move_rows: extern fn(*mut ProcessesQObject),
+    processes_begin_remove_rows: extern fn(*mut ProcessesQObject, index: COption<usize>, usize, usize),
+    processes_end_remove_rows: extern fn(*mut ProcessesQObject),
 ) -> *mut Processes {
     let processes_emit = ProcessesEmitter {
         qobject: Arc::new(AtomicPtr::new(processes)),
@@ -1140,7 +1140,7 @@ pub unsafe extern "C" fn processes_row(ptr: *const Processes, index: usize) -> c
 pub unsafe extern "C" fn processes_data_cmd(
     ptr: *const Processes, index: usize,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.cmd(index);
@@ -1170,7 +1170,7 @@ pub unsafe extern "C" fn processes_data_memory(ptr: *const Processes, index: usi
 pub unsafe extern "C" fn processes_data_name(
     ptr: *const Processes, index: usize,
     d: *mut QString,
-    set: fn(*mut QString, *const c_char, len: c_int),
+    set: extern fn(*mut QString, *const c_char, len: c_int),
 ) {
     let o = &*ptr;
     let data = o.name(index);
@@ -1194,7 +1194,7 @@ pub struct TimeSeriesQObject {}
 
 pub struct TimeSeriesEmitter {
     qobject: Arc<AtomicPtr<TimeSeriesQObject>>,
-    new_data_ready: fn(*mut TimeSeriesQObject),
+    new_data_ready: extern fn(*mut TimeSeriesQObject),
 }
 
 unsafe impl Send for TimeSeriesEmitter {}
@@ -1227,17 +1227,17 @@ impl TimeSeriesEmitter {
 #[derive(Clone)]
 pub struct TimeSeriesList {
     qobject: *mut TimeSeriesQObject,
-    layout_about_to_be_changed: fn(*mut TimeSeriesQObject),
-    layout_changed: fn(*mut TimeSeriesQObject),
-    data_changed: fn(*mut TimeSeriesQObject, usize, usize),
-    begin_reset_model: fn(*mut TimeSeriesQObject),
-    end_reset_model: fn(*mut TimeSeriesQObject),
-    begin_insert_rows: fn(*mut TimeSeriesQObject, usize, usize),
-    end_insert_rows: fn(*mut TimeSeriesQObject),
-    begin_move_rows: fn(*mut TimeSeriesQObject, usize, usize, usize),
-    end_move_rows: fn(*mut TimeSeriesQObject),
-    begin_remove_rows: fn(*mut TimeSeriesQObject, usize, usize),
-    end_remove_rows: fn(*mut TimeSeriesQObject),
+    layout_about_to_be_changed: extern fn(*mut TimeSeriesQObject),
+    layout_changed: extern fn(*mut TimeSeriesQObject),
+    data_changed: extern fn(*mut TimeSeriesQObject, usize, usize),
+    begin_reset_model: extern fn(*mut TimeSeriesQObject),
+    end_reset_model: extern fn(*mut TimeSeriesQObject),
+    begin_insert_rows: extern fn(*mut TimeSeriesQObject, usize, usize),
+    end_insert_rows: extern fn(*mut TimeSeriesQObject),
+    begin_move_rows: extern fn(*mut TimeSeriesQObject, usize, usize, usize),
+    end_move_rows: extern fn(*mut TimeSeriesQObject),
+    begin_remove_rows: extern fn(*mut TimeSeriesQObject, usize, usize),
+    end_remove_rows: extern fn(*mut TimeSeriesQObject),
 }
 
 impl TimeSeriesList {
@@ -1298,18 +1298,18 @@ pub trait TimeSeriesTrait {
 #[no_mangle]
 pub extern "C" fn time_series_new(
     time_series: *mut TimeSeriesQObject,
-    time_series_new_data_ready: fn(*mut TimeSeriesQObject),
-    time_series_layout_about_to_be_changed: fn(*mut TimeSeriesQObject),
-    time_series_layout_changed: fn(*mut TimeSeriesQObject),
-    time_series_data_changed: fn(*mut TimeSeriesQObject, usize, usize),
-    time_series_begin_reset_model: fn(*mut TimeSeriesQObject),
-    time_series_end_reset_model: fn(*mut TimeSeriesQObject),
-    time_series_begin_insert_rows: fn(*mut TimeSeriesQObject, usize, usize),
-    time_series_end_insert_rows: fn(*mut TimeSeriesQObject),
-    time_series_begin_move_rows: fn(*mut TimeSeriesQObject, usize, usize, usize),
-    time_series_end_move_rows: fn(*mut TimeSeriesQObject),
-    time_series_begin_remove_rows: fn(*mut TimeSeriesQObject, usize, usize),
-    time_series_end_remove_rows: fn(*mut TimeSeriesQObject),
+    time_series_new_data_ready: extern fn(*mut TimeSeriesQObject),
+    time_series_layout_about_to_be_changed: extern fn(*mut TimeSeriesQObject),
+    time_series_layout_changed: extern fn(*mut TimeSeriesQObject),
+    time_series_data_changed: extern fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_begin_reset_model: extern fn(*mut TimeSeriesQObject),
+    time_series_end_reset_model: extern fn(*mut TimeSeriesQObject),
+    time_series_begin_insert_rows: extern fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_insert_rows: extern fn(*mut TimeSeriesQObject),
+    time_series_begin_move_rows: extern fn(*mut TimeSeriesQObject, usize, usize, usize),
+    time_series_end_move_rows: extern fn(*mut TimeSeriesQObject),
+    time_series_begin_remove_rows: extern fn(*mut TimeSeriesQObject, usize, usize),
+    time_series_end_remove_rows: extern fn(*mut TimeSeriesQObject),
 ) -> *mut TimeSeries {
     let time_series_emit = TimeSeriesEmitter {
         qobject: Arc::new(AtomicPtr::new(time_series)),

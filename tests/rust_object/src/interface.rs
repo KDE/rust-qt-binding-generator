@@ -42,7 +42,7 @@ pub struct PersonQObject {}
 
 pub struct PersonEmitter {
     qobject: Arc<AtomicPtr<PersonQObject>>,
-    user_name_changed: fn(*mut PersonQObject),
+    user_name_changed: extern fn(*mut PersonQObject),
 }
 
 unsafe impl Send for PersonEmitter {}
@@ -82,7 +82,7 @@ pub trait PersonTrait {
 #[no_mangle]
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
-    person_user_name_changed: fn(*mut PersonQObject),
+    person_user_name_changed: extern fn(*mut PersonQObject),
 ) -> *mut Person {
     let person_emit = PersonEmitter {
         qobject: Arc::new(AtomicPtr::new(person)),
@@ -101,7 +101,7 @@ pub unsafe extern "C" fn person_free(ptr: *mut Person) {
 pub unsafe extern "C" fn person_user_name_get(
     ptr: *const Person,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.user_name();

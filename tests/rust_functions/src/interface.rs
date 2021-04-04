@@ -45,7 +45,7 @@ pub struct PersonQObject {}
 
 pub struct PersonEmitter {
     qobject: Arc<AtomicPtr<PersonQObject>>,
-    user_name_changed: fn(*mut PersonQObject),
+    user_name_changed: extern fn(*mut PersonQObject),
 }
 
 unsafe impl Send for PersonEmitter {}
@@ -91,7 +91,7 @@ pub trait PersonTrait {
 #[no_mangle]
 pub extern "C" fn person_new(
     person: *mut PersonQObject,
-    person_user_name_changed: fn(*mut PersonQObject),
+    person_user_name_changed: extern fn(*mut PersonQObject),
 ) -> *mut Person {
     let person_emit = PersonEmitter {
         qobject: Arc::new(AtomicPtr::new(person)),
@@ -110,7 +110,7 @@ pub unsafe extern "C" fn person_free(ptr: *mut Person) {
 pub unsafe extern "C" fn person_user_name_get(
     ptr: *const Person,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.user_name();
@@ -141,7 +141,7 @@ pub unsafe extern "C" fn person_double_name(ptr: *mut Person) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ushort, name_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+pub unsafe extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ushort, name_len: c_int, d: *mut QString, set: extern fn(*mut QString, str: *const c_char, len: c_int)) {
     let mut name = String::new();
     set_string_from_utf16(&mut name, name_str, name_len);
     let o = &*ptr;
@@ -151,7 +151,7 @@ pub unsafe extern "C" fn person_greet(ptr: *const Person, name_str: *const c_ush
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, prefix_len: c_int, suffix_str: *const c_ushort, suffix_len: c_int, d: *mut QString, set: fn(*mut QString, str: *const c_char, len: c_int)) {
+pub unsafe extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_ushort, prefix_len: c_int, suffix_str: *const c_ushort, suffix_len: c_int, d: *mut QString, set: extern fn(*mut QString, str: *const c_char, len: c_int)) {
     let mut prefix = String::new();
     set_string_from_utf16(&mut prefix, prefix_str, prefix_len);
     let mut suffix = String::new();
@@ -163,7 +163,7 @@ pub unsafe extern "C" fn person_quote(ptr: *const Person, prefix_str: *const c_u
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QByteArray, set: fn(*mut QByteArray, str: *const c_char, len: c_int)) {
+pub unsafe extern "C" fn person_quote_bytes(ptr: *const Person, prefix_str: *const c_char, prefix_len: c_int, suffix_str: *const c_char, suffix_len: c_int, d: *mut QByteArray, set: extern fn(*mut QByteArray, str: *const c_char, len: c_int)) {
     let prefix = { slice::from_raw_parts(prefix_str as *const u8, to_usize(prefix_len)) };
     let suffix = { slice::from_raw_parts(suffix_str as *const u8, to_usize(suffix_len)) };
     let o = &*ptr;

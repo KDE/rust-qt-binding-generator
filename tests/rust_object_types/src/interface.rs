@@ -82,24 +82,24 @@ pub struct ObjectQObject {}
 
 pub struct ObjectEmitter {
     qobject: Arc<AtomicPtr<ObjectQObject>>,
-    boolean_changed: fn(*mut ObjectQObject),
-    bytearray_changed: fn(*mut ObjectQObject),
-    f32_changed: fn(*mut ObjectQObject),
-    f64_changed: fn(*mut ObjectQObject),
-    i16_changed: fn(*mut ObjectQObject),
-    i32_changed: fn(*mut ObjectQObject),
-    i64_changed: fn(*mut ObjectQObject),
-    i8_changed: fn(*mut ObjectQObject),
-    optional_boolean_changed: fn(*mut ObjectQObject),
-    optional_bytearray_changed: fn(*mut ObjectQObject),
-    optional_string_changed: fn(*mut ObjectQObject),
-    optional_u64_changed: fn(*mut ObjectQObject),
-    string_changed: fn(*mut ObjectQObject),
-    string_by_function_changed: fn(*mut ObjectQObject),
-    u16_changed: fn(*mut ObjectQObject),
-    u32_changed: fn(*mut ObjectQObject),
-    u64_changed: fn(*mut ObjectQObject),
-    u8_changed: fn(*mut ObjectQObject),
+    boolean_changed: extern fn(*mut ObjectQObject),
+    bytearray_changed: extern fn(*mut ObjectQObject),
+    f32_changed: extern fn(*mut ObjectQObject),
+    f64_changed: extern fn(*mut ObjectQObject),
+    i16_changed: extern fn(*mut ObjectQObject),
+    i32_changed: extern fn(*mut ObjectQObject),
+    i64_changed: extern fn(*mut ObjectQObject),
+    i8_changed: extern fn(*mut ObjectQObject),
+    optional_boolean_changed: extern fn(*mut ObjectQObject),
+    optional_bytearray_changed: extern fn(*mut ObjectQObject),
+    optional_string_changed: extern fn(*mut ObjectQObject),
+    optional_u64_changed: extern fn(*mut ObjectQObject),
+    string_changed: extern fn(*mut ObjectQObject),
+    string_by_function_changed: extern fn(*mut ObjectQObject),
+    u16_changed: extern fn(*mut ObjectQObject),
+    u32_changed: extern fn(*mut ObjectQObject),
+    u64_changed: extern fn(*mut ObjectQObject),
+    u8_changed: extern fn(*mut ObjectQObject),
 }
 
 unsafe impl Send for ObjectEmitter {}
@@ -291,24 +291,24 @@ pub trait ObjectTrait {
 #[no_mangle]
 pub extern "C" fn object_new(
     object: *mut ObjectQObject,
-    object_boolean_changed: fn(*mut ObjectQObject),
-    object_bytearray_changed: fn(*mut ObjectQObject),
-    object_f32_changed: fn(*mut ObjectQObject),
-    object_f64_changed: fn(*mut ObjectQObject),
-    object_i16_changed: fn(*mut ObjectQObject),
-    object_i32_changed: fn(*mut ObjectQObject),
-    object_i64_changed: fn(*mut ObjectQObject),
-    object_i8_changed: fn(*mut ObjectQObject),
-    object_optional_boolean_changed: fn(*mut ObjectQObject),
-    object_optional_bytearray_changed: fn(*mut ObjectQObject),
-    object_optional_string_changed: fn(*mut ObjectQObject),
-    object_optional_u64_changed: fn(*mut ObjectQObject),
-    object_string_changed: fn(*mut ObjectQObject),
-    object_string_by_function_changed: fn(*mut ObjectQObject),
-    object_u16_changed: fn(*mut ObjectQObject),
-    object_u32_changed: fn(*mut ObjectQObject),
-    object_u64_changed: fn(*mut ObjectQObject),
-    object_u8_changed: fn(*mut ObjectQObject),
+    object_boolean_changed: extern fn(*mut ObjectQObject),
+    object_bytearray_changed: extern fn(*mut ObjectQObject),
+    object_f32_changed: extern fn(*mut ObjectQObject),
+    object_f64_changed: extern fn(*mut ObjectQObject),
+    object_i16_changed: extern fn(*mut ObjectQObject),
+    object_i32_changed: extern fn(*mut ObjectQObject),
+    object_i64_changed: extern fn(*mut ObjectQObject),
+    object_i8_changed: extern fn(*mut ObjectQObject),
+    object_optional_boolean_changed: extern fn(*mut ObjectQObject),
+    object_optional_bytearray_changed: extern fn(*mut ObjectQObject),
+    object_optional_string_changed: extern fn(*mut ObjectQObject),
+    object_optional_u64_changed: extern fn(*mut ObjectQObject),
+    object_string_changed: extern fn(*mut ObjectQObject),
+    object_string_by_function_changed: extern fn(*mut ObjectQObject),
+    object_u16_changed: extern fn(*mut ObjectQObject),
+    object_u32_changed: extern fn(*mut ObjectQObject),
+    object_u64_changed: extern fn(*mut ObjectQObject),
+    object_u8_changed: extern fn(*mut ObjectQObject),
 ) -> *mut Object {
     let object_emit = ObjectEmitter {
         qobject: Arc::new(AtomicPtr::new(object)),
@@ -354,7 +354,7 @@ pub unsafe extern "C" fn object_boolean_set(ptr: *mut Object, v: bool) {
 pub unsafe extern "C" fn object_bytearray_get(
     ptr: *const Object,
     p: *mut QByteArray,
-    set: fn(*mut QByteArray, *const c_char, c_int),
+    set: extern fn(*mut QByteArray, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.bytearray();
@@ -452,7 +452,7 @@ pub unsafe extern "C" fn object_optional_boolean_set_none(ptr: *mut Object) {
 pub unsafe extern "C" fn object_optional_bytearray_get(
     ptr: *const Object,
     p: *mut QByteArray,
-    set: fn(*mut QByteArray, *const c_char, c_int),
+    set: extern fn(*mut QByteArray, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.optional_bytearray();
@@ -479,7 +479,7 @@ pub unsafe extern "C" fn object_optional_bytearray_set_none(ptr: *mut Object) {
 pub unsafe extern "C" fn object_optional_string_get(
     ptr: *const Object,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.optional_string();
@@ -526,7 +526,7 @@ pub unsafe extern "C" fn object_optional_u64_set_none(ptr: *mut Object) {
 pub unsafe extern "C" fn object_string_get(
     ptr: *const Object,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     let v = o.string();
@@ -546,7 +546,7 @@ pub unsafe extern "C" fn object_string_set(ptr: *mut Object, v: *const c_ushort,
 pub unsafe extern "C" fn object_string_by_function_get(
     ptr: *const Object,
     p: *mut QString,
-    set: fn(*mut QString, *const c_char, c_int),
+    set: extern fn(*mut QString, *const c_char, c_int),
 ) {
     let o = &*ptr;
     o.string_by_function(|v| {
