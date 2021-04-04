@@ -2,15 +2,13 @@
 # It is not intended for manual editing.
 [[package]]
 name = "libc"
-version = "0.2.36"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56d855069fafbb9b344c0f962150cd2c1187975cb1c22c1522c240d8c4986714"
 
 [[package]]
 name = "rust"
 version = "1.0.0"
 dependencies = [
- "libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc",
 ]
-
-[metadata]
-"checksum libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)" = "1e5d97d6708edaa407429faa671b942dc0f2727222fb6b6539bf1db936e4b121"
