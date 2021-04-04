@@ -1,3 +1,5 @@
+0.3.6 (2021-04-04)
+ - Add "extern" keyword to extern functions to make them FFI-safe.
 0.3.5 (2020-01-12)
  - Add project template with .ui file.
  - Update dependencies.

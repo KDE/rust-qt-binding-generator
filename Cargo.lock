@@ -147,7 +147,7 @@ checksum = "24d5f089152e60f62d28b835fbff2cd2e8dc0baf1ac13343bef92ab7eed84548"
 
 [[package]]
 name = "rust_qt_binding_generator"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "cc",
  "clap",
