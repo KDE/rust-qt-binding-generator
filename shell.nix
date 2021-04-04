@@ -6,7 +6,12 @@ stdenv.mkDerivation {
     rustc
     cargo
     rustfmt
-    qt5.qtquickcontrols cmake ninja openssl pkgconfig
+    cmake ninja openssl pkgconfig
+    extra-cmake-modules
+    qt5.qtcharts
+    qt5.qtquickcontrols
+    qt5.qtquickcontrols2
+    libsForQt5.kirigami2
     valgrind gdb
   ];
 
