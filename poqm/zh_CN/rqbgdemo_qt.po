@@ -1,0 +1,187 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kdeorg\n"
+"PO-Revision-Date: 2022-09-20 01:56\n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Qt-Contexts: true\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: kdeorg\n"
+"X-Crowdin-Project-ID: 269464\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /kf5-trunk/messages/rust-qt-binding-generator/rqbgdemo_qt."
+"pot\n"
+"X-Crowdin-File-ID: 10190\n"
+
+#: qml/chart.qml:36
+msgctxt "chart|"
+msgid "time [s]"
+msgstr "时间 [s]"
+
+#: qml/chart.qml:42
+msgctxt "chart|"
+msgid "electric potential [V]"
+msgstr ""
+
+#: qml/DataAndChart.qml:85
+msgctxt "DataAndChart|"
+msgid "time"
+msgstr "时间"
+
+#: qml/DataAndChart.qml:89
+msgctxt "DataAndChart|"
+msgid "sin"
+msgstr "sin"
+
+#: qml/DataAndChart.qml:93
+msgctxt "DataAndChart|"
+msgid "cos"
+msgstr "cos"
+
+#: qml/DataAndChart.qml:104
+msgctxt "DataAndChart|"
+msgid "QtChart is not available."
+msgstr "QtChart 不可用。"
+
+#: qml/Fibonacci.qml:28
+msgctxt "Fibonacci|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "计算<i>第 n 个</i>斐波那契数"
+
+#: qml/Fibonacci.qml:32
+msgctxt "Fibonacci|"
+msgid "Your number"
+msgstr "您的数字"
+
+#: qml/Fibonacci.qml:46
+msgctxt "Fibonacci|"
+msgid "The Fibonacci number: "
+msgstr "斐波那契数："
+
+#: qml/Fibonacci2.qml:27
+msgctxt "Fibonacci2|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "计算<i>第 n 个</i>斐波那契数"
+
+#: qml/Fibonacci2.qml:31
+msgctxt "Fibonacci2|"
+msgid "Your number"
+msgstr "您的数字"
+
+#: qml/Fibonacci2.qml:45
+msgctxt "Fibonacci2|"
+msgid "The Fibonacci number: "
+msgstr "斐波那契数："
+
+#: qml/FibonacciList.qml:30
+msgctxt "FibonacciList|"
+msgid "Row"
+msgstr "行"
+
+#: qml/FibonacciList.qml:35
+msgctxt "FibonacciList|"
+msgid "Fibonacci number"
+msgstr "斐波那契数"
+
+#: qml/FibonacciList2.qml:29
+msgctxt "FibonacciList2|"
+msgid "Row"
+msgstr "行"
+
+#: qml/FibonacciList2.qml:32
+msgctxt "FibonacciList2|"
+msgid "Fibonacci number"
+msgstr "斐波那契数"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Row"
+msgstr "行"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Fibonacci number"
+msgstr "斐波那契数"
+
+#: qml/FileTreeView2.qml:36
+msgctxt "FileTreeView2|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeView2.qml:54
+msgctxt "FileTreeView2|"
+msgid "Name"
+msgstr "名称"
+
+#: qml/FileTreeView2.qml:57
+msgctxt "FileTreeView2|"
+msgid "Size"
+msgstr "大小"
+
+#: qml/FileTreeViewKirigami.qml:37
+msgctxt "FileTreeViewKirigami|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeViewKirigami.qml:55
+msgctxt "FileTreeViewKirigami|"
+msgid "Name"
+msgstr "名称"
+
+#: qml/FileTreeViewKirigami.qml:58
+msgctxt "FileTreeViewKirigami|"
+msgid "Size"
+msgstr "大小"
+
+#: src/main.cpp:240
+msgctxt "main|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "计算<i>第 n 个</i>斐波那契数"
+
+#: src/main.cpp:257
+msgctxt "main|"
+msgid "The Fibonacci number: "
+msgstr "斐波那契数："
+
+#: src/main.cpp:273
+msgctxt "main|"
+msgid "Row"
+msgstr "行"
+
+#: src/main.cpp:275
+msgctxt "main|"
+msgid "Fibonacci number"
+msgstr "斐波那契数"
+
+#: src/main.cpp:284
+msgctxt "main|"
+msgid "Name"
+msgstr "文件名"
+
+#: src/main.cpp:286
+msgctxt "main|"
+msgid "Size"
+msgstr "大小"
+
+#: src/main.cpp:422
+msgctxt "main|"
+msgid "Initial widget style."
+msgstr ""
+
+#: src/main.cpp:423
+msgctxt "main|"
+msgid "style"
+msgstr "样式"
+
+#: src/main.cpp:428
+msgctxt "main|"
+msgid "Initial tab."
+msgstr ""
+
+#: src/main.cpp:429
+msgctxt "main|"
+msgid "tab"
+msgstr "tab"

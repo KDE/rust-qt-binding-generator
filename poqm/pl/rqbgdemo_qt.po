@@ -1,0 +1,185 @@
+# Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"PO-Revision-Date: 2018-01-20 06:52+0100\n"
+"Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
+"Language-Team: Polish <kde-i18n-doc@kde.org>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Qt-Contexts: true\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 2.0\n"
+
+#: qml/chart.qml:36
+msgctxt "chart|"
+msgid "time [s]"
+msgstr "czas [s]"
+
+#: qml/chart.qml:42
+msgctxt "chart|"
+msgid "electric potential [V]"
+msgstr "potencjał elektryczny [V]"
+
+#: qml/DataAndChart.qml:85
+msgctxt "DataAndChart|"
+msgid "time"
+msgstr "czas"
+
+#: qml/DataAndChart.qml:89
+msgctxt "DataAndChart|"
+msgid "sin"
+msgstr "sin"
+
+#: qml/DataAndChart.qml:93
+msgctxt "DataAndChart|"
+msgid "cos"
+msgstr "cos"
+
+#: qml/DataAndChart.qml:104
+msgctxt "DataAndChart|"
+msgid "QtChart is not available."
+msgstr "QtChart nie jest dostępny."
+
+#: qml/Fibonacci.qml:28
+msgctxt "Fibonacci|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Oblicz <i>n-tą</i> liczbę Fibonacci"
+
+#: qml/Fibonacci.qml:32
+msgctxt "Fibonacci|"
+msgid "Your number"
+msgstr "Twoja liczba"
+
+#: qml/Fibonacci.qml:46
+msgctxt "Fibonacci|"
+msgid "The Fibonacci number: "
+msgstr "Liczba Fibonacci: "
+
+#: qml/Fibonacci2.qml:27
+msgctxt "Fibonacci2|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Oblicz <i>n-tą</i> liczbę Fibonacci"
+
+#: qml/Fibonacci2.qml:31
+msgctxt "Fibonacci2|"
+msgid "Your number"
+msgstr "Twoja liczba"
+
+#: qml/Fibonacci2.qml:45
+msgctxt "Fibonacci2|"
+msgid "The Fibonacci number: "
+msgstr "Liczba Fibonacci: "
+
+#: qml/FibonacciList.qml:30
+msgctxt "FibonacciList|"
+msgid "Row"
+msgstr "Wiersz"
+
+#: qml/FibonacciList.qml:35
+msgctxt "FibonacciList|"
+msgid "Fibonacci number"
+msgstr "Liczba Fibonacci"
+
+#: qml/FibonacciList2.qml:29
+msgctxt "FibonacciList2|"
+msgid "Row"
+msgstr "Wiersz"
+
+#: qml/FibonacciList2.qml:32
+msgctxt "FibonacciList2|"
+msgid "Fibonacci number"
+msgstr "Liczba Fibonacci"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Row"
+msgstr "Wiersz"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Fibonacci number"
+msgstr "Liczba Fibonacci"
+
+#: qml/FileTreeView2.qml:36
+msgctxt "FileTreeView2|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeView2.qml:54
+msgctxt "FileTreeView2|"
+msgid "Name"
+msgstr "Nazwa"
+
+#: qml/FileTreeView2.qml:57
+msgctxt "FileTreeView2|"
+msgid "Size"
+msgstr "Rozmiar"
+
+#: qml/FileTreeViewKirigami.qml:37
+msgctxt "FileTreeViewKirigami|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeViewKirigami.qml:55
+msgctxt "FileTreeViewKirigami|"
+msgid "Name"
+msgstr "Nazwa"
+
+#: qml/FileTreeViewKirigami.qml:58
+msgctxt "FileTreeViewKirigami|"
+msgid "Size"
+msgstr "Rozmiar"
+
+#: src/main.cpp:240
+msgctxt "main|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Oblicz <i>n-tą</i> liczbę Fibonacci"
+
+#: src/main.cpp:257
+msgctxt "main|"
+msgid "The Fibonacci number: "
+msgstr "Liczba Fibonacci: "
+
+#: src/main.cpp:273
+msgctxt "main|"
+msgid "Row"
+msgstr "Wiersz"
+
+#: src/main.cpp:275
+msgctxt "main|"
+msgid "Fibonacci number"
+msgstr "Liczba Fibonacci"
+
+#: src/main.cpp:284
+msgctxt "main|"
+msgid "Name"
+msgstr "Nazwa"
+
+#: src/main.cpp:286
+msgctxt "main|"
+msgid "Size"
+msgstr "Rozmiar"
+
+#: src/main.cpp:422
+msgctxt "main|"
+msgid "Initial widget style."
+msgstr "Początkowy wygląd elementu interfejsu."
+
+#: src/main.cpp:423
+msgctxt "main|"
+msgid "style"
+msgstr "wygląd"
+
+#: src/main.cpp:428
+msgctxt "main|"
+msgid "Initial tab."
+msgstr "Początkowa karta."
+
+#: src/main.cpp:429
+msgctxt "main|"
+msgid "tab"
+msgstr "karta"

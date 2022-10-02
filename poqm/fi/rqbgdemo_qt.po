@@ -1,0 +1,184 @@
+# Tommi Nieminen <translator@legisign.org>, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"PO-Revision-Date: 2018-02-15 15:23+0200\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 2.0\n"
+"X-Qt-Contexts: true\n"
+
+#: qml/chart.qml:36
+msgctxt "chart|"
+msgid "time [s]"
+msgstr "aika [s]"
+
+#: qml/chart.qml:42
+msgctxt "chart|"
+msgid "electric potential [V]"
+msgstr "sähköpotentiaali [V]"
+
+#: qml/DataAndChart.qml:85
+msgctxt "DataAndChart|"
+msgid "time"
+msgstr "aika"
+
+#: qml/DataAndChart.qml:89
+msgctxt "DataAndChart|"
+msgid "sin"
+msgstr "sin"
+
+#: qml/DataAndChart.qml:93
+msgctxt "DataAndChart|"
+msgid "cos"
+msgstr "cos"
+
+#: qml/DataAndChart.qml:104
+msgctxt "DataAndChart|"
+msgid "QtChart is not available."
+msgstr "QtChart ei ole käytettävissä."
+
+#: qml/Fibonacci.qml:28
+msgctxt "Fibonacci|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Laske <i>n:s</i> Fibonaccin luku."
+
+#: qml/Fibonacci.qml:32
+msgctxt "Fibonacci|"
+msgid "Your number"
+msgstr "Lukusi"
+
+#: qml/Fibonacci.qml:46
+msgctxt "Fibonacci|"
+msgid "The Fibonacci number: "
+msgstr "Fibonaccin luku:"
+
+#: qml/Fibonacci2.qml:27
+msgctxt "Fibonacci2|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Laske <i>n:s</i> Fibonaccin luku"
+
+#: qml/Fibonacci2.qml:31
+msgctxt "Fibonacci2|"
+msgid "Your number"
+msgstr "Lukusi"
+
+#: qml/Fibonacci2.qml:45
+msgctxt "Fibonacci2|"
+msgid "The Fibonacci number: "
+msgstr "Fibonaccin luku:"
+
+#: qml/FibonacciList.qml:30
+msgctxt "FibonacciList|"
+msgid "Row"
+msgstr "Rivi"
+
+#: qml/FibonacciList.qml:35
+msgctxt "FibonacciList|"
+msgid "Fibonacci number"
+msgstr "Fibonaccin luku"
+
+#: qml/FibonacciList2.qml:29
+msgctxt "FibonacciList2|"
+msgid "Row"
+msgstr "Rivi"
+
+#: qml/FibonacciList2.qml:32
+msgctxt "FibonacciList2|"
+msgid "Fibonacci number"
+msgstr "Fibonaccin luku"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Row"
+msgstr "Rivi"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Fibonacci number"
+msgstr "Fibonaccin luku"
+
+#: qml/FileTreeView2.qml:36
+msgctxt "FileTreeView2|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeView2.qml:54
+msgctxt "FileTreeView2|"
+msgid "Name"
+msgstr "Nimi"
+
+#: qml/FileTreeView2.qml:57
+msgctxt "FileTreeView2|"
+msgid "Size"
+msgstr "Koko"
+
+#: qml/FileTreeViewKirigami.qml:37
+msgctxt "FileTreeViewKirigami|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeViewKirigami.qml:55
+msgctxt "FileTreeViewKirigami|"
+msgid "Name"
+msgstr "Nimi"
+
+#: qml/FileTreeViewKirigami.qml:58
+msgctxt "FileTreeViewKirigami|"
+msgid "Size"
+msgstr "Koko"
+
+#: src/main.cpp:240
+msgctxt "main|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Laske <i>n:s</i> Fibonaccin luku."
+
+#: src/main.cpp:257
+msgctxt "main|"
+msgid "The Fibonacci number: "
+msgstr "Fibonaccin luku:"
+
+#: src/main.cpp:273
+msgctxt "main|"
+msgid "Row"
+msgstr "Rivi"
+
+#: src/main.cpp:275
+msgctxt "main|"
+msgid "Fibonacci number"
+msgstr "Fibonaccin luku"
+
+#: src/main.cpp:284
+msgctxt "main|"
+msgid "Name"
+msgstr "Nimi"
+
+#: src/main.cpp:286
+msgctxt "main|"
+msgid "Size"
+msgstr "Koko"
+
+#: src/main.cpp:422
+msgctxt "main|"
+msgid "Initial widget style."
+msgstr "Elementtien alustava tyyli."
+
+#: src/main.cpp:423
+msgctxt "main|"
+msgid "style"
+msgstr "tyyli"
+
+#: src/main.cpp:428
+msgctxt "main|"
+msgid "Initial tab."
+msgstr "Aloittava välilehti."
+
+#: src/main.cpp:429
+msgctxt "main|"
+msgid "tab"
+msgstr "välilehti"

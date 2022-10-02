@@ -1,0 +1,184 @@
+# Eloy Cuadra <ecuadra@eloihr.net>, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: Demo_qt\n"
+"PO-Revision-Date: 2017-09-10 13:04+0100\n"
+"Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
+"Language-Team: Spanish <kde-l10n-es@kde.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Qt-Contexts: true\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 2.0\n"
+
+#: qml/chart.qml:36
+msgctxt "chart|"
+msgid "time [s]"
+msgstr "tiempo [s]"
+
+#: qml/chart.qml:42
+msgctxt "chart|"
+msgid "electric potential [V]"
+msgstr "potencial eléctrico [V]"
+
+#: qml/DataAndChart.qml:85
+msgctxt "DataAndChart|"
+msgid "time"
+msgstr "tiempo"
+
+#: qml/DataAndChart.qml:89
+msgctxt "DataAndChart|"
+msgid "sin"
+msgstr "seno"
+
+#: qml/DataAndChart.qml:93
+msgctxt "DataAndChart|"
+msgid "cos"
+msgstr "coseno"
+
+#: qml/DataAndChart.qml:104
+msgctxt "DataAndChart|"
+msgid "QtChart is not available."
+msgstr "QtChart no está disponible."
+
+#: qml/Fibonacci.qml:28
+msgctxt "Fibonacci|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Calcular el <i>enésimo</i> número de Fibonacci"
+
+#: qml/Fibonacci.qml:32
+msgctxt "Fibonacci|"
+msgid "Your number"
+msgstr "Su número"
+
+#: qml/Fibonacci.qml:46
+msgctxt "Fibonacci|"
+msgid "The Fibonacci number: "
+msgstr "El número de Fibonacci:"
+
+#: qml/Fibonacci2.qml:27
+msgctxt "Fibonacci2|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Calcular el <i>enésimo</i> número de Fibonacci"
+
+#: qml/Fibonacci2.qml:31
+msgctxt "Fibonacci2|"
+msgid "Your number"
+msgstr "Su número"
+
+#: qml/Fibonacci2.qml:45
+msgctxt "Fibonacci2|"
+msgid "The Fibonacci number: "
+msgstr "El número de Fibonacci:"
+
+#: qml/FibonacciList.qml:30
+msgctxt "FibonacciList|"
+msgid "Row"
+msgstr "Fila"
+
+#: qml/FibonacciList.qml:35
+msgctxt "FibonacciList|"
+msgid "Fibonacci number"
+msgstr "Número de Fibonacci"
+
+#: qml/FibonacciList2.qml:29
+msgctxt "FibonacciList2|"
+msgid "Row"
+msgstr "Fila"
+
+#: qml/FibonacciList2.qml:32
+msgctxt "FibonacciList2|"
+msgid "Fibonacci number"
+msgstr "Número de Fibonacci"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Row"
+msgstr "Fila"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Fibonacci number"
+msgstr "Número de Fibonacci"
+
+#: qml/FileTreeView2.qml:36
+msgctxt "FileTreeView2|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeView2.qml:54
+msgctxt "FileTreeView2|"
+msgid "Name"
+msgstr "Nombre"
+
+#: qml/FileTreeView2.qml:57
+msgctxt "FileTreeView2|"
+msgid "Size"
+msgstr "Tamaño"
+
+#: qml/FileTreeViewKirigami.qml:37
+msgctxt "FileTreeViewKirigami|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeViewKirigami.qml:55
+msgctxt "FileTreeViewKirigami|"
+msgid "Name"
+msgstr "Nombre"
+
+#: qml/FileTreeViewKirigami.qml:58
+msgctxt "FileTreeViewKirigami|"
+msgid "Size"
+msgstr "Tamaño"
+
+#: src/main.cpp:240
+msgctxt "main|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "Calcular el <i>enésimo</i> número de Fibonacci"
+
+#: src/main.cpp:257
+msgctxt "main|"
+msgid "The Fibonacci number: "
+msgstr "El número de Fibonacci:"
+
+#: src/main.cpp:273
+msgctxt "main|"
+msgid "Row"
+msgstr "Fila"
+
+#: src/main.cpp:275
+msgctxt "main|"
+msgid "Fibonacci number"
+msgstr "Número de Fibonacci"
+
+#: src/main.cpp:284
+msgctxt "main|"
+msgid "Name"
+msgstr "Nombre"
+
+#: src/main.cpp:286
+msgctxt "main|"
+msgid "Size"
+msgstr "Tamaño"
+
+#: src/main.cpp:422
+msgctxt "main|"
+msgid "Initial widget style."
+msgstr "Estilo inicial del widget."
+
+#: src/main.cpp:423
+msgctxt "main|"
+msgid "style"
+msgstr "estilo"
+
+#: src/main.cpp:428
+msgctxt "main|"
+msgid "Initial tab."
+msgstr "Pestaña inicial."
+
+#: src/main.cpp:429
+msgctxt "main|"
+msgid "tab"
+msgstr "pestaña"

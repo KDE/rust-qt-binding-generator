@@ -1,0 +1,184 @@
+# Marek Laane <qiilaq69@gmail.com>, 2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"PO-Revision-Date: 2020-01-21 20:45+0200\n"
+"Last-Translator: Marek Laane <qiilaq69@gmail.com>\n"
+"Language-Team: Estonian <kde-et@lists.linux.ee>\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Qt-Contexts: true\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 19.08.1\n"
+
+#: qml/chart.qml:36
+msgctxt "chart|"
+msgid "time [s]"
+msgstr "aeg [s]"
+
+#: qml/chart.qml:42
+msgctxt "chart|"
+msgid "electric potential [V]"
+msgstr "elektripinge [V]"
+
+#: qml/DataAndChart.qml:85
+msgctxt "DataAndChart|"
+msgid "time"
+msgstr "aeg"
+
+#: qml/DataAndChart.qml:89
+msgctxt "DataAndChart|"
+msgid "sin"
+msgstr "sin"
+
+#: qml/DataAndChart.qml:93
+msgctxt "DataAndChart|"
+msgid "cos"
+msgstr "cos"
+
+#: qml/DataAndChart.qml:104
+msgctxt "DataAndChart|"
+msgid "QtChart is not available."
+msgstr "QtChart pole saadaval."
+
+#: qml/Fibonacci.qml:28
+msgctxt "Fibonacci|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "<i>n-nda</i> Fibonacci arvu arvutamine"
+
+#: qml/Fibonacci.qml:32
+msgctxt "Fibonacci|"
+msgid "Your number"
+msgstr "Sinu arv"
+
+#: qml/Fibonacci.qml:46
+msgctxt "Fibonacci|"
+msgid "The Fibonacci number: "
+msgstr "Fibonacci arv:"
+
+#: qml/Fibonacci2.qml:27
+msgctxt "Fibonacci2|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "<i>n-nda</i> Fibonacci arvu arvutamine"
+
+#: qml/Fibonacci2.qml:31
+msgctxt "Fibonacci2|"
+msgid "Your number"
+msgstr "Sinu arv"
+
+#: qml/Fibonacci2.qml:45
+msgctxt "Fibonacci2|"
+msgid "The Fibonacci number: "
+msgstr "Fibonacci arv:"
+
+#: qml/FibonacciList.qml:30
+msgctxt "FibonacciList|"
+msgid "Row"
+msgstr "Rida"
+
+#: qml/FibonacciList.qml:35
+msgctxt "FibonacciList|"
+msgid "Fibonacci number"
+msgstr "Fibonacci arv"
+
+#: qml/FibonacciList2.qml:29
+msgctxt "FibonacciList2|"
+msgid "Row"
+msgstr "Rida"
+
+#: qml/FibonacciList2.qml:32
+msgctxt "FibonacciList2|"
+msgid "Fibonacci number"
+msgstr "Fibonacci arv"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Row"
+msgstr "Rida"
+
+#: qml/FibonacciListKirigami.qml:29
+msgctxt "FibonacciListKirigami|"
+msgid "Fibonacci number"
+msgstr "Fibonacci arv"
+
+#: qml/FileTreeView2.qml:36
+msgctxt "FileTreeView2|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeView2.qml:54
+msgctxt "FileTreeView2|"
+msgid "Name"
+msgstr "Nimi"
+
+#: qml/FileTreeView2.qml:57
+msgctxt "FileTreeView2|"
+msgid "Size"
+msgstr "Suurus"
+
+#: qml/FileTreeViewKirigami.qml:37
+msgctxt "FileTreeViewKirigami|"
+msgid "‹"
+msgstr "‹"
+
+#: qml/FileTreeViewKirigami.qml:55
+msgctxt "FileTreeViewKirigami|"
+msgid "Name"
+msgstr "Nimi"
+
+#: qml/FileTreeViewKirigami.qml:58
+msgctxt "FileTreeViewKirigami|"
+msgid "Size"
+msgstr "Suurus"
+
+#: src/main.cpp:240
+msgctxt "main|"
+msgid "Calculate the <i>nth</i> Fibonacci number"
+msgstr "<i>n-nda</i> Fibonacci arvu arvutamine"
+
+#: src/main.cpp:257
+msgctxt "main|"
+msgid "The Fibonacci number: "
+msgstr "Fibonacci arv:"
+
+#: src/main.cpp:273
+msgctxt "main|"
+msgid "Row"
+msgstr "Rida"
+
+#: src/main.cpp:275
+msgctxt "main|"
+msgid "Fibonacci number"
+msgstr "Fibonacci arv"
+
+#: src/main.cpp:284
+msgctxt "main|"
+msgid "Name"
+msgstr "Nimi"
+
+#: src/main.cpp:286
+msgctxt "main|"
+msgid "Size"
+msgstr "Suurus"
+
+#: src/main.cpp:422
+msgctxt "main|"
+msgid "Initial widget style."
+msgstr "Algne vidinastiil."
+
+#: src/main.cpp:423
+msgctxt "main|"
+msgid "style"
+msgstr "stiil"
+
+#: src/main.cpp:428
+msgctxt "main|"
+msgid "Initial tab."
+msgstr "Algne kaart."
+
+#: src/main.cpp:429
+msgctxt "main|"
+msgid "tab"
+msgstr "kaart"
