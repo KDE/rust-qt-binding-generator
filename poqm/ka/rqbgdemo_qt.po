@@ -1,35 +1,32 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: kdeorg\n"
-"PO-Revision-Date: 2022-10-02 15:50\n"
-"Language-Team: Chinese Simplified\n"
-"Language: zh_CN\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: \n"
+"Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Qt-Contexts: true\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Crowdin-Project: kdeorg\n"
-"X-Crowdin-Project-ID: 269464\n"
-"X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /kf5-trunk/messages/rust-qt-binding-generator/rqbgdemo_qt."
-"pot\n"
-"X-Crowdin-File-ID: 10190\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: qml/chart.qml:36
 msgctxt "chart|"
 msgid "time [s]"
-msgstr "时间 [s]"
+msgstr "დრო [წმ]"
 
 #: qml/chart.qml:42
 msgctxt "chart|"
 msgid "electric potential [V]"
-msgstr ""
+msgstr "ელექტრული პოტენციალი [V]"
 
 #: qml/DataAndChart.qml:85
 msgctxt "DataAndChart|"
 msgid "time"
-msgstr "时间"
+msgstr "დრო"
 
 #: qml/DataAndChart.qml:89
 msgctxt "DataAndChart|"
@@ -44,67 +41,67 @@ msgstr "cos"
 #: qml/DataAndChart.qml:104
 msgctxt "DataAndChart|"
 msgid "QtChart is not available."
-msgstr "QtChart 不可用。"
+msgstr "QtChart მიუწვდომელია."
 
 #: qml/Fibonacci.qml:28
 msgctxt "Fibonacci|"
 msgid "Calculate the <i>nth</i> Fibonacci number"
-msgstr "计算<i>第 n 个</i>斐波那契数"
+msgstr "მე-<i>n</i>-ე ფიბონაჩის რიცხვის გამოთვლა"
 
 #: qml/Fibonacci.qml:32
 msgctxt "Fibonacci|"
 msgid "Your number"
-msgstr "您的数字"
+msgstr "თქვენი რიცხვი"
 
 #: qml/Fibonacci.qml:46
 msgctxt "Fibonacci|"
 msgid "The Fibonacci number: "
-msgstr "斐波那契数："
+msgstr "ფიბონაჩის რიცხვი: "
 
 #: qml/Fibonacci2.qml:27
 msgctxt "Fibonacci2|"
 msgid "Calculate the <i>nth</i> Fibonacci number"
-msgstr "计算<i>第 n 个</i>斐波那契数"
+msgstr "მე-<i>n</i>-ე ფიბონაჩის რიცხვის გამოთვლა"
 
 #: qml/Fibonacci2.qml:31
 msgctxt "Fibonacci2|"
 msgid "Your number"
-msgstr "您的数字"
+msgstr "თქვენი რიცხვი"
 
 #: qml/Fibonacci2.qml:45
 msgctxt "Fibonacci2|"
 msgid "The Fibonacci number: "
-msgstr "斐波那契数："
+msgstr "ფიბონაჩის რიცხვი: "
 
 #: qml/FibonacciList.qml:30
 msgctxt "FibonacciList|"
 msgid "Row"
-msgstr "行"
+msgstr "მწკრივი"
 
 #: qml/FibonacciList.qml:35
 msgctxt "FibonacciList|"
 msgid "Fibonacci number"
-msgstr "斐波那契数"
+msgstr "ფიბონაჩის რიცხვი"
 
 #: qml/FibonacciList2.qml:29
 msgctxt "FibonacciList2|"
 msgid "Row"
-msgstr "行"
+msgstr "მწკრივი"
 
 #: qml/FibonacciList2.qml:32
 msgctxt "FibonacciList2|"
 msgid "Fibonacci number"
-msgstr "斐波那契数"
+msgstr "ფიბონაჩის რიცხვი"
 
 #: qml/FibonacciListKirigami.qml:29
 msgctxt "FibonacciListKirigami|"
 msgid "Row"
-msgstr "行"
+msgstr "მწკრივი"
 
 #: qml/FibonacciListKirigami.qml:29
 msgctxt "FibonacciListKirigami|"
 msgid "Fibonacci number"
-msgstr "斐波那契数"
+msgstr "ფიბონაჩის რიცხვი"
 
 #: qml/FileTreeView2.qml:36
 msgctxt "FileTreeView2|"
@@ -114,12 +111,12 @@ msgstr "‹"
 #: qml/FileTreeView2.qml:54
 msgctxt "FileTreeView2|"
 msgid "Name"
-msgstr "名称"
+msgstr "სახელი"
 
 #: qml/FileTreeView2.qml:57
 msgctxt "FileTreeView2|"
 msgid "Size"
-msgstr "大小"
+msgstr "ზომა"
 
 #: qml/FileTreeViewKirigami.qml:37
 msgctxt "FileTreeViewKirigami|"
@@ -129,59 +126,59 @@ msgstr "‹"
 #: qml/FileTreeViewKirigami.qml:55
 msgctxt "FileTreeViewKirigami|"
 msgid "Name"
-msgstr "名称"
+msgstr "სახელი"
 
 #: qml/FileTreeViewKirigami.qml:58
 msgctxt "FileTreeViewKirigami|"
 msgid "Size"
-msgstr "大小"
+msgstr "ზომა"
 
 #: src/main.cpp:240
 msgctxt "main|"
 msgid "Calculate the <i>nth</i> Fibonacci number"
-msgstr "计算<i>第 n 个</i>斐波那契数"
+msgstr "მე-<i>n</i>-ე ფიბონაჩის რიცხვის გამოთვლა"
 
 #: src/main.cpp:257
 msgctxt "main|"
 msgid "The Fibonacci number: "
-msgstr "斐波那契数："
+msgstr "ფიბონაჩის რიცხვი: "
 
 #: src/main.cpp:273
 msgctxt "main|"
 msgid "Row"
-msgstr "行"
+msgstr "მწკრივი"
 
 #: src/main.cpp:275
 msgctxt "main|"
 msgid "Fibonacci number"
-msgstr "斐波那契数"
+msgstr "ფიბონაჩის რიცხვი"
 
 #: src/main.cpp:284
 msgctxt "main|"
 msgid "Name"
-msgstr "文件名"
+msgstr "სახელი"
 
 #: src/main.cpp:286
 msgctxt "main|"
 msgid "Size"
-msgstr "大小"
+msgstr "ზომა"
 
 #: src/main.cpp:422
 msgctxt "main|"
 msgid "Initial widget style."
-msgstr ""
+msgstr "ვიჯეტის საწყისი სტილი."
 
 #: src/main.cpp:423
 msgctxt "main|"
 msgid "style"
-msgstr "样式"
+msgstr "სტილი"
 
 #: src/main.cpp:428
 msgctxt "main|"
 msgid "Initial tab."
-msgstr ""
+msgstr "საწყისი ტაბი."
 
 #: src/main.cpp:429
 msgctxt "main|"
 msgid "tab"
-msgstr "tab"
+msgstr "ჩანართი"
