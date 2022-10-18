@@ -187,14 +187,14 @@ pub struct Rust {
     pub interface_module: String,
 }
 
-#[derive(Deserialize, Clone, Copy, PartialEq)]
+#[derive(Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum ObjectType {
     Object,
     List,
     Tree,
 }
 
-#[derive(Deserialize, Clone, Copy, PartialEq)]
+#[derive(Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum SimpleType {
     QString,
     QByteArray,
@@ -298,10 +298,7 @@ pub enum Type {
 
 impl TypePrivate for Type {
     fn is_object(&self) -> bool {
-        match self {
-            Type::Object(_) => true,
-            _ => false,
-        }
+        matches!(self, Type::Object(_))
     }
     fn is_complex(&self) -> bool {
         match self {
@@ -341,7 +338,7 @@ impl TypePrivate for Type {
     }
 }
 
-#[derive(Deserialize, Clone, PartialEq)]
+#[derive(Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct ItemProperty {
     #[serde(rename = "type")]
@@ -382,7 +379,7 @@ impl ItemPropertyPrivate for ItemProperty {
     }
 }
 
-#[derive(Deserialize, Clone, PartialEq)]
+#[derive(Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Function {
     #[serde(rename = "return")]
@@ -399,7 +396,7 @@ impl TypeName for Function {
     }
 }
 
-#[derive(Deserialize, Clone, PartialEq)]
+#[derive(Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Argument {
     pub name: String,

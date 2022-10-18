@@ -10,7 +10,7 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Deserialize)]
-struct RCC {
+struct Rcc {
     qresource: Vec<QResource>,
 }
 
@@ -22,10 +22,10 @@ struct QResource {
 }
 
 /// Parse the qrc file, panic if it fails.
-fn read_qrc(qrc: &Path) -> RCC {
+fn read_qrc(qrc: &Path) -> Rcc {
     let bytes = std::fs::read(qrc)
         .unwrap_or_else(|e| panic!("Could not read as {} as UTF-8: {}", qrc.display(), e));
-    let mut rcc: RCC = from_reader(&bytes[..])
+    let mut rcc: Rcc = from_reader(&bytes[..])
         .unwrap_or_else(|e| panic!("could not parse {}: {}", qrc.display(), e));
     for qresource in &mut rcc.qresource {
         for file in &mut qresource.file {
@@ -38,7 +38,7 @@ fn read_qrc(qrc: &Path) -> RCC {
 }
 
 /// Get the list of files that are listed in the qrc file.
-fn qrc_to_input_list<'a>(qrc: &'a Path, rcc: &'a RCC) -> Vec<&'a Path> {
+fn qrc_to_input_list<'a>(qrc: &'a Path, rcc: &'a Rcc) -> Vec<&'a Path> {
     let mut list = Vec::new();
     list.push(qrc);
     for qresource in &rcc.qresource {
@@ -110,7 +110,7 @@ struct Version {
 /// Panic if the value could not be parsed.
 fn parse_qt_version(qt_version: &str) -> Version {
     let re = Regex::new(r"(\d)\.(\d{1,2})(\.(\d{1,2}))").unwrap();
-    match re.captures(&qt_version) {
+    match re.captures(qt_version) {
         None => panic!("Cannot parse Qt version number {}", qt_version),
         Some(cap) => Version {
             major: cap[1].parse::<u8>().unwrap(),
@@ -473,7 +473,7 @@ fn handle_binding(
     config.rust.dir = out_dir.join(&config.rust.dir);
     let interface_rs = get_interface_module_path(&config);
     if should_run(
-        &[&bindings_json],
+        &[bindings_json],
         &[&bindings_h, &bindings_cpp, &interface_rs],
     ) {
         generate_bindings(&config).unwrap();
@@ -490,7 +490,7 @@ fn handle_qrc(out_dir: &Path, qrc_path: &Path, cpp: &mut Vec<PathBuf>) {
     ));
     let qrc_inputs = qrc_to_input_list(qrc_path, &qrc);
     if should_run(&qrc_inputs, &[&qml_cpp]) {
-        rcc(&qrc_path, &qml_cpp);
+        rcc(qrc_path, &qml_cpp);
     }
     cpp.push(qml_cpp);
 }
@@ -502,7 +502,7 @@ fn handle_ui(ui: &Path) -> PathBuf {
     ));
 
     if should_run(&[ui], &[&ui_h]) {
-        uic(&ui, &ui_h);
+        uic(ui, &ui_h);
     }
     ui_h
 }
@@ -512,8 +512,8 @@ fn handle_header(h: &Path, cpp: &mut Vec<PathBuf>) {
         "moc_{}.cpp",
         h.file_stem().unwrap().to_str().unwrap()
     ));
-    if should_run(&[&h], &[&moc_file]) {
-        moc(&h, &moc_file);
+    if should_run(&[h], &[&moc_file]) {
+        moc(h, &moc_file);
     }
     cpp.push(moc_file);
 }

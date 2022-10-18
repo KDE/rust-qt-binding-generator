@@ -5,6 +5,7 @@ stdenv.mkDerivation {
   buildInputs = [
     rustc
     cargo
+    clippy
     rustfmt
     cmake ninja openssl pkgconfig
     extra-cmake-modules

@@ -152,7 +152,7 @@ private:"
         }
         .to_string();
         if p.is_object() {
-            t.push_str("*");
+            t.push('*');
         }
         writeln!(
             h,
@@ -1391,7 +1391,7 @@ pub fn write_header(conf: &Config) -> Result<()> {
         .file_name()
         .unwrap()
         .to_string_lossy()
-        .replace(".", "_")
+        .replace('.', "_")
         .to_uppercase();
     writeln!(
         h,
