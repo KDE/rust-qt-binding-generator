@@ -9,13 +9,14 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct RCC {
     qresource: Vec<QResource>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct QResource {
+    #[allow(dead_code)]
     prefix: String,
     file: Vec<PathBuf>,
 }
@@ -385,7 +386,7 @@ fn are_outputs_up_to_date(paths: &[&Path], input: SystemTime) -> bool {
         if let Ok(mt) = path.metadata().and_then(|m| m.modified()) {
             if mt <= input {
                 let duration = input.duration_since(mt).unwrap();
-                println!(
+                eprintln!(
                     "{} is outdated by {} seconds.",
                     path.display(),
                     duration.as_secs()
@@ -393,7 +394,7 @@ fn are_outputs_up_to_date(paths: &[&Path], input: SystemTime) -> bool {
                 return false;
             }
         } else {
-            println!("{} does not exist.", path.display());
+            eprintln!("'{}' does not exist.", path.display());
             return false;
         }
     }
@@ -422,7 +423,15 @@ fn moc(header: &Path, output: &Path) {
 
 /// Run rcc to generate C++ code from a Qt resource file
 fn rcc(rcfile: &Path, output: &Path) {
-    run("rcc", Command::new("rcc").arg("-o").arg(output).arg(rcfile));
+    run(
+        "rcc",
+        Command::new("rcc")
+            .arg("--name")
+            .arg(rcfile.file_stem().unwrap())
+            .arg("-o")
+            .arg(output)
+            .arg(rcfile),
+    );
 }
 
 /// Run uic to generate C++ code from a QT ui file
@@ -437,7 +446,7 @@ fn should_run(input: &[&Path], output: &[&Path]) -> bool {
     // get the youngest input time
     let input_time = match get_youngest_mtime(input) {
         Ok(time) => time,
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}", e),
     };
     !are_outputs_up_to_date(output, input_time)
 }
