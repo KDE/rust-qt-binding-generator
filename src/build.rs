@@ -162,6 +162,7 @@ pub enum QtModule {
     Network,
     Qml,
     Quick,
+    QuickControls2,
     QuickTest,
     Sql,
     Test,
