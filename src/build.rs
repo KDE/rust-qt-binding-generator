@@ -153,7 +153,7 @@ pub fn require_qt_version(major: u8, minor: u8, patch: u8) {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum QtModule {
     Core,
     Gui,
@@ -184,6 +184,18 @@ pub enum QtModule {
     XmlPatterns,
 
     Charts,
+
+    Kirigami2,
+}
+
+impl QtModule {
+    fn prefix(&self) -> &str {
+        if *self == QtModule::Kirigami2 {
+            "KF5"
+        } else {
+            "Qt5"
+        }
+    }
 }
 
 /// A builder for binding generation and compilation of a Qt application.
@@ -359,7 +371,7 @@ impl Build {
         }
         println!("cargo:rustc-link-search={}", self.qt_library_path.display());
         for module in &self.modules {
-            println!("cargo:rustc-link-lib=Qt5{:?}", module);
+            println!("cargo:rustc-link-lib={}{:?}", module.prefix(), module);
         }
         self.print_link_libs();
     }
