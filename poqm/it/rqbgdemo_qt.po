@@ -1,4 +1,4 @@
-# Paolo Zamponi <zapaolo@email.it>, 2018.
+# Paolo Zamponi <feus73@gmail.com>, 2018.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
