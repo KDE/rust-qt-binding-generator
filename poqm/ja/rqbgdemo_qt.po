@@ -1,6 +1,9 @@
+# Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: Demo_qt\n"
+"PO-Revision-Date: 2023-05-28 23:14-0700\n"
+"Last-Translator: Fumiaki Okushi <fumiaki.okushi@gmail.com>\n"
 "Language-Team: Japanese <kde-jp@kde.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
