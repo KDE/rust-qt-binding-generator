@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"PO-Revision-Date: 2023-01-03 16:19+0100\n"
+"PO-Revision-Date: 2023-06-15 13:49+0200\n"
 "Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
 "Language-Team: Czech <kde-i18n-doc@kde.org>\n"
 "Language: cs\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 22.12.0\n"
+"X-Generator: Lokalize 23.04.2\n"
 "X-Qt-Contexts: true\n"
 
 #: qml/chart.qml:36
@@ -142,7 +142,7 @@ msgstr "Spočítat <i>n-té</i> Fibonacciho číslo"
 #: src/main.cpp:257
 msgctxt "main|"
 msgid "The Fibonacci number: "
-msgstr "Fibonacciho číslo:"
+msgstr "Fibonacciho číslo: "
 
 #: src/main.cpp:273
 msgctxt "main|"
