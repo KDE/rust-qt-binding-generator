@@ -40,7 +40,7 @@
   <summary xml:lang="et">Seoste genereerimine Rusti koodi kasutamiseks Qt-s ja QML-is</summary>
   <summary xml:lang="fi">Luo sidokset Rust-koodisi käyttämiseksi Qt:ssa ja QML:ssä</summary>
   <summary xml:lang="fr">Générateur de liens pour utiliser du code « Rust » dans Qt ou du « QML ».</summary>
-  <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML</summary>
+  <summary xml:lang="gl">Xerar adaptadores para usar código Rust en Qt e QML.</summary>
   <summary xml:lang="id">Menghasilkan jilid menggunakan kode Rust di Qt dan QML</summary>
   <summary xml:lang="it">Genera i binding per usare codice Rust in Qt e QML</summary>
   <summary xml:lang="ka">Rust-ის კოდის Qt-ში და QML-ში გამოსაყენებლად მიბმების გენერაცია</summary>
