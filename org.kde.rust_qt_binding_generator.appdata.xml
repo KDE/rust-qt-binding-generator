@@ -26,7 +26,7 @@
   <name xml:lang="sk">Generátor väzieb Rust Qt</name>
   <name xml:lang="sl">Rust Qt Binding Generator</name>
   <name xml:lang="sv">Rust Qt-bindningsgenerator</name>
-  <name xml:lang="tr">Rust Qt Bağıntı Oluşturucu</name>
+  <name xml:lang="tr">Rust Qt Bağıntısı Oluşturucusu</name>
   <name xml:lang="uk">Засіб створення прив'язок Qt до Rust</name>
   <name xml:lang="x-test">xxRust Qt Binding Generatorxx</name>
   <name xml:lang="zh-TW">Rust Qt Binding 產生器</name>
@@ -80,7 +80,7 @@
     <p xml:lang="sk">Generátor väzieb Rust Qt je konzolový program na použitie kódu Rust v Qt programoch. IGeneruje typy QObject ktoré dávajú prístup ku kódu Rust. Implementácia objektu QObject je napísaná v Rust vlastnosti.</p>
     <p xml:lang="sl">Rust Qt Binding Generator je program iz ukazne vrstice za uporabo kode Rust v Qtprogramih. Ustvari predmete vrste QObject, ki omogočajo dostop do kode Rust. Izvedba predmeta QObject je zapisana v lastnosti Rust.</p>
     <p xml:lang="sv">Rust Qt-bindningsgenerator är ett kommandoradsprogram för att använda Rust-kod i Qt-program. Den skapar QObject-typer som ger åtkomst till Rust-kod. Implementeringen av QObject är skriven som en Rust trait.</p>
-    <p xml:lang="tr">Rust Qt Bağıntı Oluşturucu, Qt programlarında Rust kodu kullanmak için bir komut satırı programıdır. Rust koduna erişim sağlayan QObject türleri oluşturur. QObject'in uygulanması bir Rust niteliğinde yazılmıştır.</p>
+    <p xml:lang="tr">Rust Qt Bağıntısı Oluşturucusu, Qt programlarında Rust kodu kullanmak için bir komut satırı programıdır. Rust koduna erişim sağlayan QObject türleri oluşturur. QObject'in uygulanması bir Rust niteliğinde yazılmıştır.</p>
     <p xml:lang="uk">Засіб створення прив'язок Rust для Qt є програмою, яка працює за допомогою командного рядка і яку призначено для використання коду мовою Rust у програмах на основі Qt. Вона створює типи QObject, які надають доступ до коду мовою Rust. Реалізацію QObject написано у формі ознаки (trait) Rust.</p>
     <p xml:lang="x-test">xxRust Qt Binding Generator is command-line program for using Rust code in Qt programs. It generates QObject types that give access to Rust code. The implementation of the QObject is written in a Rust trait.xx</p>
   </description>
