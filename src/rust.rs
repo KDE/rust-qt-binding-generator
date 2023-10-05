@@ -318,6 +318,7 @@ pub struct {0}Emitter {{
             o.name
         )?;
     }
+
     if o.object_type == ObjectType::List {
         writeln!(r, "    new_data_ready: extern fn(*mut {}QObject),", o.name)?;
     } else if o.object_type == ObjectType::Tree {
@@ -383,6 +384,26 @@ impl {0}Emitter {{
     }}",
             snake_case(name)
         )?;
+    }
+
+    for (name, f) in &o.functions {
+        if f.arguments.is_empty() && f.return_type == SimpleType::Void {
+            writeln!(
+                r,
+                "    pub fn invoke_{}(&mut self) {{
+        let ptr = self.qobject.load(Ordering::SeqCst);
+        if !ptr.is_null() {{
+            unsafe {{
+                qmetaobject__invokeMethod__0(
+                    ptr as *const std::ffi::c_void,
+                    cstr::cstr!(b\"{0}\").as_ptr() as *const std::ffi::c_void
+                );
+            }}
+        }}
+    }}",
+                snake_case(name)
+            )?;
+        }
     }
 
     if o.object_type == ObjectType::List {
@@ -1277,6 +1298,15 @@ use std::ptr::null;
 use {}{}::*;",
         get_module_prefix(conf),
         conf.rust.implementation_module
+    )?;
+
+    writeln!(
+        r,
+        "
+extern \"C\" {{
+    pub fn qmetaobject__invokeMethod__0(obj: *const std::ffi::c_void, member: *const std::ffi::c_void);
+}}
+"
     )?;
 
     write_rust_types(conf, &mut r)?;

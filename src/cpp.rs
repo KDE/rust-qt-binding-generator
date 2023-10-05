@@ -1512,6 +1512,14 @@ namespace {{",
     for o in conf.objects.values() {
         write_cpp_object(&mut w, o, conf)?;
     }
+
+    writeln!(w, "extern \"C\" {{
+    void qmetaobject__invokeMethod__0(QObject *obj, const char *member) {{
+        QMetaObject::invokeMethod(obj, member);
+    }}
+}}")?;
+
+
     let file = conf.config_file.parent().unwrap().join(&conf.cpp_file);
     write_if_different(file, &w)
 }
