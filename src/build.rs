@@ -260,7 +260,9 @@ impl Build {
     }
     /// Add a bindings file to be processed.
     pub fn bindings<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
-        self.bindings.push(path.as_ref().to_path_buf());
+        let pb = path.as_ref().to_path_buf();
+        println!("cargo:rerun-if-changed={}", pb.display());
+        self.bindings.push(pb);
         self
     }
     /// Add a qrc file to be processed.
@@ -276,7 +278,9 @@ impl Build {
     /// </RCC>
     /// ```
     pub fn qrc<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
-        self.qrc.push(path.as_ref().to_path_buf());
+        let pb = path.as_ref().to_path_buf();
+        println!("cargo:rerun-if-changed={}", pb.display());
+        self.qrc.push(pb);
         self
     }
     /// Add a ui file to be processed.
@@ -288,7 +292,9 @@ impl Build {
     }
     /// Add a C++ header file to be compiled into the program.
     pub fn h<P: AsRef<Path>>(&mut self, path: P) -> &mut Build {
-        self.h.push(path.as_ref().to_path_buf());
+        let pb = path.as_ref().to_path_buf();
+        println!("cargo:rerun-if-changed={}", pb.display());
+        self.h.push(pb);
         self
     }
     /// Add a C++ file to be compiled into the program.
