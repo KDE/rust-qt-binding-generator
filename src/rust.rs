@@ -1550,7 +1550,7 @@ use {}{}::*;
 /// this prefix.
 fn get_module_prefix(conf: &Config) -> &'static str {
     match conf.rust_edition {
-        RustEdition::Rust2018 => "crate::",
-        _ => "",
+        RustEdition::Rust2015 => "",
+        _ => "crate::"
     }
 }

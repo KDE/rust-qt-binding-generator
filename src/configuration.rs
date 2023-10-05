@@ -61,6 +61,7 @@ mod json {
 pub enum RustEdition {
     Rust2015,
     Rust2018,
+    Rust2021,
     Unknown,
 }
 
@@ -69,6 +70,7 @@ impl<'a> ::std::convert::From<Option<&'a str>> for RustEdition {
         match str {
             None | Some("2015") => RustEdition::Rust2015,
             Some("2018") => RustEdition::Rust2018,
+            Some("2021") => RustEdition::Rust2021,
             _ => RustEdition::Unknown,
         }
     }
