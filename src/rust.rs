@@ -396,7 +396,7 @@ impl {0}Emitter {{
             unsafe {{
                 qmetaobject__invokeMethod__0(
                     ptr as *const std::ffi::c_void,
-                    cstr::cstr!(b\"{0}\").as_ptr() as *const std::ffi::c_void
+                    std::ffi::CStr::from_bytes_with_nul_unchecked(b\"{0}\\0\").as_ptr()
                 );
             }}
         }}
@@ -1304,7 +1304,7 @@ use {}{}::*;",
         r,
         "
 extern \"C\" {{
-    pub fn qmetaobject__invokeMethod__0(obj: *const std::ffi::c_void, member: *const std::ffi::c_void);
+    pub fn qmetaobject__invokeMethod__0(obj: *const std::ffi::c_void, member: *const c_char);
 }}
 "
     )?;
