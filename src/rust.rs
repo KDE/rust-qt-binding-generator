@@ -387,10 +387,14 @@ impl {0}Emitter {{
     }
 
     for (name, f) in &o.functions {
+        // Generate 'invoke_*' methods to call functions from the
+        // event loop using QMetaObject::invokeMethod.  Only
+        // implemented for functions with no arguments and void return.
         if f.arguments.is_empty() && f.return_type == SimpleType::Void {
             writeln!(
                 r,
-                "    pub fn invoke_{}(&mut self) {{
+                "    /// Invoke the `{0}` function on the QObject's event loop.
+    pub fn invoke_{0}(&mut self) {{
         let ptr = self.qobject.load(Ordering::SeqCst);
         if !ptr.is_null() {{
             unsafe {{
