@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rust-qt-binding-generator\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
 "POT-Creation-Date: 2023-11-05 13:43+0100\n"
-"PO-Revision-Date: 2024-02-26 21:30+0100\n"
+"PO-Revision-Date: 2024-03-24 10:34+0100\n"
 "Last-Translator: Oliver Kellogg <okellogg@users.sourceforge.net>\n"
 "Language-Team: Esperanto <kde-i18n-eo.org>\n"
 "Language: eo\n"
@@ -22,12 +22,12 @@ msgstr ""
 #: qml/chart.qml:36
 msgctxt "chart|"
 msgid "time [s]"
-msgstr ""
+msgstr "tempo [j]"
 
 #: qml/chart.qml:42
 msgctxt "chart|"
 msgid "electric potential [V]"
-msgstr ""
+msgstr "elektra potencialo [V]"
 
 #: qml/DataAndChart.qml:85
 msgctxt "DataAndChart|"
@@ -47,37 +47,37 @@ msgstr "cos"
 #: qml/DataAndChart.qml:104
 msgctxt "DataAndChart|"
 msgid "QtChart is not available."
-msgstr ""
+msgstr "QtChart ne disponeblas."
 
 #: qml/Fibonacci.qml:28
 msgctxt "Fibonacci|"
 msgid "Calculate the <i>nth</i> Fibonacci number"
-msgstr ""
+msgstr "Kalkulu la <i>n-an</i> nombron de Fibonacci"
 
 #: qml/Fibonacci.qml:32
 msgctxt "Fibonacci|"
 msgid "Your number"
-msgstr ""
+msgstr "Via numero"
 
 #: qml/Fibonacci.qml:46
 msgctxt "Fibonacci|"
 msgid "The Fibonacci number: "
-msgstr ""
+msgstr "La Fibonacci nombro:"
 
 #: qml/Fibonacci2.qml:27
 msgctxt "Fibonacci2|"
 msgid "Calculate the <i>nth</i> Fibonacci number"
-msgstr ""
+msgstr "Kalkulu la <i>n-an</i> nombron de Fibonacci"
 
 #: qml/Fibonacci2.qml:31
 msgctxt "Fibonacci2|"
 msgid "Your number"
-msgstr ""
+msgstr "Via numero"
 
 #: qml/Fibonacci2.qml:45
 msgctxt "Fibonacci2|"
 msgid "The Fibonacci number: "
-msgstr ""
+msgstr "La Fibonacci nombro:"
 
 #: qml/FibonacciList.qml:30
 msgctxt "FibonacciList|"
@@ -87,7 +87,7 @@ msgstr "Vico"
 #: qml/FibonacciList.qml:35
 msgctxt "FibonacciList|"
 msgid "Fibonacci number"
-msgstr ""
+msgstr "Fibonacci nombro"
 
 #: qml/FibonacciList2.qml:29
 msgctxt "FibonacciList2|"
@@ -97,7 +97,7 @@ msgstr "Vico"
 #: qml/FibonacciList2.qml:32
 msgctxt "FibonacciList2|"
 msgid "Fibonacci number"
-msgstr ""
+msgstr "Fibonacci nombro"
 
 #: qml/FibonacciListKirigami.qml:29
 msgctxt "FibonacciListKirigami|"
@@ -107,12 +107,12 @@ msgstr "Vico"
 #: qml/FibonacciListKirigami.qml:29
 msgctxt "FibonacciListKirigami|"
 msgid "Fibonacci number"
-msgstr ""
+msgstr "Fibonacci nombro"
 
 #: qml/FileTreeView2.qml:36
 msgctxt "FileTreeView2|"
 msgid "‹"
-msgstr ""
+msgstr "‹"
 
 #: qml/FileTreeView2.qml:54
 msgctxt "FileTreeView2|"
@@ -127,7 +127,7 @@ msgstr "Grandeco"
 #: qml/FileTreeViewKirigami.qml:37
 msgctxt "FileTreeViewKirigami|"
 msgid "‹"
-msgstr ""
+msgstr "‹"
 
 #: qml/FileTreeViewKirigami.qml:55
 msgctxt "FileTreeViewKirigami|"
@@ -142,12 +142,12 @@ msgstr "Grandeco"
 #: src/main.cpp:240
 msgctxt "main|"
 msgid "Calculate the <i>nth</i> Fibonacci number"
-msgstr ""
+msgstr "Kalkulu la <i>n-an</i> nombron de Fibonacci"
 
 #: src/main.cpp:257
 msgctxt "main|"
 msgid "The Fibonacci number: "
-msgstr ""
+msgstr "La Fibonacci nombro:"
 
 #: src/main.cpp:273
 msgctxt "main|"
@@ -157,7 +157,7 @@ msgstr "Vico"
 #: src/main.cpp:275
 msgctxt "main|"
 msgid "Fibonacci number"
-msgstr ""
+msgstr "Fibonacci nombro"
 
 #: src/main.cpp:284
 msgctxt "main|"
@@ -172,7 +172,7 @@ msgstr "Grandeco"
 #: src/main.cpp:422
 msgctxt "main|"
 msgid "Initial widget style."
-msgstr ""
+msgstr "Komenca fenestraĵstilo."
 
 #: src/main.cpp:423
 msgctxt "main|"
@@ -182,7 +182,7 @@ msgstr "stilo"
 #: src/main.cpp:428
 msgctxt "main|"
 msgid "Initial tab."
-msgstr ""
+msgstr "Komenca langeto."
 
 #: src/main.cpp:429
 msgctxt "main|"
